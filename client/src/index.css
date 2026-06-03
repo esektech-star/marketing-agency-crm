@@ -113,12 +113,28 @@
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
+/* RTL Support */
+@supports (direction: rtl) {
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+  
+  html[dir="rtl"] * {
+    direction: inherit;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  }
+  
+  html[dir="rtl"] body {
+    font-family: 'Segoe UI', 'Helvetica Neue', 'Arabic Typesetting', sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
