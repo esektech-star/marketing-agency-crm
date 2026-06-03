@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -35,6 +35,8 @@ const menuItems = [
   { icon: CheckCircle2, label: "المهام", path: "/tasks" },
   { icon: Zap, label: "الليدز", path: "/leads" },
   { icon: TrendingUp, label: "المالية", path: "/transactions" },
+  { icon: BarChart3, label: "الحملات", path: "/campaigns" },
+  { icon: LineChartIcon, label: "التقارير", path: "/reports" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

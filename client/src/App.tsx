@@ -12,6 +12,8 @@ import TeamMembers from "./pages/TeamMembers";
 import Tasks from "./pages/Tasks";
 import Leads from "./pages/Leads";
 import Transactions from "./pages/Transactions";
+import Campaigns from "./pages/Campaigns";
+import Reports from "./pages/Reports";
 import Home from "./pages/Home";
 
 function Router() {
@@ -64,6 +66,20 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Transactions />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/campaigns"}>
+        {() => (
+          <DashboardLayout>
+            <Campaigns />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/reports"}>
+        {() => (
+          <DashboardLayout>
+            <Reports />
           </DashboardLayout>
         )}
       </Route>
