@@ -26,6 +26,8 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import LanguageSwitcher from './LanguageSwitcher';
+import EsekTechLogo from './EsekTechLogo';
 
 const menuItems = [
   { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
@@ -166,8 +168,13 @@ function DashboardLayoutContent({
           className="border-r-0"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center">
+          <SidebarHeader className="h-16 justify-center border-b">
             <div className="flex items-center gap-3 px-2 transition-all w-full">
+              {!isCollapsed && (
+                <div className="flex-1">
+                  <EsekTechLogo />
+                </div>
+              )}
               <button
                 onClick={toggleSidebar}
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
@@ -175,13 +182,6 @@ function DashboardLayoutContent({
               >
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
-              {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
-                </div>
-              ) : null}
             </div>
           </SidebarHeader>
 
@@ -264,7 +264,14 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-4 flex flex-col">
+          {!isMobile && (
+            <div className="flex justify-end mb-4">
+              <LanguageSwitcher />
+            </div>
+          )}
+          {children}
+        </main>
       </SidebarInset>
     </>
   );
