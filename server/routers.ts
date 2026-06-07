@@ -4,6 +4,9 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import bcrypt from "bcryptjs";
+import { TRPCError } from "@trpc/server";
+import { storagePut } from "./storage";
 
 export const appRouter = router({
   system: systemRouter,
@@ -362,6 +365,66 @@ export const appRouter = router({
       }),
   }),
 
+  // ==================== App Users (إدارة المستخدمين) ====================
+  appUsers: router({
+    list: protectedProcedure.query(async () => {
+      const users = await db.getAppUsers();
+      // إخفاء hash كلمة المرور عن الواجهة
+      return users.map(({ passwordHash, ...rest }) => rest);
+    }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const user = await db.getAppUserById(input.id);
+        if (!user) return undefined;
+        const { passwordHash, ...rest } = user;
+        return rest;
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        username: z.string().min(3),
+        password: z.string().min(6),
+        fullName: z.string(),
+        email: z.string().optional(),
+        role: z.enum(["مدير", "موظف", "مصمم", "محرر"]),
+        preferredLanguage: z.enum(["ar", "he", "en"]),
+        status: z.enum(["نشط", "معطل"]),
+      }))
+      .mutation(async ({ input }) => {
+        const existing = await db.getAppUserByUsername(input.username);
+        if (existing) {
+          throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم موجود مسبقاً" });
+        }
+        const passwordHash = await bcrypt.hash(input.password, 10);
+        const { password, ...rest } = input;
+        return await db.createAppUser({ ...rest, passwordHash });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        fullName: z.string().optional(),
+        email: z.string().optional(),
+        role: z.enum(["مدير", "موظف", "مصمم", "محرر"]).optional(),
+        preferredLanguage: z.enum(["ar", "he", "en"]).optional(),
+        status: z.enum(["نشط", "معطل"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await db.updateAppUser(id, data);
+      }),
+    resetPassword: protectedProcedure
+      .input(z.object({ id: z.number(), newPassword: z.string().min(6) }))
+      .mutation(async ({ input }) => {
+        const passwordHash = await bcrypt.hash(input.newPassword, 10);
+        return await db.updateAppUser(input.id, { passwordHash });
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteAppUser(input.id);
+      }),
+  }),
+
   // ==================== Access Details ====================
   accessDetails: router({
     list: protectedProcedure.query(async () => {
@@ -404,6 +467,68 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return await db.deleteAccessDetail(input.id);
+      }),
+  }),
+
+  // ==================== Documents (الملفات والمستندات) ====================
+  documents: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getDocuments();
+    }),
+    upload: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileBase64: z.string(),
+        mimeType: z.string().optional(),
+        category: z.string().optional(),
+        relatedClient: z.number().optional(),
+        relatedCampaign: z.number().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // تحويل base64 إلى buffer
+        const base64Data = input.fileBase64.includes(",")
+          ? input.fileBase64.split(",")[1]
+          : input.fileBase64;
+        const buffer = Buffer.from(base64Data, "base64");
+        const fileSize = buffer.length;
+        // حد أقصى 16ميجابايت
+        if (fileSize > 16 * 1024 * 1024) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "حجم الملف يتجاوز 16 ميجابايت" });
+        }
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const relKey = `documents/${Date.now()}_${safeName}`;
+        const { key, url } = await storagePut(relKey, buffer, input.mimeType || "application/octet-stream");
+        return await db.createDocument({
+          fileName: input.fileName,
+          fileKey: key,
+          fileUrl: url,
+          mimeType: input.mimeType,
+          fileSize,
+          category: input.category,
+          relatedClient: input.relatedClient,
+          relatedCampaign: input.relatedCampaign,
+          notes: input.notes,
+          uploadedBy: ctx.user?.id,
+        });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        fileName: z.string().optional(),
+        category: z.string().optional(),
+        relatedClient: z.number().optional(),
+        relatedCampaign: z.number().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await db.updateDocument(id, data);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteDocument(input.id);
       }),
   }),
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,10 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const STATUS_VALUES = ["نشط", "معلق", "غير نشط"] as const;
+
 export default function Vendors() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const emptyForm = {
     name: "",
     serviceType: "",
     phone: "",
@@ -22,16 +26,25 @@ export default function Vendors() {
     website: "",
     status: "نشط",
     notes: "",
-  });
+  };
+  const [formData, setFormData] = useState(emptyForm);
 
   const { data: vendors = [], isLoading, refetch } = trpc.vendors.list.useQuery();
   const createMutation = trpc.vendors.create.useMutation();
   const updateMutation = trpc.vendors.update.useMutation();
   const deleteMutation = trpc.vendors.delete.useMutation();
 
+  const localizedStatus = (status: string) => {
+    const map: Record<string, string> = {
+      "نشط": t("clients.statusActive", "نشط"),
+      "معلق": t("clients.statusPending", "معلق"),
+      "غير نشط": t("vendors.statusInactive", "غير نشط"),
+    };
+    return map[status] || status;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       if (editingId) {
         await updateMutation.mutateAsync({
@@ -44,7 +57,7 @@ export default function Vendors() {
           website: formData.website,
           notes: formData.notes,
         });
-        toast.success("تم تحديث الموردين بنجاح");
+        toast.success(t("common.editSuccess"));
       } else {
         await createMutation.mutateAsync({
           name: formData.name,
@@ -55,23 +68,14 @@ export default function Vendors() {
           website: formData.website,
           notes: formData.notes,
         });
-        toast.success("تم إضافة المورد بنجاح");
+        toast.success(t("common.addSuccess"));
       }
-      
-      setFormData({
-        name: "",
-        serviceType: "",
-        phone: "",
-        email: "",
-        website: "",
-        status: "نشط",
-        notes: "",
-      });
+      setFormData(emptyForm);
       setEditingId(null);
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error(t("common.error"));
     }
   };
 
@@ -90,13 +94,13 @@ export default function Vendors() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذا المورد؟")) {
+    if (confirm(t("common.confirmDelete"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف المورد بنجاح");
+        toast.success(t("common.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف المورد");
+        toast.error(t("common.error"));
       }
     }
   };
@@ -104,118 +108,72 @@ export default function Vendors() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({
-      name: "",
-      serviceType: "",
-      phone: "",
-      email: "",
-      website: "",
-      status: "نشط",
-      notes: "",
-    });
+    setFormData(emptyForm);
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold">إدارة الموردين</h1>
-          <p className="text-muted-foreground mt-1">إدارة قائمة الموردين والخدمات المقدمة منهم</p>
+          <h1 className="text-3xl font-bold">{t("vendors.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("vendors.subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ name: "", serviceType: "", phone: "", email: "", website: "", status: "نشط", notes: "" }); }}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة مورد جديد
+            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+              <Plus className="w-4 h-4 ms-2" />
+              {t("vendors.addVendor")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل المورد" : "إضافة مورد جديد"}</DialogTitle>
+              <DialogTitle>{editingId ? t("vendors.editVendor") : t("vendors.addVendor")}</DialogTitle>
               <DialogDescription>
-                {editingId ? "قم بتحديث بيانات المورد" : "أدخل بيانات المورد الجديد"}
+                {editingId ? t("vendors.editVendor") : t("vendors.addVendor")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">اسم المورد</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="اسم المورد"
-                  required
-                />
+                <Label htmlFor="name">{t("vendors.vendorName")}</Label>
+                <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
               </div>
               <div>
-                <Label htmlFor="serviceType">نوع الخدمة</Label>
-                <Input
-                  id="serviceType"
-                  value={formData.serviceType}
-                  onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
-                  placeholder="مثال: استضافة، تصميم، تطوير"
-                  required
-                />
+                <Label htmlFor="serviceType">{t("vendors.serviceType")}</Label>
+                <Input id="serviceType" value={formData.serviceType} onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })} required />
               </div>
               <div>
-                <Label htmlFor="phone">رقم الهاتف</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+966 50 000 0000"
-                />
+                <Label htmlFor="phone">{t("common.phone")}</Label>
+                <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
               </div>
               <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="example@email.com"
-                />
+                <Label htmlFor="email">{t("common.email")}</Label>
+                <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
               </div>
               <div>
-                <Label htmlFor="website">الموقع الإلكتروني</Label>
-                <Input
-                  id="website"
-                  value={formData.website}
-                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://example.com"
-                />
+                <Label htmlFor="website">{t("vendors.contactInfo")}</Label>
+                <Input id="website" value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} placeholder="https://..." />
               </div>
               <div>
-                <Label htmlFor="status">الحالة</Label>
+                <Label htmlFor="status">{t("common.status")}</Label>
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="نشط">نشط</SelectItem>
-                    <SelectItem value="معلق">معلق</SelectItem>
-                    <SelectItem value="غير نشط">غير نشط</SelectItem>
+                    {STATUS_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="notes">ملاحظات</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="أي ملاحظات إضافية"
-                  className="resize-none"
-                />
+                <Label htmlFor="notes">{t("common.notes")}</Label>
+                <Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="resize-none" />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ms-2 animate-spin" />}
+                  {editingId ? t("common.update") : t("common.add")}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  إلغاء
-                </Button>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -224,8 +182,8 @@ export default function Vendors() {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة الموردين</CardTitle>
-          <CardDescription>عدد الموردين: {vendors.length}</CardDescription>
+          <CardTitle>{t("vendors.title")}</CardTitle>
+          <CardDescription>{t("common.total")}: {vendors.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -233,20 +191,18 @@ export default function Vendors() {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : vendors.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              لا توجد موردين حتى الآن. قم بإضافة مورد جديد للبدء.
-            </div>
+            <div className="text-center py-8 text-muted-foreground">{t("vendors.empty")}</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الاسم</TableHead>
-                    <TableHead>نوع الخدمة</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>البريد الإلكتروني</TableHead>
-                    <TableHead>الهاتف</TableHead>
-                    <TableHead>الإجراءات</TableHead>
+                    <TableHead>{t("vendors.vendorName")}</TableHead>
+                    <TableHead>{t("vendors.serviceType")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("common.email")}</TableHead>
+                    <TableHead>{t("common.phone")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -260,25 +216,17 @@ export default function Vendors() {
                           vendor.status === "معلق" ? "bg-yellow-100 text-yellow-800" :
                           "bg-red-100 text-red-800"
                         }`}>
-                          {vendor.status}
+                          {localizedStatus(vendor.status)}
                         </span>
                       </TableCell>
                       <TableCell>{vendor.email || "-"}</TableCell>
                       <TableCell>{vendor.phone || "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(vendor)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(vendor)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(vendor.id)}
-                          >
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(vendor.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

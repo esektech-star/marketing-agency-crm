@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,27 +12,39 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const STATUS_VALUES = ["نشط", "معلق", "منتهي"] as const;
+
 export default function Clients() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const emptyForm = {
     name: "",
     serviceType: "",
     status: "نشط",
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: new Date().toISOString().split("T")[0],
     phone: "",
     email: "",
     notes: "",
-  });
+  };
+  const [formData, setFormData] = useState(emptyForm);
 
   const { data: clients = [], isLoading, refetch } = trpc.clients.list.useQuery();
   const createMutation = trpc.clients.create.useMutation();
   const updateMutation = trpc.clients.update.useMutation();
   const deleteMutation = trpc.clients.delete.useMutation();
 
+  const localizedStatus = (status: string) => {
+    const map: Record<string, string> = {
+      "نشط": t("clients.statusActive", "نشط"),
+      "معلق": t("clients.statusPending", "معلق"),
+      "منتهي": t("clients.statusEnded", "منتهي"),
+    };
+    return map[status] || status;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       if (editingId) {
         await updateMutation.mutateAsync({
@@ -43,7 +56,7 @@ export default function Clients() {
           email: formData.email,
           notes: formData.notes,
         });
-        toast.success("تم تحديث العميل بنجاح");
+        toast.success(t("common.editSuccess"));
       } else {
         await createMutation.mutateAsync({
           name: formData.name,
@@ -54,23 +67,14 @@ export default function Clients() {
           email: formData.email,
           notes: formData.notes,
         });
-        toast.success("تم إضافة العميل بنجاح");
+        toast.success(t("common.addSuccess"));
       }
-      
-      setFormData({
-        name: "",
-        serviceType: "",
-        status: "نشط",
-        startDate: new Date().toISOString().split('T')[0],
-        phone: "",
-        email: "",
-        notes: "",
-      });
+      setFormData(emptyForm);
       setEditingId(null);
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error(t("common.error"));
     }
   };
 
@@ -80,7 +84,7 @@ export default function Clients() {
       name: client.name,
       serviceType: client.serviceType,
       status: client.status,
-      startDate: new Date(client.startDate).toISOString().split('T')[0],
+      startDate: new Date(client.startDate).toISOString().split("T")[0],
       phone: client.phone || "",
       email: client.email || "",
       notes: client.notes || "",
@@ -89,13 +93,13 @@ export default function Clients() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذا العميل؟")) {
+    if (confirm(t("common.confirmDelete"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف العميل بنجاح");
+        toast.success(t("common.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف العميل");
+        toast.error(t("common.error"));
       }
     }
   };
@@ -103,74 +107,64 @@ export default function Clients() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({
-      name: "",
-      serviceType: "",
-      status: "نشط",
-      startDate: new Date().toISOString().split('T')[0],
-      phone: "",
-      email: "",
-      notes: "",
-    });
+    setFormData(emptyForm);
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold">إدارة العملاء</h1>
-          <p className="text-muted-foreground mt-1">إدارة قائمة العملاء النشطين والخدمات المقدمة لهم</p>
+          <h1 className="text-3xl font-bold">{t("clients.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ name: "", serviceType: "", status: "نشط", startDate: new Date().toISOString().split('T')[0], phone: "", email: "", notes: "" }); }}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة عميل جديد
+            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+              <Plus className="w-4 h-4 ms-2" />
+              {t("clients.addClient")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل العميل" : "إضافة عميل جديد"}</DialogTitle>
+              <DialogTitle>{editingId ? t("clients.editClient") : t("clients.addClient")}</DialogTitle>
               <DialogDescription>
-                {editingId ? "قم بتحديث بيانات العميل" : "أدخل بيانات العميل الجديد"}
+                {editingId ? t("clients.editClient") : t("clients.addClient")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">اسم العميل</Label>
+                <Label htmlFor="name">{t("clients.clientName")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="اسم العميل"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="serviceType">نوع الخدمة</Label>
+                <Label htmlFor="serviceType">{t("clients.serviceType")}</Label>
                 <Input
                   id="serviceType"
                   value={formData.serviceType}
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
-                  placeholder="مثال: تسويق رقمي، إدارة وسائل اجتماعية"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="status">الحالة</Label>
+                <Label htmlFor="status">{t("common.status")}</Label>
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="نشط">نشط</SelectItem>
-                    <SelectItem value="معلق">معلق</SelectItem>
-                    <SelectItem value="منتهي">منتهي</SelectItem>
+                    {STATUS_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Label htmlFor="startDate">{t("clients.startDate")}</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -180,41 +174,38 @@ export default function Clients() {
                 />
               </div>
               <div>
-                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Label htmlFor="phone">{t("common.phone")}</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+966 50 000 0000"
                 />
               </div>
               <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Label htmlFor="email">{t("common.email")}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="example@email.com"
                 />
               </div>
               <div>
-                <Label htmlFor="notes">ملاحظات</Label>
+                <Label htmlFor="notes">{t("common.notes")}</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="أي ملاحظات إضافية"
                   className="resize-none"
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ms-2 animate-spin" />}
+                  {editingId ? t("common.update") : t("common.add")}
                 </Button>
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  إلغاء
+                  {t("common.cancel")}
                 </Button>
               </div>
             </form>
@@ -224,8 +215,8 @@ export default function Clients() {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة العملاء</CardTitle>
-          <CardDescription>عدد العملاء: {clients.length}</CardDescription>
+          <CardTitle>{t("clients.title")}</CardTitle>
+          <CardDescription>{t("common.total")}: {clients.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -234,19 +225,19 @@ export default function Clients() {
             </div>
           ) : clients.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              لا توجد عملاء حتى الآن. قم بإضافة عميل جديد للبدء.
+              {t("clients.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الاسم</TableHead>
-                    <TableHead>نوع الخدمة</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>تاريخ البداية</TableHead>
-                    <TableHead>الهاتف</TableHead>
-                    <TableHead>الإجراءات</TableHead>
+                    <TableHead>{t("clients.clientName")}</TableHead>
+                    <TableHead>{t("clients.serviceType")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("clients.startDate")}</TableHead>
+                    <TableHead>{t("common.phone")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -260,25 +251,17 @@ export default function Clients() {
                           client.status === "معلق" ? "bg-yellow-100 text-yellow-800" :
                           "bg-red-100 text-red-800"
                         }`}>
-                          {client.status}
+                          {localizedStatus(client.status)}
                         </span>
                       </TableCell>
-                      <TableCell>{new Date(client.startDate).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell>{new Date(client.startDate).toLocaleDateString()}</TableCell>
                       <TableCell>{client.phone || "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(client)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(client)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(client.id)}
-                          >
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(client.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

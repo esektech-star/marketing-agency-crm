@@ -1,15 +1,22 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Users, CheckCircle2, TrendingUp, Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
+const COLORS = ["#1e3a5f", "#F59E0B", "#5b9bd5", "#10B981"];
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data: stats, isLoading } = trpc.dashboard.getStats.useQuery();
+
+  const currency = t("common.currency");
+
+  const formatCurrency = (value: number) =>
+    `${value.toLocaleString("en-US")} ${currency}`;
 
   if (isLoading) {
     return (
@@ -31,82 +38,79 @@ export default function Dashboard() {
   }
 
   const revenueData = [
-    { month: "يناير", إيراد: 4000, مصروف: 2400 },
-    { month: "فبراير", إيراد: 3000, مصروف: 1398 },
-    { month: "مارس", إيراد: 2000, مصروف: 9800 },
-    { month: "أبريل", إيراد: 2780, مصروف: 3908 },
-    { month: "مايو", إيراد: 1890, مصروف: 4800 },
-    { month: "يونيو", إيراد: 2390, مصروف: 3800 },
+    { month: t("dashboard.revenue"), [t("dashboard.revenue")]: stats?.totalRevenue || 0, [t("dashboard.expenses")]: stats?.totalExpense || 0 },
   ];
 
-  const leadsData = [
-    { name: "جديد", value: 30 },
-    { name: "متابعة", value: 25 },
-    { name: "اهتمام", value: 20 },
-    { name: "مغلق", value: 25 },
-  ];
+  const monthlyData = (stats?.monthlyData as Array<{ month: string; revenue: number; expense: number }> | undefined) || [];
+  const chartData = monthlyData.length > 0
+    ? monthlyData.map((m) => ({
+        month: m.month,
+        [t("dashboard.revenue")]: m.revenue,
+        [t("dashboard.expenses")]: m.expense,
+      }))
+    : revenueData;
+
+  const leadsBySource = (stats?.leadsBySource as Array<{ name: string; value: number }> | undefined) || [];
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold mb-2">مرحباً بك، {user?.name || "المستخدم"}</h1>
-        <p className="text-blue-100">لوحة التحكم الرئيسية لإدارة سوكنة الشيويق الديجيتالية</p>
+      <div className="bg-gradient-to-l from-[#1e3a5f] to-[#2d5080] rounded-xl p-6 text-white shadow-lg">
+        <h1 className="text-3xl font-bold mb-2">
+          {t("dashboard.welcome")}{user?.name ? `، ${user.name}` : ""}
+        </h1>
+        <p className="text-blue-100">{t("dashboard.subtitle")}</p>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow border-r-4 border-r-[#1e3a5f]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-600" />
-              العملاء النشطين
+              <Users className="w-4 h-4 text-[#1e3a5f]" />
+              {t("dashboard.activeClients")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600">{stats?.activeClientsCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">عملاء نشطين حالياً</p>
+            <div className="text-3xl font-bold text-[#1e3a5f]">{stats?.activeClientsCount || 0}</div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow border-r-4 border-r-[#F59E0B]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-600" />
-              المهام المعلقة
+              <CheckCircle2 className="w-4 h-4 text-[#F59E0B]" />
+              {t("dashboard.pendingTasks")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{stats?.pendingTasksCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">مهام في الانتظار</p>
+            <div className="text-3xl font-bold text-[#F59E0B]">{stats?.pendingTasksCount || 0}</div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow border-r-4 border-r-[#5b9bd5]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="w-4 h-4 text-green-600" />
-              الليدز النشطة
+              <Zap className="w-4 h-4 text-[#5b9bd5]" />
+              {t("dashboard.newLeads")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{stats?.activeLeadsCount || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">عملاء محتملين نشطين</p>
+            <div className="text-3xl font-bold text-[#5b9bd5]">{stats?.activeLeadsCount || 0}</div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow border-r-4 border-r-[#10B981]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-              الربح الصافي
+              <TrendingUp className="w-4 h-4 text-[#10B981]" />
+              {t("dashboard.monthlyRevenue")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">
-              {((stats?.netProfit || 0) / 1000).toFixed(1)}K
+            <div className="text-3xl font-bold text-[#10B981]">
+              {formatCurrency(stats?.totalRevenue || 0)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">هذا الشهر</p>
           </CardContent>
         </Card>
       </div>
@@ -115,19 +119,18 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>الإيرادات والمصروفات</CardTitle>
-            <CardDescription>ملخص الحركات المالية الشهرية</CardDescription>
+            <CardTitle>{t("dashboard.revenueVsExpenses")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="إيراد" fill="#3B82F6" />
-                <Bar dataKey="مصروف" fill="#EF4444" />
+                <Bar dataKey={t("dashboard.revenue")} fill="#1e3a5f" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={t("dashboard.expenses")} fill="#F59E0B" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -135,29 +138,34 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>توزيع الليدز</CardTitle>
-            <CardDescription>حسب المراحل</CardDescription>
+            <CardTitle>{t("dashboard.leadsBySource")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={leadsData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {leadsData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {leadsBySource.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={leadsBySource}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {leadsBySource.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">
+                {t("dashboard.noLeads")}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -166,33 +174,33 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">إجمالي الإيرادات</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("transactions.totalIncome")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {(stats?.totalRevenue || 0).toLocaleString('ar-SA')} ريال
+            <div className="text-2xl font-bold text-[#10B981]">
+              {formatCurrency(stats?.totalRevenue || 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">إجمالي المصروفات</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("transactions.totalExpenses")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {(stats?.totalExpense || 0).toLocaleString('ar-SA')} ريال
+              {formatCurrency(stats?.totalExpense || 0)}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">الربح الصافي</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("transactions.netProfit")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${(stats?.netProfit || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-              {((stats?.netProfit || 0) >= 0 ? '+' : '')} {(stats?.netProfit || 0).toLocaleString('ar-SA')} ريال
+            <div className={`text-2xl font-bold ${(stats?.netProfit || 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+              {(stats?.netProfit || 0) >= 0 ? "+" : ""}{formatCurrency(stats?.netProfit || 0)}
             </div>
           </CardContent>
         </Card>

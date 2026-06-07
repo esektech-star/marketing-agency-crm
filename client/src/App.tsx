@@ -14,6 +14,9 @@ import Leads from "./pages/Leads";
 import Transactions from "./pages/Transactions";
 import Campaigns from "./pages/Campaigns";
 import Reports from "./pages/Reports";
+import Users from "./pages/Users";
+import AccessDetails from "./pages/AccessDetails";
+import Documents from "./pages/Documents";
 import Home from "./pages/Home";
 
 function Router() {
@@ -80,6 +83,27 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Reports />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/access-details"}>
+        {() => (
+          <DashboardLayout>
+            <AccessDetails />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/users"}>
+        {() => (
+          <DashboardLayout>
+            <Users />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/documents"}>
+        {() => (
+          <DashboardLayout>
+            <Documents />
           </DashboardLayout>
         )}
       </Route>

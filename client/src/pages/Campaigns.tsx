@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,25 +12,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const STATUS_VALUES = ["مخطط", "نشط", "معلق", "منتهي"] as const;
+
 export default function Campaigns() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  
+  const emptyForm = {
     name: "",
     platform: "",
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     budget: "",
-    status: "مخطط",
     description: "",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: "مخطط" as const,
     relatedClient: "",
-  });
+  };
+  
+  const [formData, setFormData] = useState(emptyForm);
 
   const { data: campaigns = [], isLoading, refetch } = trpc.campaigns.list.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
   const createMutation = trpc.campaigns.create.useMutation();
   const updateMutation = trpc.campaigns.update.useMutation();
   const deleteMutation = trpc.campaigns.delete.useMutation();
+
+  const localizedStatus = (status: string) => {
+    const map: Record<string, string> = {
+      "مخطط": t("campaigns.statusPlanned", "مخطط"),
+      "نشط": t("campaigns.statusActive", "نشط"),
+      "معلق": t("campaigns.statusPaused", "معلق"),
+      "منتهي": t("campaigns.statusCompleted", "منتهي"),
+    };
+    return map[status] || status;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,43 +57,34 @@ export default function Campaigns() {
           id: editingId,
           name: formData.name,
           platform: formData.platform,
+          budget: parseFloat(formData.budget),
+          description: formData.description,
           startDate: new Date(formData.startDate),
           endDate: new Date(formData.endDate),
-          budget: formData.budget ? parseFloat(formData.budget) : undefined,
           status: formData.status as "مخطط" | "نشط" | "معلق" | "منتهي",
-          description: formData.description,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
-        toast.success("تم تحديث الحملة بنجاح");
+        toast.success(t("campaigns.editSuccess"));
       } else {
         await createMutation.mutateAsync({
           name: formData.name,
           platform: formData.platform,
+          budget: parseFloat(formData.budget),
+          description: formData.description,
           startDate: new Date(formData.startDate),
           endDate: new Date(formData.endDate),
-          budget: formData.budget ? parseFloat(formData.budget) : undefined,
           status: formData.status as "مخطط" | "نشط" | "معلق" | "منتهي",
-          description: formData.description,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
-        toast.success("تم إضافة الحملة بنجاح");
+        toast.success(t("campaigns.addSuccess"));
       }
       
-      setFormData({
-        name: "",
-        platform: "",
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        budget: "",
-        status: "مخطط",
-        description: "",
-        relatedClient: "",
-      });
+      setFormData(emptyForm);
       setEditingId(null);
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error(t("common.error"));
     }
   };
 
@@ -84,25 +92,25 @@ export default function Campaigns() {
     setEditingId(campaign.id);
     setFormData({
       name: campaign.name,
-      platform: campaign.platform,
+      platform: campaign.platform || "",
+      budget: campaign.budget?.toString() || "",
+      description: campaign.description || "",
       startDate: new Date(campaign.startDate).toISOString().split('T')[0],
       endDate: new Date(campaign.endDate).toISOString().split('T')[0],
-      budget: campaign.budget?.toString() || "",
       status: campaign.status,
-      description: campaign.description || "",
       relatedClient: campaign.relatedClient?.toString() || "",
     });
     setIsOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذه الحملة؟")) {
+    if (confirm(t("campaigns.confirmDelete"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف الحملة بنجاح");
+        toast.success(t("campaigns.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف الحملة");
+        toast.error(t("common.error"));
       }
     }
   };
@@ -110,16 +118,7 @@ export default function Campaigns() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({
-      name: "",
-      platform: "",
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      budget: "",
-      status: "مخطط",
-      description: "",
-      relatedClient: "",
-    });
+    setFormData(emptyForm);
   };
 
   const getStatusColor = (status: string) => {
@@ -127,68 +126,65 @@ export default function Campaigns() {
       case "مخطط": return "bg-blue-100 text-blue-800";
       case "نشط": return "bg-green-100 text-green-800";
       case "منتهي": return "bg-gray-100 text-gray-800";
-      case "ملغي": return "bg-red-100 text-red-800";
+      case "معلق": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const calculateProgress = (startDate: Date, endDate: Date) => {
-    const now = new Date();
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (now < start) return 0;
-    if (now > end) return 100;
-    
-    const total = end.getTime() - start.getTime();
-    const elapsed = now.getTime() - start.getTime();
-    return Math.round((elapsed / total) * 100);
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold">إدارة الحملات الإعلانية</h1>
-          <p className="text-muted-foreground mt-1">إدارة وتتبع الحملات الإعلانية مع جدول زمني بصري</p>
+          <h1 className="text-3xl font-bold">{t("campaigns.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("campaigns.subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ name: "", platform: "", startDate: new Date().toISOString().split('T')[0], endDate: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], budget: "", status: "مخطط", description: "", relatedClient: "" }); }}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة حملة جديدة
+            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+              <Plus className="w-4 h-4 ms-2" />
+              {t("campaigns.addCampaign")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل الحملة" : "إضافة حملة جديدة"}</DialogTitle>
-              <DialogDescription>
-                {editingId ? "قم بتحديث بيانات الحملة" : "أدخل بيانات الحملة الجديدة"}
-              </DialogDescription>
+              <DialogTitle>{editingId ? t("campaigns.editCampaign") : t("campaigns.addCampaign")}</DialogTitle>
+              <DialogDescription>{editingId ? t("campaigns.editDesc") : t("campaigns.addDesc")}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">اسم الحملة</Label>
+                <Label htmlFor="name">{t("campaigns.campaignName")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="اسم الحملة"
+                  placeholder={t("campaigns.campaignName")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="platform">المنصة</Label>
+                <Label htmlFor="platform">{t("campaigns.platform")}</Label>
                 <Input
                   id="platform"
                   value={formData.platform}
                   onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                  placeholder="مثال: فيسبوك، جوجل، إنستجرام"
+                  placeholder={t("campaigns.platform")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="startDate">تاريخ البداية</Label>
+                <Label htmlFor="budget">{t("campaigns.budget")}</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  placeholder="0.00"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="startDate">{t("campaigns.startDate")}</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -198,7 +194,7 @@ export default function Campaigns() {
                 />
               </div>
               <div>
-                <Label htmlFor="endDate">تاريخ النهاية</Label>
+                <Label htmlFor="endDate">{t("campaigns.endDate")}</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -208,35 +204,23 @@ export default function Campaigns() {
                 />
               </div>
               <div>
-                <Label htmlFor="budget">الميزانية</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                  placeholder="0.00"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <Label htmlFor="status">الحالة</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <Label htmlFor="status">{t("campaigns.status")}</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="مخطط">مخطط</SelectItem>
-                    <SelectItem value="نشط">نشط</SelectItem>
-                    <SelectItem value="منتهي">منتهي</SelectItem>
-                    <SelectItem value="معلق">معلق</SelectItem>
+                    {STATUS_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="relatedClient">العميل ذي الصلة</Label>
+                <Label htmlFor="relatedClient">{t("campaigns.client")}</Label>
                 <Select value={formData.relatedClient} onValueChange={(value) => setFormData({ ...formData, relatedClient: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر العميل" />
+                    <SelectValue placeholder={t("common.selectClient")} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client: any) => (
@@ -248,23 +232,21 @@ export default function Campaigns() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="description">الوصف</Label>
+                <Label htmlFor="description">{t("common.description")}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="وصف الحملة"
+                  placeholder={t("common.description")}
                   className="resize-none"
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ms-2 animate-spin" />}
+                  {editingId ? t("common.update") : t("common.add")}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  إلغاء
-                </Button>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -273,8 +255,8 @@ export default function Campaigns() {
 
       <Card>
         <CardHeader>
-          <CardTitle>مخطط جانت للحملات</CardTitle>
-          <CardDescription>عدد الحملات: {campaigns.length}</CardDescription>
+          <CardTitle>{t("campaigns.listTitle")}</CardTitle>
+          <CardDescription>{t("campaigns.count")}: {campaigns.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -283,64 +265,57 @@ export default function Campaigns() {
             </div>
           ) : campaigns.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              لا توجد حملات حتى الآن. قم بإضافة حملة جديدة للبدء.
+              {t("campaigns.empty")}
             </div>
           ) : (
-            <div className="space-y-4">
-              {campaigns.map((campaign: any) => {
-                const progress = calculateProgress(new Date(campaign.startDate), new Date(campaign.endDate));
-                return (
-                  <div key={campaign.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{campaign.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {campaign.platform} • {new Date(campaign.startDate).toLocaleDateString('ar-SA')} إلى {new Date(campaign.endDate).toLocaleDateString('ar-SA')}
-                        </p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(campaign.status)}`}>
-                        {campaign.status}
-                      </span>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">التقدم</span>
-                        <span className="font-medium">{progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {campaign.budget && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        الميزانية: {campaign.budget.toLocaleString('ar-SA')} ريال
-                      </p>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(campaign)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(campaign.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("campaigns.campaignName")}</TableHead>
+                    <TableHead>{t("campaigns.platform")}</TableHead>
+                    <TableHead>{t("campaigns.budget")}</TableHead>
+                    <TableHead>{t("campaigns.startDate")}</TableHead>
+                    <TableHead>{t("campaigns.endDate")}</TableHead>
+                    <TableHead>{t("campaigns.status")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {campaigns.map((campaign: any) => (
+                    <TableRow key={campaign.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{campaign.name}</TableCell>
+                      <TableCell>{campaign.platform}</TableCell>
+                      <TableCell>{campaign.budget.toLocaleString('ar-SA')} {t("common.currency")}</TableCell>
+                      <TableCell>{new Date(campaign.startDate).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell>{new Date(campaign.endDate).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(campaign.status)}`}>
+                          {localizedStatus(campaign.status)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(campaign)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDelete(campaign.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>

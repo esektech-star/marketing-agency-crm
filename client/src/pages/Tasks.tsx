@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,18 +12,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const PRIORITY_VALUES = ["منخفضة", "متوسطة", "عالية", "حرجة"] as const;
+const STATUS_VALUES = ["معلقة", "قيد التنفيذ", "مكتملة", "ملغاة"] as const;
+
 export default function Tasks() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  
+  const emptyForm = {
     title: "",
     description: "",
     assignedTo: "",
     dueDate: new Date().toISOString().split('T')[0],
-    priority: "متوسطة",
-    status: "معلقة",
+    priority: "متوسطة" as const,
+    status: "معلقة" as const,
     relatedClient: "",
-  });
+  };
+  
+  const [formData, setFormData] = useState(emptyForm);
 
   const { data: tasks = [], isLoading, refetch } = trpc.tasks.list.useQuery();
   const { data: teamMembers = [] } = trpc.teamMembers.list.useQuery();
@@ -30,6 +38,26 @@ export default function Tasks() {
   const createMutation = trpc.tasks.create.useMutation();
   const updateMutation = trpc.tasks.update.useMutation();
   const deleteMutation = trpc.tasks.delete.useMutation();
+
+  const localizedPriority = (priority: string) => {
+    const map: Record<string, string> = {
+      "منخفضة": t("tasks.priorityLow", "منخفضة"),
+      "متوسطة": t("tasks.priorityMedium", "متوسطة"),
+      "عالية": t("tasks.priorityHigh", "عالية"),
+      "حرجة": t("tasks.priorityCritical", "حرجة"),
+    };
+    return map[priority] || priority;
+  };
+
+  const localizedStatus = (status: string) => {
+    const map: Record<string, string> = {
+      "معلقة": t("tasks.statusPending", "معلقة"),
+      "قيد التنفيذ": t("tasks.statusInProgress", "قيد التنفيذ"),
+      "مكتملة": t("tasks.statusCompleted", "مكتملة"),
+      "ملغاة": t("tasks.statusCancelled", "ملغاة"),
+    };
+    return map[status] || status;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +74,7 @@ export default function Tasks() {
           status: formData.status as "معلقة" | "قيد التنفيذ" | "مكتملة" | "ملغاة",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
-        toast.success("تم تحديث المهمة بنجاح");
+        toast.success(t("tasks.editSuccess"));
       } else {
         await createMutation.mutateAsync({
           title: formData.title,
@@ -57,23 +85,15 @@ export default function Tasks() {
           status: formData.status as "معلقة" | "قيد التنفيذ" | "مكتملة" | "ملغاة",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
-        toast.success("تم إضافة المهمة بنجاح");
+        toast.success(t("tasks.addSuccess"));
       }
       
-      setFormData({
-        title: "",
-        description: "",
-        assignedTo: "",
-        dueDate: new Date().toISOString().split('T')[0],
-        priority: "متوسطة",
-        status: "معلقة",
-        relatedClient: "",
-      });
+      setFormData(emptyForm);
       setEditingId(null);
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error(t("common.error"));
     }
   };
 
@@ -92,13 +112,13 @@ export default function Tasks() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذه المهمة؟")) {
+    if (confirm(t("tasks.confirmDelete"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف المهمة بنجاح");
+        toast.success(t("tasks.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف المهمة");
+        toast.error(t("common.error"));
       }
     }
   };
@@ -106,15 +126,7 @@ export default function Tasks() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({
-      title: "",
-      description: "",
-      assignedTo: "",
-      dueDate: new Date().toISOString().split('T')[0],
-      priority: "متوسطة",
-      status: "معلقة",
-      relatedClient: "",
-    });
+    setFormData(emptyForm);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -139,51 +151,49 @@ export default function Tasks() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold">متابعة المهام</h1>
-          <p className="text-muted-foreground mt-1">إدارة وتتبع المهام مع تحديد الأولويات والمسؤولين</p>
+          <h1 className="text-3xl font-bold">{t("tasks.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("tasks.subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ title: "", description: "", assignedTo: "", dueDate: new Date().toISOString().split('T')[0], priority: "متوسطة", status: "معلقة", relatedClient: "" }); }}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة مهمة جديدة
+            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+              <Plus className="w-4 h-4 ms-2" />
+              {t("tasks.addTask")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل المهمة" : "إضافة مهمة جديدة"}</DialogTitle>
-              <DialogDescription>
-                {editingId ? "قم بتحديث بيانات المهمة" : "أدخل بيانات المهمة الجديدة"}
-              </DialogDescription>
+              <DialogTitle>{editingId ? t("tasks.editTask") : t("tasks.addTask")}</DialogTitle>
+              <DialogDescription>{editingId ? t("tasks.editDesc") : t("tasks.addDesc")}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="title">عنوان المهمة</Label>
+                <Label htmlFor="title">{t("tasks.taskTitle")}</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="عنوان المهمة"
+                  placeholder={t("tasks.taskTitlePlaceholder")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="description">الوصف</Label>
+                <Label htmlFor="description">{t("common.description")}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="وصف تفصيلي للمهمة"
+                  placeholder={t("tasks.descriptionPlaceholder")}
                   className="resize-none"
                 />
               </div>
               <div>
-                <Label htmlFor="assignedTo">المسؤول</Label>
+                <Label htmlFor="assignedTo">{t("tasks.assignee")}</Label>
                 <Select value={formData.assignedTo} onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر المسؤول" />
+                    <SelectValue placeholder={t("tasks.selectAssignee")} />
                   </SelectTrigger>
                   <SelectContent>
                     {teamMembers.map((member: any) => (
@@ -195,10 +205,10 @@ export default function Tasks() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="relatedClient">العميل ذي الصلة</Label>
+                <Label htmlFor="relatedClient">{t("tasks.relatedClient")}</Label>
                 <Select value={formData.relatedClient} onValueChange={(value) => setFormData({ ...formData, relatedClient: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر العميل" />
+                    <SelectValue placeholder={t("tasks.selectClient")} />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client: any) => (
@@ -210,7 +220,7 @@ export default function Tasks() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="dueDate">تاريخ الاستحقاق</Label>
+                <Label htmlFor="dueDate">{t("tasks.dueDate")}</Label>
                 <Input
                   id="dueDate"
                   type="date"
@@ -220,41 +230,37 @@ export default function Tasks() {
                 />
               </div>
               <div>
-                <Label htmlFor="priority">الأولوية</Label>
-                <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                <Label htmlFor="priority">{t("tasks.priority")}</Label>
+                <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="منخفضة">منخفضة</SelectItem>
-                    <SelectItem value="متوسطة">متوسطة</SelectItem>
-                    <SelectItem value="عالية">عالية</SelectItem>
-                    <SelectItem value="حرجة">حرجة</SelectItem>
+                    {PRIORITY_VALUES.map((p) => (
+                      <SelectItem key={p} value={p}>{localizedPriority(p)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="status">الحالة</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <Label htmlFor="status">{t("common.status")}</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="معلقة">معلقة</SelectItem>
-                    <SelectItem value="قيد التنفيذ">قيد التنفيذ</SelectItem>
-                    <SelectItem value="مكتملة">مكتملة</SelectItem>
-                    <SelectItem value="ملغاة">ملغاة</SelectItem>
+                    {STATUS_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ms-2 animate-spin" />}
+                  {editingId ? t("common.update") : t("common.add")}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  إلغاء
-                </Button>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -263,8 +269,8 @@ export default function Tasks() {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة المهام</CardTitle>
-          <CardDescription>عدد المهام: {tasks.length}</CardDescription>
+          <CardTitle>{t("tasks.listTitle")}</CardTitle>
+          <CardDescription>{t("tasks.count")}: {tasks.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -273,19 +279,19 @@ export default function Tasks() {
             </div>
           ) : tasks.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              لا توجد مهام حتى الآن. قم بإضافة مهمة جديدة للبدء.
+              {t("tasks.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>العنوان</TableHead>
-                    <TableHead>الأولوية</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>تاريخ الاستحقاق</TableHead>
-                    <TableHead>المسؤول</TableHead>
-                    <TableHead>الإجراءات</TableHead>
+                    <TableHead>{t("tasks.taskTitle")}</TableHead>
+                    <TableHead>{t("tasks.priority")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("tasks.dueDate")}</TableHead>
+                    <TableHead>{t("tasks.assignee")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,16 +300,16 @@ export default function Tasks() {
                       <TableCell className="font-medium">{task.title}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
+                          {localizedPriority(task.priority)}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(task.status)}`}>
-                          {task.status}
+                          {localizedStatus(task.status)}
                         </span>
                       </TableCell>
                       <TableCell>{new Date(task.dueDate).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell>{task.assignedTo ? "مُعَيَّن" : "-"}</TableCell>
+                      <TableCell>{task.assignedTo ? t("tasks.assigned") : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button

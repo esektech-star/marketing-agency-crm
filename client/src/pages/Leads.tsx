@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,27 +12,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const STAGE_VALUES = ["جديد", "متابعة", "اهتمام", "عرض", "تفاوض", "مغلق"] as const;
+const STATUS_VALUES = ["نشط", "معطل", "مفقود"] as const;
+
 export default function Leads() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  
+  const emptyForm = {
     name: "",
     email: "",
     phone: "",
     company: "",
     source: "",
-    stage: "جديد",
-    status: "نشط",
+    stage: "جديد" as const,
+    status: "نشط" as const,
     value: "",
     notes: "",
     assignedTo: "",
-  });
+  };
+  
+  const [formData, setFormData] = useState(emptyForm);
 
   const { data: leads = [], isLoading, refetch } = trpc.leads.list.useQuery();
   const { data: teamMembers = [] } = trpc.teamMembers.list.useQuery();
   const createMutation = trpc.leads.create.useMutation();
   const updateMutation = trpc.leads.update.useMutation();
   const deleteMutation = trpc.leads.delete.useMutation();
+
+  const localizedStage = (stage: string) => {
+    const map: Record<string, string> = {
+      "جديد": t("leads.stageNew", "جديد"),
+      "متابعة": t("leads.stageContacted", "متابعة"),
+      "اهتمام": t("leads.stageQualified", "اهتمام"),
+      "عرض": t("leads.stageProposal", "عرض"),
+      "تفاوض": t("leads.stageWon", "تفاوض"),
+      "مغلق": t("leads.stageLost", "مغلق"),
+    };
+    return map[stage] || stage;
+  };
+
+  const localizedStatus = (status: string) => {
+    const map: Record<string, string> = {
+      "نشط": t("leads.statusActive", "نشط"),
+      "معطل": t("leads.statusInactive", "معطل"),
+      "مفقود": t("leads.statusLost", "مفقود"),
+    };
+    return map[status] || status;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +80,7 @@ export default function Leads() {
           notes: formData.notes,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
         });
-        toast.success("تم تحديث الليد بنجاح");
+        toast.success(t("leads.editSuccess"));
       } else {
         await createMutation.mutateAsync({
           name: formData.name,
@@ -65,26 +94,15 @@ export default function Leads() {
           notes: formData.notes,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
         });
-        toast.success("تم إضافة الليد بنجاح");
+        toast.success(t("leads.addSuccess"));
       }
       
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        company: "",
-        source: "",
-        stage: "جديد",
-        status: "نشط",
-        value: "",
-        notes: "",
-        assignedTo: "",
-      });
+      setFormData(emptyForm);
       setEditingId(null);
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error("حدث خطأ أثناء حفظ البيانات");
+      toast.error(t("common.error"));
     }
   };
 
@@ -106,13 +124,13 @@ export default function Leads() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذا الليد؟")) {
+    if (confirm(t("leads.confirmDelete"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف الليد بنجاح");
+        toast.success(t("leads.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف الليد");
+        toast.error(t("common.error"));
       }
     }
   };
@@ -120,18 +138,7 @@ export default function Leads() {
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      source: "",
-      stage: "جديد",
-      status: "نشط",
-      value: "",
-      notes: "",
-      assignedTo: "",
-    });
+    setFormData(emptyForm);
   };
 
   const getStageColor = (stage: string) => {
@@ -146,49 +153,56 @@ export default function Leads() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case "نشط": return "bg-green-100 text-green-800";
+      case "معطل": return "bg-yellow-100 text-yellow-800";
+      case "مفقود": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold">متابعة العملاء المحتملين</h1>
-          <p className="text-muted-foreground mt-1">إدارة الليدز عبر مراحل القمع التسويقي</p>
+          <h1 className="text-3xl font-bold">{t("leads.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("leads.subtitle")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData({ name: "", email: "", phone: "", company: "", source: "", stage: "جديد", status: "نشط", value: "", notes: "", assignedTo: "" }); }}>
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة ليد جديد
+            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+              <Plus className="w-4 h-4 ms-2" />
+              {t("leads.addLead")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل الليد" : "إضافة ليد جديد"}</DialogTitle>
-              <DialogDescription>
-                {editingId ? "قم بتحديث بيانات الليد" : "أدخل بيانات الليد الجديد"}
-              </DialogDescription>
+              <DialogTitle>{editingId ? t("leads.editLead") : t("leads.addLead")}</DialogTitle>
+              <DialogDescription>{editingId ? t("leads.editDesc") : t("leads.addDesc")}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">الاسم</Label>
+                <Label htmlFor="name">{t("common.name")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="اسم العميل المحتمل"
+                  placeholder={t("leads.leadName")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="company">الشركة</Label>
+                <Label htmlFor="company">{t("leads.company")}</Label>
                 <Input
                   id="company"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                  placeholder="اسم الشركة"
+                  placeholder={t("leads.company")}
                 />
               </div>
               <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Label htmlFor="email">{t("common.email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -198,7 +212,7 @@ export default function Leads() {
                 />
               </div>
               <div>
-                <Label htmlFor="phone">رقم الهاتف</Label>
+                <Label htmlFor="phone">{t("common.phone")}</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -207,46 +221,43 @@ export default function Leads() {
                 />
               </div>
               <div>
-                <Label htmlFor="source">المصدر</Label>
+                <Label htmlFor="source">{t("leads.source")}</Label>
                 <Input
                   id="source"
                   value={formData.source}
                   onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  placeholder="مثال: إعلان، إحالة، موقع ويب"
+                  placeholder={t("leads.source")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="stage">المرحلة</Label>
-                <Select value={formData.stage} onValueChange={(value) => setFormData({ ...formData, stage: value })}>
+                <Label htmlFor="stage">{t("leads.stage")}</Label>
+                <Select value={formData.stage} onValueChange={(value) => setFormData({ ...formData, stage: value as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="جديد">جديد</SelectItem>
-                    <SelectItem value="متابعة">متابعة</SelectItem>
-                    <SelectItem value="اهتمام">اهتمام</SelectItem>
-                    <SelectItem value="عرض">عرض</SelectItem>
-                    <SelectItem value="تفاوض">تفاوض</SelectItem>
-                    <SelectItem value="مغلق">مغلق</SelectItem>
+                    {STAGE_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStage(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="status">الحالة</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <Label htmlFor="status">{t("common.status")}</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as any })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="نشط">نشط</SelectItem>
-                    <SelectItem value="معطل">معطل</SelectItem>
-                    <SelectItem value="مفقود">مفقود</SelectItem>
+                    {STATUS_VALUES.map((s) => (
+                      <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="value">القيمة المتوقعة</Label>
+                <Label htmlFor="value">{t("leads.value")}</Label>
                 <Input
                   id="value"
                   type="number"
@@ -257,10 +268,10 @@ export default function Leads() {
                 />
               </div>
               <div>
-                <Label htmlFor="assignedTo">المسؤول</Label>
+                <Label htmlFor="assignedTo">{t("leads.assignee")}</Label>
                 <Select value={formData.assignedTo} onValueChange={(value) => setFormData({ ...formData, assignedTo: value })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر المسؤول" />
+                    <SelectValue placeholder={t("leads.selectAssignee")} />
                   </SelectTrigger>
                   <SelectContent>
                     {teamMembers.map((member: any) => (
@@ -272,23 +283,21 @@ export default function Leads() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="notes">ملاحظات</Label>
+                <Label htmlFor="notes">{t("common.notes")}</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="أي ملاحظات إضافية"
+                  placeholder={t("common.notes")}
                   className="resize-none"
                 />
               </div>
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                  {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ms-2 animate-spin" />}
+                  {editingId ? t("common.update") : t("common.add")}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                  إلغاء
-                </Button>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -297,8 +306,8 @@ export default function Leads() {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة الليدز</CardTitle>
-          <CardDescription>عدد الليدز: {leads.length}</CardDescription>
+          <CardTitle>{t("leads.listTitle")}</CardTitle>
+          <CardDescription>{t("leads.count")}: {leads.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -307,19 +316,19 @@ export default function Leads() {
             </div>
           ) : leads.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              لا توجد ليدز حتى الآن. قم بإضافة ليد جديد للبدء.
+              {t("leads.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الاسم</TableHead>
-                    <TableHead>الشركة</TableHead>
-                    <TableHead>المرحلة</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>القيمة</TableHead>
-                    <TableHead>الإجراءات</TableHead>
+                    <TableHead>{t("common.name")}</TableHead>
+                    <TableHead>{t("leads.company")}</TableHead>
+                    <TableHead>{t("leads.stage")}</TableHead>
+                    <TableHead>{t("common.status")}</TableHead>
+                    <TableHead>{t("leads.value")}</TableHead>
+                    <TableHead>{t("common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -329,19 +338,15 @@ export default function Leads() {
                       <TableCell>{lead.company || "-"}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStageColor(lead.stage)}`}>
-                          {lead.stage}
+                          {localizedStage(lead.stage)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          lead.status === "نشط" ? "bg-green-100 text-green-800" :
-                          lead.status === "معطل" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-red-100 text-red-800"
-                        }`}>
-                          {lead.status}
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(lead.status)}`}>
+                          {localizedStatus(lead.status)}
                         </span>
                       </TableCell>
-                      <TableCell>{lead.value ? `${lead.value.toLocaleString('ar-SA')} ريال` : "-"}</TableCell>
+                      <TableCell>{lead.value ? `${lead.value.toLocaleString('ar-SA')} ${t("common.currency")}` : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button

@@ -43,15 +43,15 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
+  --primary: oklch(0.32 0.06 255);
+  --primary-foreground: oklch(0.98 0.01 255);
+  --sidebar-primary: oklch(0.32 0.06 255);
+  --sidebar-primary-foreground: oklch(0.98 0.01 255);
+  --chart-1: oklch(0.32 0.06 255);
+  --chart-2: oklch(0.62 0.13 250);
+  --chart-3: oklch(0.74 0.15 65);
+  --chart-4: oklch(0.55 0.08 255);
+  --chart-5: oklch(0.82 0.10 250);
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.235 0.015 65);
@@ -130,11 +130,15 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
   }
-  
+
   html[dir="rtl"] body {
-    font-family: 'Segoe UI', 'Helvetica Neue', 'Arabic Typesetting', sans-serif;
+    font-family: 'Cairo', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  }
+
+  html[lang="he"] body {
+    font-family: 'Heebo', 'Segoe UI', 'Helvetica Neue', sans-serif;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -147,6 +151,21 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+}
+
+@layer utilities {
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  /* Elegant thin scrollbar */
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(30, 58, 95, 0.18); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(30, 58, 95, 0.32); }
 }
 
 @layer components {

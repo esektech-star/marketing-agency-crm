@@ -6,43 +6,43 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Globe } from 'lucide-react';
+import { Globe, Check } from 'lucide-react';
+import { applyDirection } from '@/i18n/config';
+
+const languages = [
+  { code: 'ar', name: 'العربية', flag: 'ع' },
+  { code: 'he', name: 'עברית', flag: 'ע' },
+  { code: 'en', name: 'English', flag: 'EN' },
+];
 
 export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
-  const languages = [
-    { code: 'ar', name: 'العربية', dir: 'rtl' },
-    { code: 'he', name: 'עברית', dir: 'rtl' },
-    { code: 'en', name: 'English', dir: 'ltr' },
-  ];
-
-  const handleLanguageChange = (code: string, dir: string) => {
+  const handleLanguageChange = (code: string) => {
     i18n.changeLanguage(code);
-    document.documentElement.lang = code;
-    document.documentElement.dir = dir;
-    localStorage.setItem('language', code);
-    localStorage.setItem('direction', dir);
+    applyDirection(code);
   };
-
-  const currentLang = languages.find(lang => lang.code === i18n.language);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="bg-white/60">
           <Globe className="w-4 h-4" />
-          <span className="sr-only">تبديل اللغة</span>
+          <span className="sr-only">Language</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {languages.map(lang => (
+      <DropdownMenuContent align="end" className="min-w-[140px]">
+        {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => handleLanguageChange(lang.code, lang.dir)}
-            className={i18n.language === lang.code ? 'bg-accent' : ''}
+            onClick={() => handleLanguageChange(lang.code)}
+            className="flex items-center justify-between gap-2"
           >
-            {lang.name}
+            <span className="flex items-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground w-6 text-center">{lang.flag}</span>
+              {lang.name}
+            </span>
+            {i18n.language === lang.code && <Check className="w-4 h-4 text-[#f59e0b]" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

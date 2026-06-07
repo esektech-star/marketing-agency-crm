@@ -182,3 +182,45 @@ export const accessDetails = mysqlTable("accessDetails", {
 
 export type AccessDetail = typeof accessDetails.$inferSelect;
 export type InsertAccessDetail = typeof accessDetails.$inferInsert;
+
+/**
+ * جدول المستخدمين المخصصين (لإدارة دخول الفريق باسم مستخدم وكلمة مرور)
+ */
+export const appUsers = mysqlTable("appUsers", {
+  id: int("id").autoincrement().primaryKey(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  passwordHash: text("passwordHash").notNull(),
+  fullName: varchar("fullName", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  role: mysqlEnum("role", ["مدير", "موظف", "مصمم", "محرر"]).default("موظف").notNull(),
+  preferredLanguage: mysqlEnum("preferredLanguage", ["ar", "he", "en"]).default("ar").notNull(),
+  status: mysqlEnum("status", ["نشط", "معطل"]).default("نشط").notNull(),
+  lastLogin: timestamp("lastLogin"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AppUser = typeof appUsers.$inferSelect;
+export type InsertAppUser = typeof appUsers.$inferInsert;
+
+/**
+ * جدول الملفات والمستندات (مخزنة على S3)
+ */
+export const documents = mysqlTable("documents", {
+  id: int("id").autoincrement().primaryKey(),
+  fileName: varchar("fileName", { length: 500 }).notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  fileUrl: varchar("fileUrl", { length: 500 }).notNull(),
+  mimeType: varchar("mimeType", { length: 255 }),
+  fileSize: int("fileSize"),
+  category: varchar("category", { length: 255 }),
+  relatedClient: int("relatedClient"),
+  relatedCampaign: int("relatedCampaign"),
+  uploadedBy: int("uploadedBy"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = typeof documents.$inferInsert;

@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, teamMembers, tasks, leads, transactions, campaigns, accessDetails } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -344,6 +344,77 @@ export async function deleteAccessDetail(id: number) {
   return await db.delete(accessDetails).where(eq(accessDetails.id, id));
 }
 
+// ==================== App Users (إدارة المستخدمين) ====================
+export async function getAppUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(appUsers).orderBy(desc(appUsers.createdAt));
+}
+
+export async function getAppUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(appUsers).where(eq(appUsers.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAppUserByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(appUsers).where(eq(appUsers.username, username)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createAppUser(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(appUsers).values(data);
+}
+
+export async function updateAppUser(id: number, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(appUsers).set(data).where(eq(appUsers.id, id));
+}
+
+export async function deleteAppUser(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(appUsers).where(eq(appUsers.id, id));
+}
+
+// ==================== Documents (الملفات والمستندات) ====================
+export async function getDocuments() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(documents).orderBy(desc(documents.createdAt));
+}
+
+export async function getDocumentById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(documents).where(eq(documents.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createDocument(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(documents).values(data);
+}
+
+export async function updateDocument(id: number, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(documents).set(data).where(eq(documents.id, id));
+}
+
+export async function deleteDocument(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(documents).where(eq(documents.id, id));
+}
+
 // ==================== Dashboard Statistics ====================
 export async function getDashboardStats() {
   const db = await getDb();
@@ -359,6 +430,31 @@ export async function getDashboardStats() {
   const totalRevenue = revenueTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
   const totalExpense = expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
 
+  // بيانات شهرية للرسوم البيانية
+  const allTransactions = await db.select().from(transactions);
+  const monthlyMap: Record<string, { revenue: number; expense: number }> = {};
+  for (const tr of allTransactions) {
+    const d = tr.date ? new Date(tr.date) : new Date();
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, expense: 0 };
+    const amt = parseFloat(tr.amount.toString());
+    if (tr.type === "إيراد") monthlyMap[key].revenue += amt;
+    else monthlyMap[key].expense += amt;
+  }
+  const monthlyData = Object.entries(monthlyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([month, vals]) => ({ month, revenue: vals.revenue, expense: vals.expense }));
+
+  // توزيع الليدز حسب المصدر
+  const allLeads = await db.select().from(leads);
+  const sourceMap: Record<string, number> = {};
+  for (const ld of allLeads) {
+    const src = ld.source || "-";
+    sourceMap[src] = (sourceMap[src] || 0) + 1;
+  }
+  const leadsBySource = Object.entries(sourceMap).map(([name, value]) => ({ name, value }));
+
   return {
     activeClientsCount: clientsCount.length,
     pendingTasksCount: tasksCount.length,
@@ -366,5 +462,7 @@ export async function getDashboardStats() {
     totalRevenue,
     totalExpense,
     netProfit: totalRevenue - totalExpense,
+    monthlyData,
+    leadsBySource,
   };
 }
