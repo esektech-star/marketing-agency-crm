@@ -24,24 +24,25 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import LanguageSwitcher from './LanguageSwitcher';
 import EsekTechLogo from './EsekTechLogo';
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "لوحة التحكم", path: "/dashboard" },
-  { icon: Users, label: "العملاء", path: "/clients" },
-  { icon: Building2, label: "الموردين", path: "/vendors" },
-  { icon: Users, label: "الفريق", path: "/team" },
-  { icon: CheckCircle2, label: "المهام", path: "/tasks" },
-  { icon: Zap, label: "الليدز", path: "/leads" },
-  { icon: TrendingUp, label: "المالية", path: "/transactions" },
-  { icon: BarChart3, label: "الحملات", path: "/campaigns" },
-  { icon: LineChartIcon, label: "التقارير", path: "/reports" },
-  { icon: FolderOpen, label: "مكتبة الملفات", path: "/documents" },
-  { icon: KeyRound, label: "تفاصيل الوصول", path: "/access-details" },
-  { icon: UserCog, label: "المستخدمون", path: "/users" },
+const getMenuItems = (t: any) => [
+  { icon: LayoutDashboard, label: t("sidebar.dashboard", "لوحة التحكم"), path: "/dashboard" },
+  { icon: Users, label: t("sidebar.clients", "العملاء"), path: "/clients" },
+  { icon: Building2, label: t("sidebar.vendors", "الموردين"), path: "/vendors" },
+  { icon: Users, label: t("sidebar.team", "الفريق"), path: "/team" },
+  { icon: CheckCircle2, label: t("sidebar.tasks", "المهام"), path: "/tasks" },
+  { icon: Zap, label: t("sidebar.leads", "الليدز"), path: "/leads" },
+  { icon: TrendingUp, label: t("sidebar.transactions", "المالية"), path: "/transactions" },
+  { icon: BarChart3, label: t("sidebar.campaigns", "الحملات"), path: "/campaigns" },
+  { icon: LineChartIcon, label: t("sidebar.reports", "التقارير"), path: "/reports" },
+  { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
+  { icon: KeyRound, label: t("sidebar.accessDetails", "تفاصيل الوصول"), path: "/access-details" },
+  { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -121,9 +122,11 @@ function DashboardLayoutContent({
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
+  const { t } = useTranslation();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const menuItems = getMenuItems(t);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
@@ -236,7 +239,7 @@ function DashboardLayoutContent({
                   className="cursor-pointer text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>{t("auth.logout", "Sign out")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

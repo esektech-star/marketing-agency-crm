@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
@@ -13,6 +14,12 @@ export default function Home() {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
 
+  useEffect(() => {
+    if (isAuthenticated && user && !loading) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, user, loading, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
@@ -25,7 +32,6 @@ export default function Home() {
   }
 
   if (isAuthenticated && user) {
-    navigate("/dashboard");
     return null;
   }
 

@@ -61,7 +61,7 @@
   },
   "auth": {
     "login": "Sign In",
-    "logout": "Sign Out",
+    "logout": "Sign out",
     "signInTitle": "Sign in to continue",
     "signInDesc": "Accessing the dashboard requires signing in. Continue to start the sign-in process.",
     "loginRequired": "You must sign in first"
@@ -323,5 +323,19 @@
     "roleViewer": "Viewer",
     "passwordHint": "Leave empty to keep the current password",
     "empty": "No users yet. Start by adding a new user."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "clients": "Clients",
+    "vendors": "Vendors",
+    "team": "Team",
+    "tasks": "Tasks",
+    "leads": "Leads",
+    "transactions": "Transactions",
+    "campaigns": "Campaigns",
+    "reports": "Reports",
+    "documents": "Documents",
+    "accessDetails": "Access Details",
+    "users": "Users"
   }
 }
