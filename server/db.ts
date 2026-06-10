@@ -420,12 +420,12 @@ export async function getDashboardStats() {
   const db = await getDb();
   if (!db) return null;
 
-  const clientsCount = await db.select().from(clients).where(eq(clients.status, "نشط"));
-  const tasksCount = await db.select().from(tasks).where(eq(tasks.status, "معلقة"));
-  const leadsCount = await db.select().from(leads).where(eq(leads.status, "نشط"));
+  const clientsCount = await db.select().from(clients).where(eq(clients.status, "active"));
+  const tasksCount = await db.select().from(tasks).where(eq(tasks.status, "pending"));
+  const leadsCount = await db.select().from(leads).where(eq(leads.status, "active"));
   
-  const revenueTransactions = await db.select().from(transactions).where(eq(transactions.type, "إيراد"));
-  const expenseTransactions = await db.select().from(transactions).where(eq(transactions.type, "مصروف"));
+  const revenueTransactions = await db.select().from(transactions).where(eq(transactions.type, "revenue"));
+  const expenseTransactions = await db.select().from(transactions).where(eq(transactions.type, "expense"));
 
   const totalRevenue = revenueTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
   const totalExpense = expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
@@ -438,7 +438,7 @@ export async function getDashboardStats() {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, expense: 0 };
     const amt = parseFloat(tr.amount.toString());
-    if (tr.type === "إيراد") monthlyMap[key].revenue += amt;
+    if (tr.type === "revenue") monthlyMap[key].revenue += amt;
     else monthlyMap[key].expense += amt;
   }
   const monthlyData = Object.entries(monthlyMap)

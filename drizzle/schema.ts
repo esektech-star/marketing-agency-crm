@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { mysqlTable, int, varchar, text, timestamp, mysqlEnum, decimal, boolean, json } from "drizzle-orm/mysql-core";
 
 /**
  * جدول المستخدمين الأساسي
@@ -24,11 +24,14 @@ export type InsertUser = typeof users.$inferInsert;
 export const clients = mysqlTable("clients", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
+  clientCode: varchar("clientCode", { length: 50 }).notNull().unique(), // كود العميل الفريد
   serviceType: varchar("serviceType", { length: 255 }).notNull(),
-  status: mysqlEnum("status", ["نشط", "معلق", "منتهي"]).default("نشط").notNull(),
+  status: mysqlEnum("status", ["active", "pending", "completed"]).default("active").notNull(),
   startDate: timestamp("startDate").notNull(),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
+  monthlyAmount: decimal("monthlyAmount", { precision: 12, scale: 2 }), // المبلغ الشهري
+  paymentDate: int("paymentDate"), // يوم الدفع من الشهر (1-31)
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -47,7 +50,7 @@ export const vendors = mysqlTable("vendors", {
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
   website: varchar("website", { length: 255 }),
-  status: mysqlEnum("status", ["نشط", "معلق", "غير نشط"]).default("نشط").notNull(),
+  status: mysqlEnum("status", ["active", "pending", "inactive"]).default("active").notNull(),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -68,7 +71,7 @@ export const teamMembers = mysqlTable("teamMembers", {
   email: varchar("email", { length: 320 }),
   department: varchar("department", { length: 255 }),
   joinDate: timestamp("joinDate").notNull(),
-  status: mysqlEnum("status", ["نشط", "معطل", "منتهي"]).default("نشط").notNull(),
+  status: mysqlEnum("status", ["active", "disabled", "completed"]).default("active").notNull(),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -84,11 +87,12 @@ export const tasks = mysqlTable("tasks", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  assignedTo: int("assignedTo"),
+  assignedTo: json("assignedTo"), // مصفوفة من معرفات المستخدمين
   dueDate: timestamp("dueDate").notNull(),
-  priority: mysqlEnum("priority", ["منخفضة", "متوسطة", "عالية", "حرجة"]).default("متوسطة").notNull(),
-  status: mysqlEnum("status", ["معلقة", "قيد التنفيذ", "مكتملة", "ملغاة"]).default("معلقة").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "cancelled"]).default("pending").notNull(),
   relatedClient: int("relatedClient"),
+  attachments: json("attachments"), // مصفوفة من الملفات المرفقة
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -104,11 +108,11 @@ export const leads = mysqlTable("leads", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
-  phone: varchar("phone", { length: 20 }),
+  phone: varchar("phone", { length: 20 }), // بصيغة +972123456789
   company: varchar("company", { length: 255 }),
   source: varchar("source", { length: 255 }).notNull(),
-  stage: mysqlEnum("stage", ["جديد", "متابعة", "اهتمام", "عرض", "تفاوض", "مغلق"]).default("جديد").notNull(),
-  status: mysqlEnum("status", ["نشط", "معطل", "مفقود"]).default("نشط").notNull(),
+  stage: mysqlEnum("stage", ["new", "follow_up", "interest", "proposal", "negotiation", "closed"]).default("new").notNull(),
+  status: mysqlEnum("status", ["active", "disabled", "lost"]).default("active").notNull(),
   value: decimal("value", { precision: 10, scale: 2 }),
   notes: text("notes"),
   assignedTo: int("assignedTo"),
@@ -124,7 +128,7 @@ export type InsertLead = typeof leads.$inferInsert;
  */
 export const transactions = mysqlTable("transactions", {
   id: int("id").autoincrement().primaryKey(),
-  type: mysqlEnum("type", ["إيراد", "مصروف"]).notNull(),
+  type: mysqlEnum("type", ["revenue", "expense"]).notNull(),
   category: varchar("category", { length: 255 }).notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   description: text("description"),
@@ -152,7 +156,7 @@ export const campaigns = mysqlTable("campaigns", {
   startDate: timestamp("startDate").notNull(),
   endDate: timestamp("endDate").notNull(),
   budget: decimal("budget", { precision: 12, scale: 2 }),
-  status: mysqlEnum("status", ["مخطط", "نشط", "معلق", "منتهي"]).default("مخطط").notNull(),
+  status: mysqlEnum("status", ["planned", "active", "paused", "completed"]).default("planned").notNull(),
   relatedClient: int("relatedClient"),
   description: text("description"),
   notes: text("notes"),
@@ -192,9 +196,10 @@ export const appUsers = mysqlTable("appUsers", {
   passwordHash: text("passwordHash").notNull(),
   fullName: varchar("fullName", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }),
-  role: mysqlEnum("role", ["مدير", "موظف", "مصمم", "محرر"]).default("موظف").notNull(),
+  role: mysqlEnum("role", ["manager", "employee", "designer", "editor"]).default("employee").notNull(),
+  permissions: json("permissions"), // صلاحيات مخصصة
   preferredLanguage: mysqlEnum("preferredLanguage", ["ar", "he", "en"]).default("ar").notNull(),
-  status: mysqlEnum("status", ["نشط", "معطل"]).default("نشط").notNull(),
+  status: mysqlEnum("status", ["active", "disabled"]).default("active").notNull(),
   lastLogin: timestamp("lastLogin"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -216,6 +221,7 @@ export const documents = mysqlTable("documents", {
   category: varchar("category", { length: 255 }),
   relatedClient: int("relatedClient"),
   relatedCampaign: int("relatedCampaign"),
+  relatedTask: int("relatedTask"), // ربط الملفات بالمهام
   uploadedBy: int("uploadedBy"),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -224,3 +230,60 @@ export const documents = mysqlTable("documents", {
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = typeof documents.$inferInsert;
+
+/**
+ * جدول الفواتير
+ */
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceNumber: varchar("invoiceNumber", { length: 50 }).notNull().unique(),
+  relatedClient: int("relatedClient").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  dueDate: timestamp("dueDate").notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "overdue"]).default("pending").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }), // ملف الفاتورة
+  fileUrl: varchar("fileUrl", { length: 500 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+
+/**
+ * جدول بوابة العميل (Client Portal Access)
+ */
+export const clientPortalAccess = mysqlTable("clientPortalAccess", {
+  id: int("id").autoincrement().primaryKey(),
+  relatedClient: int("relatedClient").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  accessToken: varchar("accessToken", { length: 500 }).notNull(),
+  expiresAt: timestamp("expiresAt"),
+  canViewCampaigns: boolean("canViewCampaigns").default(true).notNull(),
+  canViewInvoices: boolean("canViewInvoices").default(true).notNull(),
+  canDownloadFiles: boolean("canDownloadFiles").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ClientPortalAccess = typeof clientPortalAccess.$inferSelect;
+export type InsertClientPortalAccess = typeof clientPortalAccess.$inferInsert;
+
+/**
+ * جدول التنبيهات والتذكيرات
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["task_due", "payment_reminder", "task_assigned", "campaign_update"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  relatedTaskId: int("relatedTaskId"),
+  relatedClientId: int("relatedClientId"),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

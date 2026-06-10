@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const STATUS_VALUES = ["نشط", "معلق", "غير نشط"] as const;
+const STATUS_VALUES = ["active", "pending", "inactive"] as const;
 
 export default function Vendors() {
   const { t } = useTranslation();
@@ -24,7 +24,7 @@ export default function Vendors() {
     phone: "",
     email: "",
     website: "",
-    status: "نشط",
+    status: "active",
     notes: "",
   };
   const [formData, setFormData] = useState(emptyForm);
@@ -36,9 +36,9 @@ export default function Vendors() {
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "نشط": t("clients.statusActive", "نشط"),
-      "معلق": t("clients.statusPending", "معلق"),
-      "غير نشط": t("vendors.statusInactive", "غير نشط"),
+      "active": t("clients.statusActive", "active"),
+      "pending": t("clients.statusPending", "pending"),
+      "inactive": t("vendors.statusInactive", "inactive"),
     };
     return map[status] || status;
   };
@@ -51,7 +51,7 @@ export default function Vendors() {
           id: editingId,
           name: formData.name,
           serviceType: formData.serviceType,
-          status: formData.status as "نشط" | "معلق" | "غير نشط",
+          status: formData.status as "active" | "pending" | "inactive",
           phone: formData.phone,
           email: formData.email,
           website: formData.website,
@@ -62,7 +62,7 @@ export default function Vendors() {
         await createMutation.mutateAsync({
           name: formData.name,
           serviceType: formData.serviceType,
-          status: formData.status as "نشط" | "معلق" | "غير نشط",
+          status: formData.status as "active" | "pending" | "inactive",
           phone: formData.phone,
           email: formData.email,
           website: formData.website,
@@ -212,8 +212,8 @@ export default function Vendors() {
                       <TableCell>{vendor.serviceType}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          vendor.status === "نشط" ? "bg-green-100 text-green-800" :
-                          vendor.status === "معلق" ? "bg-yellow-100 text-yellow-800" :
+                          vendor.status === "active" ? "bg-green-100 text-green-800" :
+                          vendor.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                           "bg-red-100 text-red-800"
                         }`}>
                           {localizedStatus(vendor.status)}

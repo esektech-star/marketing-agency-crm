@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const STATUS_VALUES = ["نشط", "معلق", "منتهي"] as const;
+const STATUS_VALUES = ["active", "pending", "completed"] as const;
 
 export default function Clients() {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ export default function Clients() {
   const emptyForm = {
     name: "",
     serviceType: "",
-    status: "نشط",
+    status: "active",
     startDate: new Date().toISOString().split("T")[0],
     phone: "",
     email: "",
@@ -36,9 +36,9 @@ export default function Clients() {
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "نشط": t("clients.statusActive", "نشط"),
-      "معلق": t("clients.statusPending", "معلق"),
-      "منتهي": t("clients.statusEnded", "منتهي"),
+      "active": t("clients.statusActive", "active"),
+      "pending": t("clients.statusPending", "pending"),
+      "completed": t("clients.statusEnded", "completed"),
     };
     return map[status] || status;
   };
@@ -51,7 +51,7 @@ export default function Clients() {
           id: editingId,
           name: formData.name,
           serviceType: formData.serviceType,
-          status: formData.status as "نشط" | "معلق" | "منتهي",
+          status: formData.status as "active" | "pending" | "completed",
           phone: formData.phone,
           email: formData.email,
           notes: formData.notes,
@@ -61,7 +61,7 @@ export default function Clients() {
         await createMutation.mutateAsync({
           name: formData.name,
           serviceType: formData.serviceType,
-          status: formData.status as "نشط" | "معلق" | "منتهي",
+          status: formData.status as "active" | "pending" | "completed",
           startDate: new Date(formData.startDate),
           phone: formData.phone,
           email: formData.email,
@@ -247,8 +247,8 @@ export default function Clients() {
                       <TableCell>{client.serviceType}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          client.status === "نشط" ? "bg-green-100 text-green-800" :
-                          client.status === "معلق" ? "bg-yellow-100 text-yellow-800" :
+                          client.status === "active" ? "bg-green-100 text-green-800" :
+                          client.status === "pending" ? "bg-yellow-100 text-yellow-800" :
                           "bg-red-100 text-red-800"
                         }`}>
                           {localizedStatus(client.status)}

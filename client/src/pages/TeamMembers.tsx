@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const STATUS_VALUES = ["نشط", "معطل", "منتهي"] as const;
+const STATUS_VALUES = ["active", "disabled", "completed"] as const;
 
 export default function TeamMembers() {
   const { t } = useTranslation();
@@ -26,7 +26,7 @@ export default function TeamMembers() {
     email: "",
     department: "",
     joinDate: new Date().toISOString().split('T')[0],
-    status: "نشط",
+    status: "active",
     notes: "",
   };
   const [formData, setFormData] = useState(emptyForm);
@@ -38,9 +38,9 @@ export default function TeamMembers() {
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "نشط": t("clients.statusActive", "نشط"),
-      "معطل": t("team.statusDisabled", "معطل"),
-      "منتهي": t("team.statusEnded", "منتهي"),
+      "active": t("clients.statusActive", "active"),
+      "disabled": t("team.statusDisabled", "disabled"),
+      "completed": t("team.statusEnded", "completed"),
     };
     return map[status] || status;
   };
@@ -57,7 +57,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          status: formData.status as "نشط" | "معطل" | "منتهي",
+          status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
         toast.success(t("common.editSuccess"));
@@ -70,7 +70,7 @@ export default function TeamMembers() {
           email: formData.email,
           department: formData.department,
           joinDate: new Date(formData.joinDate),
-          status: formData.status as "نشط" | "معطل" | "منتهي",
+          status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
         toast.success(t("common.addSuccess"));
@@ -226,8 +226,8 @@ export default function TeamMembers() {
                       <TableCell>{member.department || "-"}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          member.status === "نشط" ? "bg-green-100 text-green-800" :
-                          member.status === "معطل" ? "bg-yellow-100 text-yellow-800" :
+                          member.status === "active" ? "bg-green-100 text-green-800" :
+                          member.status === "disabled" ? "bg-yellow-100 text-yellow-800" :
                           "bg-red-100 text-red-800"
                         }`}>
                           {localizedStatus(member.status)}

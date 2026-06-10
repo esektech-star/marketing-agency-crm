@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const TYPE_VALUES = ["إيراد", "مصروف"] as const;
+const TYPE_VALUES = ["revenue", "expense"] as const;
 
 export default function Transactions() {
   const { t } = useTranslation();
@@ -20,7 +20,7 @@ export default function Transactions() {
   const [editingId, setEditingId] = useState<number | null>(null);
   
   const emptyForm = {
-    type: "إيراد" as const,
+    type: "revenue" as const,
     category: "",
     amount: "",
     description: "",
@@ -43,8 +43,8 @@ export default function Transactions() {
 
   const localizedType = (type: string) => {
     const map: Record<string, string> = {
-      "إيراد": t("transactions.typeIncome", "إيراد"),
-      "مصروف": t("transactions.typeExpense", "مصروف"),
+      "revenue": t("transactions.typeIncome", "revenue"),
+      "expense": t("transactions.typeExpense", "expense"),
     };
     return map[type] || type;
   };
@@ -56,7 +56,7 @@ export default function Transactions() {
       if (editingId) {
         await updateMutation.mutateAsync({
           id: editingId,
-          type: formData.type as "إيراد" | "مصروف",
+          type: formData.type as "revenue" | "expense",
           category: formData.category,
           amount: parseFloat(formData.amount),
           description: formData.description,
@@ -68,7 +68,7 @@ export default function Transactions() {
         toast.success(t("transactions.editSuccess"));
       } else {
         await createMutation.mutateAsync({
-          type: formData.type as "إيراد" | "مصروف",
+          type: formData.type as "revenue" | "expense",
           category: formData.category,
           amount: parseFloat(formData.amount),
           description: formData.description,
@@ -127,15 +127,15 @@ export default function Transactions() {
   };
 
   const getTypeColor = (type: string) => {
-    return type === "إيراد" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+    return type === "revenue" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
   };
 
   const totalIncome = transactions
-    .filter((t: any) => t.type === "إيراد")
+    .filter((t: any) => t.type === "revenue")
     .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
 
   const totalExpenses = transactions
-    .filter((t: any) => t.type === "مصروف")
+    .filter((t: any) => t.type === "expense")
     .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
 
   const netProfit = totalIncome - totalExpenses;

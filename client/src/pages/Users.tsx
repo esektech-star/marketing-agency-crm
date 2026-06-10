@@ -11,10 +11,10 @@ import { Plus, Pencil, Trash2, Loader2, KeyRound, Eye, EyeOff } from "lucide-rea
 import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
-  "مدير": "bg-purple-100 text-purple-800",
-  "موظف": "bg-blue-100 text-blue-800",
-  "مصمم": "bg-pink-100 text-pink-800",
-  "محرر": "bg-amber-100 text-amber-800",
+  "manager": "bg-purple-100 text-purple-800",
+  "employee": "bg-blue-100 text-blue-800",
+  "designer": "bg-pink-100 text-pink-800",
+  "editor": "bg-amber-100 text-amber-800",
 };
 
 const LANG_LABELS: Record<string, string> = {
@@ -34,9 +34,9 @@ export default function Users() {
     password: "",
     fullName: "",
     email: "",
-    role: "موظف",
+    role: "employee",
     preferredLanguage: "ar",
-    status: "نشط",
+    status: "active",
   });
 
   const { data: users = [], isLoading, refetch } = trpc.appUsers.list.useQuery();
@@ -51,9 +51,9 @@ export default function Users() {
       password: "",
       fullName: "",
       email: "",
-      role: "موظف",
+      role: "employee",
       preferredLanguage: "ar",
-      status: "نشط",
+      status: "active",
     });
     setEditingId(null);
     setShowPassword(false);
@@ -215,10 +215,10 @@ export default function Users() {
                 <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="مدير">مدير</SelectItem>
-                    <SelectItem value="موظف">موظف</SelectItem>
-                    <SelectItem value="مصمم">مصمم</SelectItem>
-                    <SelectItem value="محرر">محرر</SelectItem>
+                    <SelectItem value="manager">مدير</SelectItem>
+                    <SelectItem value="employee">موظف</SelectItem>
+                    <SelectItem value="designer">مصمم</SelectItem>
+                    <SelectItem value="editor">محرر</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -238,8 +238,8 @@ export default function Users() {
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="نشط">نشط</SelectItem>
-                    <SelectItem value="معطل">معطل</SelectItem>
+                    <SelectItem value="active">نشط</SelectItem>
+                    <SelectItem value="disabled">معطل</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -297,7 +297,7 @@ export default function Users() {
                       <TableCell>{LANG_LABELS[user.preferredLanguage] || user.preferredLanguage}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          user.status === "نشط" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          user.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                         }`}>
                           {user.status}
                         </span>

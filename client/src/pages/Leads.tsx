@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const STAGE_VALUES = ["جديد", "متابعة", "اهتمام", "عرض", "تفاوض", "مغلق"] as const;
-const STATUS_VALUES = ["نشط", "معطل", "مفقود"] as const;
+const STAGE_VALUES = ["new", "follow_up", "interest", "proposal", "negotiation", "closed"] as const;
+const STATUS_VALUES = ["active", "disabled", "lost"] as const;
 
 export default function Leads() {
   const { t } = useTranslation();
@@ -26,8 +26,8 @@ export default function Leads() {
     phone: "",
     company: "",
     source: "",
-    stage: "جديد" as const,
-    status: "نشط" as const,
+    stage: "new" as const,
+    status: "active" as const,
     value: "",
     notes: "",
     assignedTo: "",
@@ -43,21 +43,21 @@ export default function Leads() {
 
   const localizedStage = (stage: string) => {
     const map: Record<string, string> = {
-      "جديد": t("leads.stageNew", "جديد"),
-      "متابعة": t("leads.stageContacted", "متابعة"),
-      "اهتمام": t("leads.stageQualified", "اهتمام"),
-      "عرض": t("leads.stageProposal", "عرض"),
-      "تفاوض": t("leads.stageWon", "تفاوض"),
-      "مغلق": t("leads.stageLost", "مغلق"),
+      "new": t("leads.stageNew", "new"),
+      "follow_up": t("leads.stageContacted", "follow_up"),
+      "interest": t("leads.stageQualified", "interest"),
+      "proposal": t("leads.stageProposal", "proposal"),
+      "negotiation": t("leads.stageWon", "negotiation"),
+      "closed": t("leads.stageLost", "closed"),
     };
     return map[stage] || stage;
   };
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "نشط": t("leads.statusActive", "نشط"),
-      "معطل": t("leads.statusInactive", "معطل"),
-      "مفقود": t("leads.statusLost", "مفقود"),
+      "active": t("leads.statusActive", "active"),
+      "disabled": t("leads.statusInactive", "disabled"),
+      "lost": t("leads.statusLost", "lost"),
     };
     return map[status] || status;
   };
@@ -74,8 +74,8 @@ export default function Leads() {
           phone: formData.phone,
           company: formData.company,
           source: formData.source,
-          stage: formData.stage as "جديد" | "متابعة" | "اهتمام" | "عرض" | "تفاوض" | "مغلق",
-          status: formData.status as "نشط" | "معطل" | "مفقود",
+          stage: formData.stage as "new" | "follow_up" | "interest" | "proposal" | "negotiation" | "closed",
+          status: formData.status as "active" | "disabled" | "lost",
           value: formData.value ? parseFloat(formData.value) : undefined,
           notes: formData.notes,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
@@ -88,8 +88,8 @@ export default function Leads() {
           phone: formData.phone,
           company: formData.company,
           source: formData.source,
-          stage: formData.stage as "جديد" | "متابعة" | "اهتمام" | "عرض" | "تفاوض" | "مغلق",
-          status: formData.status as "نشط" | "معطل" | "مفقود",
+          stage: formData.stage as "new" | "follow_up" | "interest" | "proposal" | "negotiation" | "closed",
+          status: formData.status as "active" | "disabled" | "lost",
           value: formData.value ? parseFloat(formData.value) : undefined,
           notes: formData.notes,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
@@ -143,21 +143,21 @@ export default function Leads() {
 
   const getStageColor = (stage: string) => {
     switch(stage) {
-      case "جديد": return "bg-blue-100 text-blue-800";
-      case "متابعة": return "bg-cyan-100 text-cyan-800";
-      case "اهتمام": return "bg-yellow-100 text-yellow-800";
-      case "عرض": return "bg-orange-100 text-orange-800";
-      case "تفاوض": return "bg-purple-100 text-purple-800";
-      case "مغلق": return "bg-green-100 text-green-800";
+      case "new": return "bg-blue-100 text-blue-800";
+      case "follow_up": return "bg-cyan-100 text-cyan-800";
+      case "interest": return "bg-yellow-100 text-yellow-800";
+      case "proposal": return "bg-orange-100 text-orange-800";
+      case "negotiation": return "bg-purple-100 text-purple-800";
+      case "closed": return "bg-green-100 text-green-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case "نشط": return "bg-green-100 text-green-800";
-      case "معطل": return "bg-yellow-100 text-yellow-800";
-      case "مفقود": return "bg-red-100 text-red-800";
+      case "active": return "bg-green-100 text-green-800";
+      case "disabled": return "bg-yellow-100 text-yellow-800";
+      case "lost": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };

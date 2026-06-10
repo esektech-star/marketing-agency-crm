@@ -42,7 +42,7 @@ export const appRouter = router({
       .input(z.object({
         name: z.string(),
         serviceType: z.string(),
-        status: z.enum(["نشط", "معلق", "منتهي"]),
+        status: z.enum(["active", "pending", "completed"]),
         startDate: z.date(),
         phone: z.string().optional(),
         email: z.string().optional(),
@@ -56,7 +56,7 @@ export const appRouter = router({
         id: z.number(),
         name: z.string().optional(),
         serviceType: z.string().optional(),
-        status: z.enum(["نشط", "معلق", "منتهي"]).optional(),
+        status: z.enum(["active", "pending", "completed"]).optional(),
         phone: z.string().optional(),
         email: z.string().optional(),
         notes: z.string().optional(),
@@ -89,7 +89,7 @@ export const appRouter = router({
         phone: z.string().optional(),
         email: z.string().optional(),
         website: z.string().optional(),
-        status: z.enum(["نشط", "معلق", "غير نشط"]),
+        status: z.enum(["active", "pending", "inactive"]),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -103,7 +103,7 @@ export const appRouter = router({
         phone: z.string().optional(),
         email: z.string().optional(),
         website: z.string().optional(),
-        status: z.enum(["نشط", "معلق", "غير نشط"]).optional(),
+        status: z.enum(["active", "pending", "inactive"]).optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -136,7 +136,7 @@ export const appRouter = router({
         email: z.string().optional(),
         department: z.string().optional(),
         joinDate: z.date(),
-        status: z.enum(["نشط", "معطل", "منتهي"]),
+        status: z.enum(["active", "disabled", "completed"]),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -151,7 +151,7 @@ export const appRouter = router({
         phone: z.string().optional(),
         email: z.string().optional(),
         department: z.string().optional(),
-        status: z.enum(["نشط", "معطل", "منتهي"]).optional(),
+        status: z.enum(["active", "disabled", "completed"]).optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -181,8 +181,8 @@ export const appRouter = router({
         description: z.string().optional(),
         assignedTo: z.number().optional(),
         dueDate: z.date(),
-        priority: z.enum(["منخفضة", "متوسطة", "عالية", "حرجة"]),
-        status: z.enum(["معلقة", "قيد التنفيذ", "مكتملة", "ملغاة"]),
+        priority: z.enum(["low", "medium", "high", "critical"]),
+        status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
         relatedClient: z.number().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -198,8 +198,8 @@ export const appRouter = router({
         description: z.string().optional(),
         assignedTo: z.number().optional(),
         dueDate: z.date().optional(),
-        priority: z.enum(["منخفضة", "متوسطة", "عالية", "حرجة"]).optional(),
-        status: z.enum(["معلقة", "قيد التنفيذ", "مكتملة", "ملغاة"]).optional(),
+        priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+        status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
         relatedClient: z.number().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -230,8 +230,8 @@ export const appRouter = router({
         phone: z.string().optional(),
         company: z.string().optional(),
         source: z.string(),
-        stage: z.enum(["جديد", "متابعة", "اهتمام", "عرض", "تفاوض", "مغلق"]),
-        status: z.enum(["نشط", "معطل", "مفقود"]),
+        stage: z.enum(["new", "follow_up", "interest", "proposal", "negotiation", "closed"]),
+        status: z.enum(["active", "disabled", "lost"]),
         value: z.number().optional(),
         notes: z.string().optional(),
         assignedTo: z.number().optional(),
@@ -247,8 +247,8 @@ export const appRouter = router({
         phone: z.string().optional(),
         company: z.string().optional(),
         source: z.string().optional(),
-        stage: z.enum(["جديد", "متابعة", "اهتمام", "عرض", "تفاوض", "مغلق"]).optional(),
-        status: z.enum(["نشط", "معطل", "مفقود"]).optional(),
+        stage: z.enum(["new", "follow_up", "interest", "proposal", "negotiation", "closed"]).optional(),
+        status: z.enum(["active", "disabled", "lost"]).optional(),
         value: z.number().optional(),
         notes: z.string().optional(),
         assignedTo: z.number().optional(),
@@ -276,7 +276,7 @@ export const appRouter = router({
       }),
     create: protectedProcedure
       .input(z.object({
-        type: z.enum(["إيراد", "مصروف"]),
+        type: z.enum(["revenue", "expense"]),
         category: z.string(),
         amount: z.number(),
         description: z.string().optional(),
@@ -296,7 +296,7 @@ export const appRouter = router({
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
-        type: z.enum(["إيراد", "مصروف"]).optional(),
+        type: z.enum(["revenue", "expense"]).optional(),
         category: z.string().optional(),
         amount: z.number().optional(),
         description: z.string().optional(),
@@ -333,7 +333,7 @@ export const appRouter = router({
         startDate: z.date(),
         endDate: z.date(),
         budget: z.number().optional(),
-        status: z.enum(["مخطط", "نشط", "معلق", "منتهي"]),
+        status: z.enum(["planned", "active", "paused", "completed"]),
         relatedClient: z.number().optional(),
         description: z.string().optional(),
         notes: z.string().optional(),
@@ -349,7 +349,7 @@ export const appRouter = router({
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         budget: z.number().optional(),
-        status: z.enum(["مخطط", "نشط", "معلق", "منتهي"]).optional(),
+        status: z.enum(["planned", "active", "paused", "completed"]).optional(),
         relatedClient: z.number().optional(),
         description: z.string().optional(),
         notes: z.string().optional(),
@@ -386,9 +386,9 @@ export const appRouter = router({
         password: z.string().min(6),
         fullName: z.string(),
         email: z.string().optional(),
-        role: z.enum(["مدير", "موظف", "مصمم", "محرر"]),
+        role: z.enum(["manager", "employee", "designer", "editor"]),
         preferredLanguage: z.enum(["ar", "he", "en"]),
-        status: z.enum(["نشط", "معطل"]),
+        status: z.enum(["active", "disabled"]),
       }))
       .mutation(async ({ input }) => {
         const existing = await db.getAppUserByUsername(input.username);
@@ -404,9 +404,9 @@ export const appRouter = router({
         id: z.number(),
         fullName: z.string().optional(),
         email: z.string().optional(),
-        role: z.enum(["مدير", "موظف", "مصمم", "محرر"]).optional(),
+        role: z.enum(["manager", "employee", "designer", "editor"]).optional(),
         preferredLanguage: z.enum(["ar", "he", "en"]).optional(),
-        status: z.enum(["نشط", "معطل"]).optional(),
+        status: z.enum(["active", "disabled"]).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;

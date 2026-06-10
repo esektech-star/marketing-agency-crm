@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const STATUS_VALUES = ["مخطط", "نشط", "معلق", "منتهي"] as const;
+const STATUS_VALUES = ["planned", "active", "pending", "completed"] as const;
 
 export default function Campaigns() {
   const { t } = useTranslation();
@@ -26,7 +26,7 @@ export default function Campaigns() {
     description: "",
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    status: "مخطط" as const,
+    status: "planned" as const,
     relatedClient: "",
   };
   
@@ -40,10 +40,10 @@ export default function Campaigns() {
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "مخطط": t("campaigns.statusPlanned", "مخطط"),
-      "نشط": t("campaigns.statusActive", "نشط"),
-      "معلق": t("campaigns.statusPaused", "معلق"),
-      "منتهي": t("campaigns.statusCompleted", "منتهي"),
+      "planned": t("campaigns.statusPlanned", "planned"),
+      "active": t("campaigns.statusActive", "active"),
+      "pending": t("campaigns.statusPaused", "pending"),
+      "completed": t("campaigns.statusCompleted", "completed"),
     };
     return map[status] || status;
   };
@@ -61,7 +61,7 @@ export default function Campaigns() {
           description: formData.description,
           startDate: new Date(formData.startDate),
           endDate: new Date(formData.endDate),
-          status: formData.status as "مخطط" | "نشط" | "معلق" | "منتهي",
+          status: formData.status as "planned" | "active" | "paused" | "completed",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
         toast.success(t("campaigns.editSuccess"));
@@ -73,7 +73,7 @@ export default function Campaigns() {
           description: formData.description,
           startDate: new Date(formData.startDate),
           endDate: new Date(formData.endDate),
-          status: formData.status as "مخطط" | "نشط" | "معلق" | "منتهي",
+          status: formData.status as "planned" | "active" | "paused" | "completed",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
         toast.success(t("campaigns.addSuccess"));
@@ -123,10 +123,10 @@ export default function Campaigns() {
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case "مخطط": return "bg-blue-100 text-blue-800";
-      case "نشط": return "bg-green-100 text-green-800";
-      case "منتهي": return "bg-gray-100 text-gray-800";
-      case "معلق": return "bg-yellow-100 text-yellow-800";
+      case "planned": return "bg-blue-100 text-blue-800";
+      case "active": return "bg-green-100 text-green-800";
+      case "completed": return "bg-gray-100 text-gray-800";
+      case "pending": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };

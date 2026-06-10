@@ -1,10 +1,12 @@
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Download } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function Reports() {
+  const { t } = useTranslation();
   const { data: leads = [], isLoading: leadsLoading } = trpc.leads.list.useQuery();
   const { data: transactions = [], isLoading: transactionsLoading } = trpc.transactions.list.useQuery();
   const { data: tasks = [], isLoading: tasksLoading } = trpc.tasks.list.useQuery();
@@ -12,7 +14,6 @@ export default function Reports() {
 
   const isLoading = leadsLoading || transactionsLoading || tasksLoading || clientsLoading;
 
-  // حساب إحصائيات الليدز
   const leadsByStage = leads.reduce((acc: any, lead: any) => {
     const stage = lead.stage;
     const existing = acc.find((item: any) => item.name === stage);
@@ -24,7 +25,6 @@ export default function Reports() {
     return acc;
   }, []);
 
-  // حساب الإيرادات والمصروفات الشهرية
   const monthlyData: any = {};
   transactions.forEach((transaction: any) => {
     const date = new Date(transaction.date);
@@ -34,7 +34,7 @@ export default function Reports() {
       monthlyData[monthKey] = { month: monthKey, revenue: 0, expense: 0 };
     }
     
-    if (transaction.type === "إيراد") {
+    if (transaction.type === "revenue") {
       monthlyData[monthKey].revenue += transaction.amount;
     } else {
       monthlyData[monthKey].expense += transaction.amount;
@@ -43,7 +43,6 @@ export default function Reports() {
 
   const monthlyChartData = Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month));
 
-  // حساب حالة المهام
   const tasksByStatus = tasks.reduce((acc: any, task: any) => {
     const status = task.status;
     const existing = acc.find((item: any) => item.name === status);
@@ -55,7 +54,6 @@ export default function Reports() {
     return acc;
   }, []);
 
-  // حساب حالة العملاء
   const clientsByStatus = clients.reduce((acc: any, client: any) => {
     const status = client.status;
     const existing = acc.find((item: any) => item.name === status);
@@ -67,7 +65,6 @@ export default function Reports() {
     return acc;
   }, []);
 
-  // الألوان للرسوم البيانية
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   const handleDownloadReport = () => {
@@ -78,8 +75,8 @@ export default function Reports() {
         totalClients: clients.length,
         totalTasks: tasks.length,
         totalTransactions: transactions.length,
-        totalRevenue: transactions.filter((t: any) => t.type === "إيراد").reduce((sum: number, t: any) => sum + t.amount, 0),
-        totalExpense: transactions.filter((t: any) => t.type === "مصروف").reduce((sum: number, t: any) => sum + t.amount, 0),
+        totalRevenue: transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0),
+        totalExpense: transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0),
       },
       leadsByStage,
       tasksByStatus,
@@ -108,73 +105,70 @@ export default function Reports() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">التقارير والإحصائيات</h1>
-          <p className="text-muted-foreground mt-1">تحليل شامل لأداء العمل والبيانات</p>
+          <h1 className="text-3xl font-bold">{t("reports.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("reports.subtitle")}</p>
         </div>
-        <Button onClick={handleDownloadReport}>
-          <Download className="w-4 h-4 ml-2" />
-          تنزيل التقرير
+        <Button onClick={handleDownloadReport} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+          <Download className="w-4 h-4 ms-2" />
+          {t("reports.download")}
         </Button>
       </div>
 
-      {/* ملخص إحصائي */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">إجمالي الليدز</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("reports.totalLeads")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-blue-600">{leads.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">عملاء محتملين</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("reports.potentialCustomers")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">إجمالي العملاء</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("reports.totalClients")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">{clients.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">عملاء نشطين</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("reports.activeClients")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">إجمالي المهام</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("reports.totalTasks")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-amber-600">{tasks.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">مهام قيد المتابعة</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("reports.tasksInProgress")}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">الربح الصافي</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("reports.netProfit")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-3xl font-bold ${
-              (transactions.filter((t: any) => t.type === "إيراد").reduce((sum: number, t: any) => sum + t.amount, 0) -
-              transactions.filter((t: any) => t.type === "مصروف").reduce((sum: number, t: any) => sum + t.amount, 0)) >= 0
+              (transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0) -
+              transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0)) >= 0
               ? 'text-emerald-600'
               : 'text-red-600'
             }`}>
-              {(transactions.filter((t: any) => t.type === "إيراد").reduce((sum: number, t: any) => sum + t.amount, 0) -
-              transactions.filter((t: any) => t.type === "مصروف").reduce((sum: number, t: any) => sum + t.amount, 0)).toLocaleString('ar-SA')}
+              {(transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0) -
+              transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0)).toLocaleString('ar-SA')}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">ريال</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("common.currency")}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* الرسوم البيانية */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* الليدز حسب المرحلة */}
         <Card>
           <CardHeader>
-            <CardTitle>توزيع الليدز حسب المرحلة</CardTitle>
-            <CardDescription>نسبة الليدز في كل مرحلة من مراحل القمع</CardDescription>
+            <CardTitle>{t("reports.leadsByStage")}</CardTitle>
+            <CardDescription>{t("reports.leadsByStageDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {leadsByStage.length > 0 ? (
@@ -198,16 +192,15 @@ export default function Reports() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">لا توجد بيانات</div>
+              <div className="text-center py-8 text-muted-foreground">{t("common.noData")}</div>
             )}
           </CardContent>
         </Card>
 
-        {/* المهام حسب الحالة */}
         <Card>
           <CardHeader>
-            <CardTitle>توزيع المهام حسب الحالة</CardTitle>
-            <CardDescription>عدد المهام في كل حالة</CardDescription>
+            <CardTitle>{t("reports.tasksByStatus")}</CardTitle>
+            <CardDescription>{t("reports.tasksByStatusDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {tasksByStatus.length > 0 ? (
@@ -221,16 +214,15 @@ export default function Reports() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">لا توجد بيانات</div>
+              <div className="text-center py-8 text-muted-foreground">{t("common.noData")}</div>
             )}
           </CardContent>
         </Card>
 
-        {/* الإيرادات والمصروفات الشهرية */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>الإيرادات والمصروفات الشهرية</CardTitle>
-            <CardDescription>مقارنة الإيرادات والمصروفات على مدار الأشهر</CardDescription>
+            <CardTitle>{t("reports.monthlyRevenue")}</CardTitle>
+            <CardDescription>{t("reports.monthlyRevenueDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {monthlyChartData.length > 0 ? (
@@ -241,21 +233,20 @@ export default function Reports() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#10b981" name="الإيرادات" />
-                  <Line type="monotone" dataKey="expense" stroke="#ef4444" name="المصروفات" />
+                  <Line type="monotone" dataKey="revenue" stroke="#10b981" name={t("reports.revenue")} />
+                  <Line type="monotone" dataKey="expense" stroke="#ef4444" name={t("reports.expense")} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">لا توجد بيانات</div>
+              <div className="text-center py-8 text-muted-foreground">{t("common.noData")}</div>
             )}
           </CardContent>
         </Card>
 
-        {/* العملاء حسب الحالة */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>توزيع العملاء حسب الحالة</CardTitle>
-            <CardDescription>عدد العملاء في كل حالة</CardDescription>
+            <CardTitle>{t("reports.clientsByStatus")}</CardTitle>
+            <CardDescription>{t("reports.clientsByStatusDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {clientsByStatus.length > 0 ? (
@@ -269,7 +260,7 @@ export default function Reports() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">لا توجد بيانات</div>
+              <div className="text-center py-8 text-muted-foreground">{t("common.noData")}</div>
             )}
           </CardContent>
         </Card>

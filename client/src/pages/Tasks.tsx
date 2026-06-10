@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const PRIORITY_VALUES = ["منخفضة", "متوسطة", "عالية", "حرجة"] as const;
-const STATUS_VALUES = ["معلقة", "قيد التنفيذ", "مكتملة", "ملغاة"] as const;
+const PRIORITY_VALUES = ["low", "medium", "high", "critical"] as const;
+const STATUS_VALUES = ["pending", "in_progress", "completed", "cancelled"] as const;
 
 export default function Tasks() {
   const { t } = useTranslation();
@@ -25,8 +25,8 @@ export default function Tasks() {
     description: "",
     assignedTo: "",
     dueDate: new Date().toISOString().split('T')[0],
-    priority: "متوسطة" as const,
-    status: "معلقة" as const,
+    priority: "medium" as const,
+    status: "pending" as const,
     relatedClient: "",
   };
   
@@ -41,20 +41,20 @@ export default function Tasks() {
 
   const localizedPriority = (priority: string) => {
     const map: Record<string, string> = {
-      "منخفضة": t("tasks.priorityLow", "منخفضة"),
-      "متوسطة": t("tasks.priorityMedium", "متوسطة"),
-      "عالية": t("tasks.priorityHigh", "عالية"),
-      "حرجة": t("tasks.priorityCritical", "حرجة"),
+      "low": t("tasks.priorityLow", "low"),
+      "medium": t("tasks.priorityMedium", "medium"),
+      "high": t("tasks.priorityHigh", "high"),
+      "critical": t("tasks.priorityCritical", "critical"),
     };
     return map[priority] || priority;
   };
 
   const localizedStatus = (status: string) => {
     const map: Record<string, string> = {
-      "معلقة": t("tasks.statusPending", "معلقة"),
-      "قيد التنفيذ": t("tasks.statusInProgress", "قيد التنفيذ"),
-      "مكتملة": t("tasks.statusCompleted", "مكتملة"),
-      "ملغاة": t("tasks.statusCancelled", "ملغاة"),
+      "pending": t("tasks.statusPending", "pending"),
+      "in_progress": t("tasks.statusInProgress", "in_progress"),
+      "completed": t("tasks.statusCompleted", "completed"),
+      "cancelled": t("tasks.statusCancelled", "cancelled"),
     };
     return map[status] || status;
   };
@@ -70,8 +70,8 @@ export default function Tasks() {
           description: formData.description,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
           dueDate: new Date(formData.dueDate),
-          priority: formData.priority as "منخفضة" | "متوسطة" | "عالية" | "حرجة",
-          status: formData.status as "معلقة" | "قيد التنفيذ" | "مكتملة" | "ملغاة",
+          priority: formData.priority as "low" | "medium" | "high" | "critical",
+          status: formData.status as "pending" | "in_progress" | "completed" | "cancelled",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
         toast.success(t("tasks.editSuccess"));
@@ -81,8 +81,8 @@ export default function Tasks() {
           description: formData.description,
           assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
           dueDate: new Date(formData.dueDate),
-          priority: formData.priority as "منخفضة" | "متوسطة" | "عالية" | "حرجة",
-          status: formData.status as "معلقة" | "قيد التنفيذ" | "مكتملة" | "ملغاة",
+          priority: formData.priority as "low" | "medium" | "high" | "critical",
+          status: formData.status as "pending" | "in_progress" | "completed" | "cancelled",
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
         });
         toast.success(t("tasks.addSuccess"));
@@ -131,20 +131,20 @@ export default function Tasks() {
 
   const getPriorityColor = (priority: string) => {
     switch(priority) {
-      case "منخفضة": return "bg-blue-100 text-blue-800";
-      case "متوسطة": return "bg-yellow-100 text-yellow-800";
-      case "عالية": return "bg-orange-100 text-orange-800";
-      case "حرجة": return "bg-red-100 text-red-800";
+      case "low": return "bg-blue-100 text-blue-800";
+      case "medium": return "bg-yellow-100 text-yellow-800";
+      case "high": return "bg-orange-100 text-orange-800";
+      case "critical": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch(status) {
-      case "معلقة": return "bg-gray-100 text-gray-800";
-      case "قيد التنفيذ": return "bg-blue-100 text-blue-800";
-      case "مكتملة": return "bg-green-100 text-green-800";
-      case "ملغاة": return "bg-red-100 text-red-800";
+      case "pending": return "bg-gray-100 text-gray-800";
+      case "in_progress": return "bg-blue-100 text-blue-800";
+      case "completed": return "bg-green-100 text-green-800";
+      case "cancelled": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
