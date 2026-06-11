@@ -24,14 +24,11 @@ export type InsertUser = typeof users.$inferInsert;
 export const clients = mysqlTable("clients", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  clientCode: varchar("clientCode", { length: 50 }).notNull().unique(), // كود العميل الفريد
   serviceType: varchar("serviceType", { length: 255 }).notNull(),
   status: mysqlEnum("status", ["active", "pending", "completed"]).default("active").notNull(),
   startDate: timestamp("startDate").notNull(),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
-  monthlyAmount: decimal("monthlyAmount", { precision: 12, scale: 2 }), // المبلغ الشهري
-  paymentDate: int("paymentDate"), // يوم الدفع من الشهر (1-31)
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -92,7 +89,6 @@ export const tasks = mysqlTable("tasks", {
   priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
   status: mysqlEnum("status", ["pending", "in_progress", "completed", "cancelled"]).default("pending").notNull(),
   relatedClient: int("relatedClient"),
-  attachments: json("attachments"), // مصفوفة من الملفات المرفقة
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -213,15 +209,14 @@ export type InsertAppUser = typeof appUsers.$inferInsert;
  */
 export const documents = mysqlTable("documents", {
   id: int("id").autoincrement().primaryKey(),
-  fileName: varchar("fileName", { length: 500 }).notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
   fileKey: varchar("fileKey", { length: 500 }).notNull(),
   fileUrl: varchar("fileUrl", { length: 500 }).notNull(),
-  mimeType: varchar("mimeType", { length: 255 }),
+  mimeType: varchar("mimeType", { length: 100 }),
   fileSize: int("fileSize"),
-  category: varchar("category", { length: 255 }),
+  category: varchar("category", { length: 100 }),
   relatedClient: int("relatedClient"),
   relatedCampaign: int("relatedCampaign"),
-  relatedTask: int("relatedTask"), // ربط الملفات بالمهام
   uploadedBy: int("uploadedBy"),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
