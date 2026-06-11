@@ -60,6 +60,8 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const { i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -100,6 +102,8 @@ export default function DashboardLayout({
       style={
         {
           "--sidebar-width": `${sidebarWidth}px`,
+          display: 'flex',
+          flexDirection: isRTL ? 'row-reverse' : 'row',
         } as CSSProperties
       }
     >
@@ -122,13 +126,14 @@ function DashboardLayoutContent({
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const menuItems = getMenuItems(t);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
 
   useEffect(() => {
     if (isCollapsed) {
@@ -171,8 +176,9 @@ function DashboardLayoutContent({
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0"
+          className={`border-r-0 ${isRTL ? 'border-l' : 'border-r'}`}
           disableTransition={isResizing}
+          side={isRTL ? "right" : "left"}
         >
           <SidebarHeader className="h-16 justify-center border-b">
             <div className="flex items-center gap-3 px-2 transition-all w-full">
@@ -246,7 +252,7 @@ function DashboardLayoutContent({
           </SidebarFooter>
         </Sidebar>
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
+          className={`absolute top-0 ${isRTL ? 'left-0' : 'right-0'} w-1 h-full cursor-col-resize hover:bg-primary/20 transition-colors ${isCollapsed ? "hidden" : ""}`}
           onMouseDown={() => {
             if (isCollapsed) return;
             setIsResizing(true);
@@ -258,9 +264,9 @@ function DashboardLayoutContent({
       <SidebarInset>
         <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
           {isMobile && (
-            <div className="flex items-center gap-2 flex-1">
+            <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
+              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <div className="flex flex-col gap-1">
                   <span className="tracking-tight text-foreground text-sm">
                     {activeMenuItem?.label ?? "Menu"}
