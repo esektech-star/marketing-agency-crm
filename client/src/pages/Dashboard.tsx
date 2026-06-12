@@ -57,8 +57,9 @@ export default function Dashboard() {
       {/* Welcome Section */}
       <div className="bg-gradient-to-l from-[#1e3a5f] to-[#2d5080] rounded-xl p-6 text-white shadow-lg">
         <h1 className="text-3xl font-bold mb-2">
-          {t("dashboard.welcome")}{user?.name ? `، ${user.name}` : ""}
+          {t("dashboard.welcome")}
         </h1>
+        {user?.name && <p className="text-blue-50 text-lg">{user.name}</p>}
         <p className="text-blue-100">{t("dashboard.subtitle")}</p>
       </div>
 

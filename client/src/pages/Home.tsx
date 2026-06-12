@@ -52,8 +52,8 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <img src={LOGO_URL} alt="Esek Tech" className="h-11 w-11 rounded-full object-cover ring-1 ring-slate-200" />
             <div className="flex flex-col leading-tight">
-              <span className="text-lg font-bold text-[#1e3a5f]">Esek Tech</span>
-              <span className="text-[11px] text-[#f59e0b] font-medium">מניעים עסקים קדימה</span>
+              <span className="text-lg font-bold text-[#1e3a5f]">{t("app.name", "Esek Tech")}</span>
+              <span className="text-[11px] text-[#f59e0b] font-medium">{t("app.tagline", "Driving Businesses Forward")}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
