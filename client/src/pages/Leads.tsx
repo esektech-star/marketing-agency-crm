@@ -41,6 +41,20 @@ export default function Leads() {
   const updateMutation = trpc.leads.update.useMutation();
   const deleteMutation = trpc.leads.delete.useMutation();
 
+  // تنسيق رقم الهاتف إلى صيغة +972XXXXXXXXX
+  const formatPhoneIL = (raw: string): string => {
+    if (!raw) return "";
+    // استخراج الأرقام فقط
+    let digits = raw.replace(/\D/g, "");
+    // إزالة بادئة الدولة إن وجدت
+    if (digits.startsWith("00972")) digits = digits.slice(5);
+    else if (digits.startsWith("972")) digits = digits.slice(3);
+    // إزالة الصفر البادئي المحلي
+    if (digits.startsWith("0")) digits = digits.slice(1);
+    if (!digits) return "";
+    return `+972${digits}`;
+  };
+
   const localizedStage = (stage: string) => {
     const map: Record<string, string> = {
       "new": t("leads.stageNew", "new"),
@@ -71,7 +85,7 @@ export default function Leads() {
           id: editingId,
           name: formData.name,
           email: formData.email,
-          phone: formData.phone,
+          phone: formatPhoneIL(formData.phone),
           company: formData.company,
           source: formData.source,
           stage: formData.stage as "new" | "follow_up" | "interest" | "proposal" | "negotiation" | "closed",
@@ -85,7 +99,7 @@ export default function Leads() {
         await createMutation.mutateAsync({
           name: formData.name,
           email: formData.email,
-          phone: formData.phone,
+          phone: formatPhoneIL(formData.phone),
           company: formData.company,
           source: formData.source,
           stage: formData.stage as "new" | "follow_up" | "interest" | "proposal" | "negotiation" | "closed",
@@ -215,9 +229,11 @@ export default function Leads() {
                 <Label htmlFor="phone">{t("common.phone")}</Label>
                 <Input
                   id="phone"
+                  dir="ltr"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+966 50 000 0000"
+                  onBlur={(e) => setFormData({ ...formData, phone: formatPhoneIL(e.target.value) })}
+                  placeholder="+972XXXXXXXXX"
                 />
               </div>
               <div>
@@ -346,7 +362,7 @@ export default function Leads() {
                           {localizedStatus(lead.status)}
                         </span>
                       </TableCell>
-                      <TableCell>{lead.value ? `${lead.value.toLocaleString('ar-SA')} ${t("common.currency")}` : "-"}</TableCell>
+                      <TableCell dir="ltr" className="text-start">{lead.value ? `${t("common.currency")}${lead.value.toLocaleString('en-US')}` : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button

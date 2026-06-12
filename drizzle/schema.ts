@@ -29,6 +29,9 @@ export const clients = mysqlTable("clients", {
   startDate: timestamp("startDate").notNull(),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
+  monthlyAmount: decimal("monthlyAmount", { precision: 12, scale: 2 }),
+  paymentDate: int("paymentDate"), // يوم الدفع الشهري (1-31)
+  source: varchar("source", { length: 255 }), // مصدر اكتساب العميل
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -67,6 +70,7 @@ export const teamMembers = mysqlTable("teamMembers", {
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
   department: varchar("department", { length: 255 }),
+  salary: decimal("salary", { precision: 12, scale: 2 }),
   joinDate: timestamp("joinDate").notNull(),
   status: mysqlEnum("status", ["active", "disabled", "completed"]).default("active").notNull(),
   notes: text("notes"),

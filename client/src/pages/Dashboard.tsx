@@ -16,7 +16,24 @@ export default function Dashboard() {
   const currency = t("common.currency");
 
   const formatCurrency = (value: number) =>
-    `${value.toLocaleString("en-US")} ${currency}`;
+    `${currency}${value.toLocaleString("en-US")}`;
+
+  // تحية حسب وقت اليوم
+  const hour = new Date().getHours();
+  const timeKey =
+    hour >= 5 && hour < 12
+      ? "morning"
+      : hour >= 12 && hour < 17
+        ? "afternoon"
+        : hour >= 17 && hour < 21
+          ? "evening"
+          : "night";
+  const greeting = t(`dashboard.greeting.${timeKey}`);
+  // رسائل تحفيزية متغيرة
+  const motivations = t("dashboard.motivations", { returnObjects: true }) as string[];
+  const motivation = Array.isArray(motivations) && motivations.length > 0
+    ? motivations[new Date().getDate() % motivations.length]
+    : "";
 
   if (isLoading) {
     return (
@@ -56,10 +73,11 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       {/* Welcome Section */}
       <div className="bg-gradient-to-l from-[#1e3a5f] to-[#2d5080] rounded-xl p-6 text-white shadow-lg">
+        <p className="text-blue-100 text-sm mb-1">{greeting}{user?.name ? `، ${user.name}` : ""}</p>
         <h1 className="text-3xl font-bold mb-2">
           {t("dashboard.welcome")}
         </h1>
-        {user?.name && <p className="text-blue-50 text-lg">{user.name}</p>}
+        {motivation && <p className="text-blue-50 text-lg">{motivation}</p>}
         <p className="text-blue-100">{t("dashboard.subtitle")}</p>
       </div>
 

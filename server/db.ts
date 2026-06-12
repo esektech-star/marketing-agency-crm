@@ -101,17 +101,25 @@ export async function getClientById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+function normalizeClient(data: any) {
+  const out = { ...data };
+  if (out.monthlyAmount !== undefined && out.monthlyAmount !== null) {
+    out.monthlyAmount = String(out.monthlyAmount);
+  }
+  return out;
+}
+
 export async function createClient(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(clients).values(data);
+  const result = await db.insert(clients).values(normalizeClient(data));
   return result;
 }
 
 export async function updateClient(id: number, data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.update(clients).set(data).where(eq(clients.id, id));
+  return await db.update(clients).set(normalizeClient(data)).where(eq(clients.id, id));
 }
 
 export async function deleteClient(id: number) {
@@ -166,16 +174,24 @@ export async function getTeamMemberById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+function normalizeTeamMember(data: any) {
+  const out = { ...data };
+  if (out.salary !== undefined && out.salary !== null) {
+    out.salary = String(out.salary);
+  }
+  return out;
+}
+
 export async function createTeamMember(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.insert(teamMembers).values(data);
+  return await db.insert(teamMembers).values(normalizeTeamMember(data));
 }
 
 export async function updateTeamMember(id: number, data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.update(teamMembers).set(data).where(eq(teamMembers.id, id));
+  return await db.update(teamMembers).set(normalizeTeamMember(data)).where(eq(teamMembers.id, id));
 }
 
 export async function deleteTeamMember(id: number) {

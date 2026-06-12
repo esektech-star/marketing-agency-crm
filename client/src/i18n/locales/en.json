@@ -92,6 +92,21 @@
     "title": "Dashboard",
     "welcome": "Welcome to Esek Tech",
     "subtitle": "An overview of your business performance",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "motivations": [
+      "A new day full of opportunities — let's make it count!",
+      "Every happy client is a step toward success.",
+      "Success is the sum of small efforts repeated every day.",
+      "Focus on your goals today and you'll achieve more than you expect.",
+      "Hard work today creates tomorrow's results.",
+      "Keep your momentum — you're doing great work!",
+      "Creativity and discipline make the difference."
+    ],
     "activeClients": "Active Clients",
     "pendingTasks": "Pending Tasks",
     "monthlyRevenue": "Monthly Revenue",

@@ -149,9 +149,9 @@
 
 ## المرحلة 19: تصحيحات المستخدم النهائية
 - [x] Reports.tsx - صافي الربح بتنسيق إنجليزي + ₪
-- [ ] التحقق من أعمدة قاعدة البيانات (monthlyAmount, paymentDate, source في clients - attachments في tasks)
-- [ ] رسائل تحفيزية في Dashboard حسب وقت اليوم
-- [ ] صيغة أرقام الهاتف +972XXXXXXXXX في Leads
+- [x] التحقق من أعمدة قاعدة البيانات (monthlyAmount, paymentDate, source في clients - attachments في tasks - salary في teamMembers)
+- [x] رسائل تحفيزية في Dashboard حسب وقت اليوم
+- [x] صيغة أرقام الهاتف +972XXXXXXXXX في Leads
 - [ ] AccessDetails - إضافة اسم المستخدم وكود العميل
 - [ ] Documents - تنظيم الملفات حسب العميل + مجلدات فرعية + ملفات داخلية
 - [ ] نظام الصلاحيات - المدير يتحكم بما يراه/يفعله كل موظف
