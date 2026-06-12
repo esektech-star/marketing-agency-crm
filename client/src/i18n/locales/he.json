@@ -48,7 +48,7 @@
     "required": "שדה חובה",
     "startDate": "תאריך התחלה",
     "endDate": "תאריך סיום",
-    "currency": "שקל",
+    "currency": "₪",
     "currencyCode": "ש\"ח",
     "total": "סה\"כ",
     "type": "סוג",
