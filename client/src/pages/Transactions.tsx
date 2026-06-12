@@ -130,6 +130,10 @@ export default function Transactions() {
     return type === "revenue" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
   };
 
+  // تنسيق الأرقام بالإنجليزية دائماً مع رمز الشيقل
+  const fmt = (n: number) => `₪${(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  const fmtDate = (d: any) => new Date(d).toLocaleDateString("en-GB");
+
   const totalIncome = transactions
     .filter((t: any) => t.type === "revenue")
     .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
@@ -139,6 +143,44 @@ export default function Transactions() {
     .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
 
   const netProfit = totalIncome - totalExpenses;
+
+  // حساب الشهر الحالي والشهر السابق للمقارنة
+  const now = new Date();
+  const curMonth = now.getMonth();
+  const curYear = now.getFullYear();
+  const prevDate = new Date(curYear, curMonth - 1, 1);
+  const prevMonth = prevDate.getMonth();
+  const prevYear = prevDate.getFullYear();
+
+  const sumBy = (type: string, m: number, y: number) =>
+    transactions
+      .filter((t: any) => {
+        const d = new Date(t.date);
+        return t.type === type && d.getMonth() === m && d.getFullYear() === y;
+      })
+      .reduce((s: number, t: any) => s + (t.amount || 0), 0);
+
+  const incomeThisMonth = sumBy("revenue", curMonth, curYear);
+  const incomeLastMonth = sumBy("revenue", prevMonth, prevYear);
+  const expenseThisMonth = sumBy("expense", curMonth, curYear);
+  const expenseLastMonth = sumBy("expense", prevMonth, prevYear);
+
+  const pctChange = (cur: number, prev: number) => {
+    if (prev === 0) return cur === 0 ? 0 : 100;
+    return ((cur - prev) / prev) * 100;
+  };
+  const incomeChange = pctChange(incomeThisMonth, incomeLastMonth);
+  const expenseChange = pctChange(expenseThisMonth, expenseLastMonth);
+
+  const ComparisonBadge = ({ change, positiveIsGood }: { change: number; positiveIsGood: boolean }) => {
+    const isUp = change >= 0;
+    const good = positiveIsGood ? isUp : !isUp;
+    return (
+      <p className={`text-xs mt-1 ${good ? "text-green-600" : "text-red-600"}`} dir="ltr">
+        {isUp ? "▲" : "▼"} {Math.abs(change).toLocaleString("en-US", { maximumFractionDigits: 1 })}% {t("transactions.vsLastMonth", "vs last month")}
+      </p>
+    );
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -272,7 +314,8 @@ export default function Transactions() {
             <CardTitle className="text-sm font-medium text-muted-foreground">{t("transactions.totalIncome")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{totalIncome.toLocaleString('ar-SA')} {t("common.currency")}</div>
+            <div className="text-2xl font-bold text-green-600" dir="ltr">{fmt(totalIncome)}</div>
+            <ComparisonBadge change={incomeChange} positiveIsGood={true} />
           </CardContent>
         </Card>
         <Card>
@@ -280,7 +323,8 @@ export default function Transactions() {
             <CardTitle className="text-sm font-medium text-muted-foreground">{t("transactions.totalExpenses")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{totalExpenses.toLocaleString('ar-SA')} {t("common.currency")}</div>
+            <div className="text-2xl font-bold text-red-600" dir="ltr">{fmt(totalExpenses)}</div>
+            <ComparisonBadge change={expenseChange} positiveIsGood={false} />
           </CardContent>
         </Card>
         <Card>
@@ -288,8 +332,8 @@ export default function Transactions() {
             <CardTitle className="text-sm font-medium text-muted-foreground">{t("transactions.netProfit")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {netProfit.toLocaleString('ar-SA')} {t("common.currency")}
+            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`} dir="ltr">
+              {fmt(netProfit)}
             </div>
           </CardContent>
         </Card>
@@ -331,8 +375,8 @@ export default function Transactions() {
                         </span>
                       </TableCell>
                       <TableCell>{transaction.category}</TableCell>
-                      <TableCell className="font-medium">{transaction.amount.toLocaleString('ar-SA')} {t("common.currency")}</TableCell>
-                      <TableCell>{new Date(transaction.date).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell className="font-medium" dir="ltr">{fmt(transaction.amount)}</TableCell>
+                      <TableCell dir="ltr">{fmtDate(transaction.date)}</TableCell>
                       <TableCell>{transaction.description || "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">

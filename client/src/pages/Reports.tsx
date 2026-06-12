@@ -150,16 +150,15 @@ export default function Reports() {
             <CardTitle className="text-sm font-medium">{t("reports.netProfit")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold ${
+            <div dir="ltr" className={`text-3xl font-bold ${
               (transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0) -
               transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0)) >= 0
               ? 'text-emerald-600'
               : 'text-red-600'
             }`}>
-              {(transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0) -
-              transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0)).toLocaleString('ar-SA')}
+              {`\u20AA${(transactions.filter((t: any) => t.type === "revenue").reduce((sum: number, t: any) => sum + t.amount, 0) -
+              transactions.filter((t: any) => t.type === "expense").reduce((sum: number, t: any) => sum + t.amount, 0)).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{t("common.currency")}</p>
           </CardContent>
         </Card>
       </div>

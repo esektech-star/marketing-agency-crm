@@ -187,11 +187,17 @@ export const appRouter = router({
       .input(z.object({
         title: z.string(),
         description: z.string().optional(),
-        assignedTo: z.number().optional(),
+        assignedTo: z.array(z.number()).optional(),
         dueDate: z.date(),
         priority: z.enum(["low", "medium", "high", "critical"]),
         status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
         relatedClient: z.number().optional(),
+        attachments: z.array(z.object({
+          url: z.string(),
+          key: z.string(),
+          name: z.string(),
+          mimeType: z.string().optional(),
+        })).optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         return await db.createTask({
@@ -204,15 +210,37 @@ export const appRouter = router({
         id: z.number(),
         title: z.string().optional(),
         description: z.string().optional(),
-        assignedTo: z.number().optional(),
+        assignedTo: z.array(z.number()).optional(),
         dueDate: z.date().optional(),
         priority: z.enum(["low", "medium", "high", "critical"]).optional(),
         status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
         relatedClient: z.number().optional(),
+        attachments: z.array(z.object({
+          url: z.string(),
+          key: z.string(),
+          name: z.string(),
+          mimeType: z.string().optional(),
+        })).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         return await db.updateTask(id, data);
+      }),
+    uploadAttachment: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileBase64: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const base64Data = input.fileBase64.includes(",")
+          ? input.fileBase64.split(",")[1]
+          : input.fileBase64;
+        const buffer = Buffer.from(base64Data, "base64");
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const fileKey = `${ctx.user?.id ?? "anon"}-tasks/${Date.now()}-${safeName}`;
+        const { key, url } = await storagePut(fileKey, buffer, input.mimeType);
+        return { key, url, name: input.fileName, mimeType: input.mimeType };
       }),
     delete: protectedProcedure
       .input(z.object({ id: z.number() }))
@@ -329,6 +357,22 @@ export const appRouter = router({
     list: protectedProcedure.query(async () => {
       return await db.getCampaigns();
     }),
+    uploadMedia: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileBase64: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const base64Data = input.fileBase64.includes(",")
+          ? input.fileBase64.split(",")[1]
+          : input.fileBase64;
+        const buffer = Buffer.from(base64Data, "base64");
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const fileKey = `${ctx.user?.id ?? "anon"}-campaigns/${Date.now()}-${safeName}`;
+        const { key, url } = await storagePut(fileKey, buffer, input.mimeType);
+        return { key, url, name: input.fileName, mimeType: input.mimeType };
+      }),
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -345,6 +389,10 @@ export const appRouter = router({
         relatedClient: z.number().optional(),
         description: z.string().optional(),
         notes: z.string().optional(),
+        postLink: z.string().optional(),
+        mediaUrl: z.string().optional(),
+        mediaKey: z.string().optional(),
+        mediaType: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         return await db.createCampaign(input);
@@ -361,6 +409,10 @@ export const appRouter = router({
         relatedClient: z.number().optional(),
         description: z.string().optional(),
         notes: z.string().optional(),
+        postLink: z.string().optional(),
+        mediaUrl: z.string().optional(),
+        mediaKey: z.string().optional(),
+        mediaType: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;

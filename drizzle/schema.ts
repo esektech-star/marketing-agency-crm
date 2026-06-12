@@ -89,6 +89,7 @@ export const tasks = mysqlTable("tasks", {
   priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
   status: mysqlEnum("status", ["pending", "in_progress", "completed", "cancelled"]).default("pending").notNull(),
   relatedClient: int("relatedClient"),
+  attachments: json("attachments"), // مصفوفة من الملفات المرفقة [{url, key, name, mimeType}]
   createdBy: int("createdBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -156,6 +157,10 @@ export const campaigns = mysqlTable("campaigns", {
   relatedClient: int("relatedClient"),
   description: text("description"),
   notes: text("notes"),
+  postLink: text("postLink"),
+  mediaUrl: text("mediaUrl"),
+  mediaKey: varchar("mediaKey", { length: 512 }),
+  mediaType: varchar("mediaType", { length: 50 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
