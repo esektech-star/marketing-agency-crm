@@ -25,6 +25,7 @@ export default function TeamMembers() {
     phone: "",
     email: "",
     department: "",
+    salary: "",
     joinDate: new Date().toISOString().split('T')[0],
     status: "active",
     notes: "",
@@ -57,6 +58,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
+          salary: formData.salary ? parseFloat(formData.salary) : undefined,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -69,6 +71,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
+          salary: formData.salary ? parseFloat(formData.salary) : undefined,
           joinDate: new Date(formData.joinDate),
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
@@ -93,6 +96,7 @@ export default function TeamMembers() {
       phone: member.phone || "",
       email: member.email || "",
       department: member.department || "",
+      salary: member.salary?.toString() || "",
       joinDate: new Date(member.joinDate).toISOString().split('T')[0],
       status: member.status,
       notes: member.notes || "",
@@ -161,6 +165,10 @@ export default function TeamMembers() {
               <div>
                 <Label htmlFor="phone">{t("common.phone")}</Label>
                 <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+              </div>
+              <div>
+                <Label htmlFor="salary">{t("team.salary", "Salary")}</Label>
+                <Input id="salary" type="number" step="0.01" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: e.target.value })} placeholder="0.00" />
               </div>
               <div>
                 <Label htmlFor="joinDate">{t("team.joinDate")}</Label>

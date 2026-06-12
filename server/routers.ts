@@ -141,6 +141,7 @@ export const appRouter = router({
         phone: z.string().optional(),
         email: z.string().optional(),
         department: z.string().optional(),
+        salary: z.number().optional(),
         joinDate: z.date(),
         status: z.enum(["active", "disabled", "completed"]),
         notes: z.string().optional(),
@@ -157,6 +158,7 @@ export const appRouter = router({
         phone: z.string().optional(),
         email: z.string().optional(),
         department: z.string().optional(),
+        salary: z.number().optional(),
         status: z.enum(["active", "disabled", "completed"]).optional(),
         notes: z.string().optional(),
       }))
