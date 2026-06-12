@@ -46,6 +46,9 @@ export const appRouter = router({
         startDate: z.date(),
         phone: z.string().optional(),
         email: z.string().optional(),
+        monthlyAmount: z.number().optional(),
+        paymentDate: z.string().optional(),
+        source: z.string().optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -59,6 +62,9 @@ export const appRouter = router({
         status: z.enum(["active", "pending", "completed"]).optional(),
         phone: z.string().optional(),
         email: z.string().optional(),
+        monthlyAmount: z.number().optional().nullable(),
+        paymentDate: z.string().optional().nullable(),
+        source: z.string().optional().nullable(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {

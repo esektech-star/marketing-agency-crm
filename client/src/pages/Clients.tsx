@@ -25,6 +25,9 @@ export default function Clients() {
     startDate: new Date().toISOString().split("T")[0],
     phone: "",
     email: "",
+    monthlyAmount: "",
+    paymentDate: "",
+    source: "",
     notes: "",
   };
   const [formData, setFormData] = useState(emptyForm);
@@ -54,6 +57,9 @@ export default function Clients() {
           status: formData.status as "active" | "pending" | "completed",
           phone: formData.phone,
           email: formData.email,
+          monthlyAmount: formData.monthlyAmount ? parseFloat(formData.monthlyAmount) : undefined,
+          paymentDate: formData.paymentDate || undefined,
+          source: formData.source || undefined,
           notes: formData.notes,
         });
         toast.success(t("common.editSuccess"));
@@ -65,6 +71,9 @@ export default function Clients() {
           startDate: new Date(formData.startDate),
           phone: formData.phone,
           email: formData.email,
+          monthlyAmount: formData.monthlyAmount ? parseFloat(formData.monthlyAmount) : undefined,
+          paymentDate: formData.paymentDate || undefined,
+          source: formData.source || undefined,
           notes: formData.notes,
         });
         toast.success(t("common.addSuccess"));
@@ -87,6 +96,9 @@ export default function Clients() {
       startDate: new Date(client.startDate).toISOString().split("T")[0],
       phone: client.phone || "",
       email: client.email || "",
+      monthlyAmount: client.monthlyAmount?.toString() || "",
+      paymentDate: client.paymentDate || "",
+      source: client.source || "",
       notes: client.notes || "",
     });
     setIsOpen(true);
@@ -188,6 +200,35 @@ export default function Clients() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="monthlyAmount">{t("clients.monthlyAmount", "Monthly Payment")}</Label>
+                <Input
+                  id="monthlyAmount"
+                  type="number"
+                  step="0.01"
+                  value={formData.monthlyAmount}
+                  onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="paymentDate">{t("clients.paymentDate", "Payment Date")}</Label>
+                <Input
+                  id="paymentDate"
+                  type="date"
+                  value={formData.paymentDate}
+                  onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="source">{t("clients.source", "Source")}</Label>
+                <Input
+                  id="source"
+                  value={formData.source}
+                  onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                  placeholder="e.g., Referral, Website, Social Media"
                 />
               </div>
               <div>
