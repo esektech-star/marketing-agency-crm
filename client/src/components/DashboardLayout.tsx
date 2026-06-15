@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -41,8 +41,10 @@ const getMenuItems = (t: any) => [
   { icon: BarChart3, label: t("sidebar.campaigns", "الحملات"), path: "/campaigns" },
   { icon: LineChartIcon, label: t("sidebar.reports", "التقارير"), path: "/reports" },
   { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
+  { icon: Receipt, label: t("sidebar.invoices", "الفواتير"), path: "/invoices" },
+  { icon: Globe, label: t("sidebar.clientPortal", "بوابة العملاء"), path: "/client-portal", adminOnly: true },
   { icon: KeyRound, label: t("sidebar.accessDetails", "تفاصيل الوصول"), path: "/access-details" },
-  { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users" },
+  { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -130,7 +132,8 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const menuItems = getMenuItems(t);
+  const isAdmin = user?.role === "admin";
+  const menuItems = getMenuItems(t).filter((item: any) => !item.adminOnly || isAdmin);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
   const isRTL = i18n.language === 'ar' || i18n.language === 'he';

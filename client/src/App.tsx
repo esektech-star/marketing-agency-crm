@@ -7,6 +7,9 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "./_core/hooks/useAuth";
+import { useLocation } from "wouter";
+import { Loader2 } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Vendors from "./pages/Vendors";
@@ -19,12 +22,32 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import AccessDetails from "./pages/AccessDetails";
 import Documents from "./pages/Documents";
+import Invoices from "./pages/Invoices";
+import ClientPortalManager from "./pages/ClientPortalManager";
+import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/portal/:token"} component={ClientPortal} />
+      <Route path={"/invoices"}>
+        {() => (
+          <DashboardLayout>
+            <Invoices />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/client-portal"}>
+        {() => (
+          <DashboardLayout>
+            <AdminOnly>
+              <ClientPortalManager />
+            </AdminOnly>
+          </DashboardLayout>
+        )}
+      </Route>
       <Route path={"/dashboard"}>
         {() => (
           <DashboardLayout>
@@ -98,7 +121,9 @@ function Router() {
       <Route path={"/users"}>
         {() => (
           <DashboardLayout>
-            <Users />
+            <AdminOnly>
+              <Users />
+            </AdminOnly>
           </DashboardLayout>
         )}
       </Route>
@@ -113,6 +138,29 @@ function Router() {
       <Route component={NotFound} />
     </Switch>
   );
+}
+
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  const { loading, user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!loading && user && user.role !== "admin") {
+      setLocation("/dashboard");
+    }
+  }, [loading, user, setLocation]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!user || user.role !== "admin") {
+    return null;
+  }
+  return <>{children}</>;
 }
 
 function AppContent() {

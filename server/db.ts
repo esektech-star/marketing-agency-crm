@@ -1,7 +1,8 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { encryptSecret, decryptSecret } from './crypto';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -332,26 +333,36 @@ export async function deleteCampaign(id: number) {
 export async function getAccessDetails() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(accessDetails).orderBy(desc(accessDetails.createdAt));
+  const rows = await db.select().from(accessDetails).orderBy(desc(accessDetails.createdAt));
+  return rows.map((r) => ({ ...r, password: decryptSecret(r.password) }));
 }
 
 export async function getAccessDetailById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(accessDetails).where(eq(accessDetails.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (result.length === 0) return undefined;
+  const r = result[0];
+  return { ...r, password: decryptSecret(r.password) };
 }
 
 export async function createAccessDetail(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.insert(accessDetails).values(data);
+  const payload = { ...data, isEncrypted: true };
+  if (payload.password !== undefined) payload.password = encryptSecret(payload.password);
+  return await db.insert(accessDetails).values(payload);
 }
 
 export async function updateAccessDetail(id: number, data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.update(accessDetails).set(data).where(eq(accessDetails.id, id));
+  const payload = { ...data };
+  if (payload.password !== undefined) {
+    payload.password = encryptSecret(payload.password);
+    payload.isEncrypted = true;
+  }
+  return await db.update(accessDetails).set(payload).where(eq(accessDetails.id, id));
 }
 
 export async function deleteAccessDetail(id: number) {
@@ -431,6 +442,108 @@ export async function deleteDocument(id: number) {
   return await db.delete(documents).where(eq(documents.id, id));
 }
 
+// ==================== Invoices (الفواتير) ====================
+export async function getInvoices() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(invoices).orderBy(desc(invoices.createdAt));
+}
+
+export async function getInvoicesByClient(clientId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(invoices).where(eq(invoices.relatedClient, clientId)).orderBy(desc(invoices.createdAt));
+}
+
+export async function createInvoice(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const payload = { ...data };
+  if (typeof payload.amount === "number") payload.amount = payload.amount.toString();
+  return await db.insert(invoices).values(payload);
+}
+
+export async function updateInvoice(id: number, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const payload = { ...data };
+  if (typeof payload.amount === "number") payload.amount = payload.amount.toString();
+  return await db.update(invoices).set(payload).where(eq(invoices.id, id));
+}
+
+export async function deleteInvoice(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(invoices).where(eq(invoices.id, id));
+}
+
+// ==================== Client Portal Access (بوابة العميل) ====================
+export async function getPortalAccessList() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(clientPortalAccess).orderBy(desc(clientPortalAccess.createdAt));
+}
+
+export async function createPortalAccess(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.insert(clientPortalAccess).values(data);
+}
+
+export async function deletePortalAccess(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(clientPortalAccess).where(eq(clientPortalAccess.id, id));
+}
+
+export async function getPortalAccessByToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(clientPortalAccess).where(eq(clientPortalAccess.accessToken, token)).limit(1);
+  return rows[0];
+}
+
+/**
+ * بيانات بوابة العميل: معلومات العميل، حملاته، فواتيره، وملفاته (غير الداخلية فقط)
+ * مع احترام أعلام الصلاحيات على رابط الوصول.
+ */
+export async function getClientPortalData(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const access = await getPortalAccessByToken(token);
+  if (!access) return null;
+  if (access.expiresAt && new Date(access.expiresAt).getTime() < Date.now()) {
+    return { expired: true } as const;
+  }
+  const clientRows = await db.select().from(clients).where(eq(clients.id, access.relatedClient)).limit(1);
+  const client = clientRows[0];
+  if (!client) return null;
+
+  const clientCampaigns = access.canViewCampaigns
+    ? await db.select().from(campaigns).where(eq(campaigns.relatedClient, access.relatedClient)).orderBy(desc(campaigns.createdAt))
+    : [];
+  const clientInvoices = access.canViewInvoices
+    ? await db.select().from(invoices).where(eq(invoices.relatedClient, access.relatedClient)).orderBy(desc(invoices.createdAt))
+    : [];
+  // الملفات غير الداخلية فقط (لا تُعرض الملفات الداخلية للعميل)
+  const clientFiles = access.canDownloadFiles
+    ? (await db.select().from(documents).where(eq(documents.relatedClient, access.relatedClient)).orderBy(desc(documents.createdAt))).filter((d: any) => !d.isInternal)
+    : [];
+
+  return {
+    expired: false,
+    client: { id: client.id, name: client.name, serviceType: client.serviceType, clientCode: (client as any).clientCode ?? null },
+    permissions: {
+      canViewCampaigns: access.canViewCampaigns,
+      canViewInvoices: access.canViewInvoices,
+      canDownloadFiles: access.canDownloadFiles,
+    },
+    campaigns: clientCampaigns,
+    invoices: clientInvoices,
+    files: clientFiles,
+  };
+}
+
 // ==================== Dashboard Statistics ====================
 export async function getDashboardStats() {
   const db = await getDb();
@@ -481,4 +594,26 @@ export async function getDashboardStats() {
     monthlyData,
     leadsBySource,
   };
+}
+
+
+// ==================== Payment Reminders ====================
+export async function updateClientPaymentTaskUid(clientId: number, taskUid: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(clients)
+    .set({ paymentReminderTaskUid: taskUid })
+    .where(eq(clients.id, clientId));
+}
+
+export async function getClientsWithPaymentToday() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const today = new Date().getDate();
+  return await db.select()
+    .from(clients)
+    .where(and(
+      eq(clients.status, "active"),
+      eq(clients.paymentDate, today)
+    ));
 }

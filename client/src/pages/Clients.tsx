@@ -23,6 +23,7 @@ export default function Clients() {
     serviceType: "",
     status: "active",
     startDate: new Date().toISOString().split("T")[0],
+    clientCode: "",
     phone: "",
     email: "",
     monthlyAmount: "",
@@ -55,6 +56,7 @@ export default function Clients() {
           name: formData.name,
           serviceType: formData.serviceType,
           status: formData.status as "active" | "pending" | "completed",
+          clientCode: formData.clientCode || undefined,
           phone: formData.phone,
           email: formData.email,
           monthlyAmount: formData.monthlyAmount ? parseFloat(formData.monthlyAmount) : undefined,
@@ -69,6 +71,7 @@ export default function Clients() {
           serviceType: formData.serviceType,
           status: formData.status as "active" | "pending" | "completed",
           startDate: new Date(formData.startDate),
+          clientCode: formData.clientCode || undefined,
           phone: formData.phone,
           email: formData.email,
           monthlyAmount: formData.monthlyAmount ? parseFloat(formData.monthlyAmount) : undefined,
@@ -94,6 +97,7 @@ export default function Clients() {
       serviceType: client.serviceType,
       status: client.status,
       startDate: new Date(client.startDate).toISOString().split("T")[0],
+      clientCode: client.clientCode || "",
       phone: client.phone || "",
       email: client.email || "",
       monthlyAmount: client.monthlyAmount?.toString() || "",
@@ -160,6 +164,16 @@ export default function Clients() {
                   value={formData.serviceType}
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="clientCode">{t("clients.clientCode", "Client Code")}</Label>
+                <Input
+                  id="clientCode"
+                  dir="ltr"
+                  value={formData.clientCode}
+                  onChange={(e) => setFormData({ ...formData, clientCode: e.target.value })}
+                  placeholder="e.g., CL-001"
                 />
               </div>
               <div>
@@ -274,6 +288,7 @@ export default function Clients() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t("clients.clientName")}</TableHead>
+                    <TableHead>{t("clients.clientCode", "Client Code")}</TableHead>
                     <TableHead>{t("clients.serviceType")}</TableHead>
                     <TableHead>{t("common.status")}</TableHead>
                     <TableHead>{t("clients.startDate")}</TableHead>
@@ -285,6 +300,7 @@ export default function Clients() {
                   {clients.map((client: any) => (
                     <TableRow key={client.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell dir="ltr" className="text-start">{client.clientCode || "-"}</TableCell>
                       <TableCell>{client.serviceType}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${

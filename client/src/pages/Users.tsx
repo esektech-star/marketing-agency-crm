@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Pencil, Trash2, Loader2, KeyRound, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { APP_SECTIONS, DEFAULT_EMPLOYEE_SECTIONS } from "../../../shared/const";
 
 const ROLE_LABELS: Record<string, string> = {
   "manager": "bg-purple-100 text-purple-800",
@@ -29,6 +32,7 @@ export default function Users() {
   const [showPassword, setShowPassword] = useState(false);
   const [resetUserId, setResetUserId] = useState<number | null>(null);
   const [resetPassword, setResetPassword] = useState("");
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -38,6 +42,13 @@ export default function Users() {
     preferredLanguage: "ar",
     status: "active",
   });
+  const [permissions, setPermissions] = useState<string[]>([...DEFAULT_EMPLOYEE_SECTIONS]);
+
+  const togglePermission = (section: string) => {
+    setPermissions((prev) =>
+      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
+    );
+  };
 
   const { data: users = [], isLoading, refetch } = trpc.appUsers.list.useQuery();
   const createMutation = trpc.appUsers.create.useMutation();
@@ -55,6 +66,7 @@ export default function Users() {
       preferredLanguage: "ar",
       status: "active",
     });
+    setPermissions([...DEFAULT_EMPLOYEE_SECTIONS]);
     setEditingId(null);
     setShowPassword(false);
   };
@@ -70,6 +82,7 @@ export default function Users() {
           role: formData.role as any,
           preferredLanguage: formData.preferredLanguage as any,
           status: formData.status as any,
+          permissions: formData.role === "manager" ? [...APP_SECTIONS] : permissions,
         });
         toast.success("تم تحديث بيانات المستخدم بنجاح");
       } else {
@@ -81,6 +94,7 @@ export default function Users() {
           role: formData.role as any,
           preferredLanguage: formData.preferredLanguage as any,
           status: formData.status as any,
+          permissions: formData.role === "manager" ? [...APP_SECTIONS] : permissions,
         });
         toast.success("تم إضافة المستخدم بنجاح");
       }
@@ -103,6 +117,7 @@ export default function Users() {
       preferredLanguage: user.preferredLanguage,
       status: user.status,
     });
+    setPermissions(Array.isArray(user.permissions) ? user.permissions : [...DEFAULT_EMPLOYEE_SECTIONS]);
     setIsOpen(true);
   };
 
@@ -148,7 +163,7 @@ export default function Users() {
               إضافة مستخدم جديد
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? "تعديل المستخدم" : "إضافة مستخدم جديد"}</DialogTitle>
               <DialogDescription>
@@ -243,6 +258,31 @@ export default function Users() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* صلاحيات الوصول للأقسام */}
+              <div className="border rounded-lg p-3 bg-muted/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <ShieldCheck className="w-4 h-4 text-[#1e3a5f]" />
+                  <Label className="font-semibold">صلاحيات الوصول للأقسام</Label>
+                </div>
+                {formData.role === "manager" ? (
+                  <p className="text-sm text-muted-foreground">المدير لديه صلاحية الوصول لجميع الأقسام تلقائياً.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto">
+                    {APP_SECTIONS.map((section) => (
+                      <label key={section} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={section === "dashboard" ? true : permissions.includes(section)}
+                          disabled={section === "dashboard"}
+                          onCheckedChange={() => togglePermission(section)}
+                        />
+                        <span>{t(`sidebar.${section}`, section)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
@@ -279,6 +319,7 @@ export default function Users() {
                     <TableHead>الاسم الكامل</TableHead>
                     <TableHead>اسم المستخدم</TableHead>
                     <TableHead>الدور</TableHead>
+                    <TableHead>الأقسام المتاحة</TableHead>
                     <TableHead>اللغة</TableHead>
                     <TableHead>الحالة</TableHead>
                     <TableHead>الإجراءات</TableHead>
@@ -293,6 +334,15 @@ export default function Users() {
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${ROLE_LABELS[user.role] || "bg-gray-100 text-gray-800"}`}>
                           {user.role}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {user.role === "manager" ? (
+                          <span className="text-xs text-muted-foreground">كل الأقسام</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {Array.isArray(user.permissions) ? `${user.permissions.length} أقسام` : "-"}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>{LANG_LABELS[user.preferredLanguage] || user.preferredLanguage}</TableCell>
                       <TableCell>

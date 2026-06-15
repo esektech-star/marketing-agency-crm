@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import bcrypt from "bcryptjs";
@@ -44,6 +44,7 @@ export const appRouter = router({
         serviceType: z.string(),
         status: z.enum(["active", "pending", "completed"]),
         startDate: z.date(),
+        clientCode: z.string().optional(),
         phone: z.string().optional(),
         email: z.string().optional(),
         monthlyAmount: z.number().optional(),
@@ -60,6 +61,7 @@ export const appRouter = router({
         name: z.string().optional(),
         serviceType: z.string().optional(),
         status: z.enum(["active", "pending", "completed"]).optional(),
+        clientCode: z.string().optional().nullable(),
         phone: z.string().optional(),
         email: z.string().optional(),
         monthlyAmount: z.number().optional().nullable(),
@@ -425,14 +427,14 @@ export const appRouter = router({
       }),
   }),
 
-  // ==================== App Users (إدارة المستخدمين) ====================
+  // ==================== App Users (إدارة المستخدمين) — محصورة بالمدير (admin) ====================
   appUsers: router({
-    list: protectedProcedure.query(async () => {
+    list: adminProcedure.query(async () => {
       const users = await db.getAppUsers();
       // إخفاء hash كلمة المرور عن الواجهة
       return users.map(({ passwordHash, ...rest }) => rest);
     }),
-    getById: protectedProcedure
+    getById: adminProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         const user = await db.getAppUserById(input.id);
@@ -440,7 +442,7 @@ export const appRouter = router({
         const { passwordHash, ...rest } = user;
         return rest;
       }),
-    create: protectedProcedure
+    create: adminProcedure
       .input(z.object({
         username: z.string().min(3),
         password: z.string().min(6),
@@ -449,6 +451,7 @@ export const appRouter = router({
         role: z.enum(["manager", "employee", "designer", "editor"]),
         preferredLanguage: z.enum(["ar", "he", "en"]),
         status: z.enum(["active", "disabled"]),
+        permissions: z.array(z.string()).optional(),
       }))
       .mutation(async ({ input }) => {
         const existing = await db.getAppUserByUsername(input.username);
@@ -456,10 +459,10 @@ export const appRouter = router({
           throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم موجود مسبقاً" });
         }
         const passwordHash = await bcrypt.hash(input.password, 10);
-        const { password, ...rest } = input;
-        return await db.createAppUser({ ...rest, passwordHash });
+        const { password, permissions, ...rest } = input;
+        return await db.createAppUser({ ...rest, permissions: permissions ?? [], passwordHash });
       }),
-    update: protectedProcedure
+    update: adminProcedure
       .input(z.object({
         id: z.number(),
         fullName: z.string().optional(),
@@ -467,18 +470,19 @@ export const appRouter = router({
         role: z.enum(["manager", "employee", "designer", "editor"]).optional(),
         preferredLanguage: z.enum(["ar", "he", "en"]).optional(),
         status: z.enum(["active", "disabled"]).optional(),
+        permissions: z.array(z.string()).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         return await db.updateAppUser(id, data);
       }),
-    resetPassword: protectedProcedure
+    resetPassword: adminProcedure
       .input(z.object({ id: z.number(), newPassword: z.string().min(6) }))
       .mutation(async ({ input }) => {
         const passwordHash = await bcrypt.hash(input.newPassword, 10);
         return await db.updateAppUser(input.id, { passwordHash });
       }),
-    delete: protectedProcedure
+    delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return await db.deleteAppUser(input.id);
@@ -543,6 +547,7 @@ export const appRouter = router({
         category: z.string().optional(),
         relatedClient: z.number().optional(),
         relatedCampaign: z.number().optional(),
+        isInternal: z.boolean().optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
@@ -568,6 +573,7 @@ export const appRouter = router({
           category: input.category,
           relatedClient: input.relatedClient,
           relatedCampaign: input.relatedCampaign,
+          isInternal: input.isInternal ?? false,
           notes: input.notes,
           uploadedBy: ctx.user?.id,
         });
@@ -577,8 +583,9 @@ export const appRouter = router({
         id: z.number(),
         fileName: z.string().optional(),
         category: z.string().optional(),
-        relatedClient: z.number().optional(),
+        relatedClient: z.number().optional().nullable(),
         relatedCampaign: z.number().optional(),
+        isInternal: z.boolean().optional(),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -589,6 +596,149 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return await db.deleteDocument(input.id);
+      }),
+  }),
+
+  // ==================== Invoices (الفواتير) ====================
+  invoices: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getInvoices();
+    }),
+    uploadFile: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileBase64: z.string(),
+        mimeType: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const base64Data = input.fileBase64.includes(",")
+          ? input.fileBase64.split(",")[1]
+          : input.fileBase64;
+        const buffer = Buffer.from(base64Data, "base64");
+        const key = `invoices/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.mimeType);
+        return { key, url };
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        invoiceNumber: z.string(),
+        relatedClient: z.number(),
+        amount: z.number(),
+        dueDate: z.date(),
+        status: z.enum(["pending", "paid", "overdue"]),
+        fileKey: z.string().optional(),
+        fileUrl: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.createInvoice(input);
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        invoiceNumber: z.string().optional(),
+        relatedClient: z.number().optional(),
+        amount: z.number().optional(),
+        dueDate: z.date().optional(),
+        status: z.enum(["pending", "paid", "overdue"]).optional(),
+        fileKey: z.string().optional(),
+        fileUrl: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await db.updateInvoice(id, data);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteInvoice(input.id);
+      }),
+  }),
+
+  // ==================== Client Portal (بوابة العميل) ====================
+  clientPortal: router({
+    list: adminProcedure.query(async () => {
+      return await db.getPortalAccessList();
+    }),
+    create: adminProcedure
+      .input(z.object({
+        relatedClient: z.number(),
+        email: z.string(),
+        canViewCampaigns: z.boolean().optional(),
+        canViewInvoices: z.boolean().optional(),
+        canDownloadFiles: z.boolean().optional(),
+        expiresAt: z.date().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const accessToken = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+        await db.createPortalAccess({
+          relatedClient: input.relatedClient,
+          email: input.email,
+          accessToken,
+          canViewCampaigns: input.canViewCampaigns ?? true,
+          canViewInvoices: input.canViewInvoices ?? true,
+          canDownloadFiles: input.canDownloadFiles ?? true,
+          expiresAt: input.expiresAt,
+        });
+        return { accessToken };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deletePortalAccess(input.id);
+      }),
+    // إجراء عام — لا يتطلب تسجيل دخول Manus؛ الوصول برابط التوكن فقط
+    getData: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        return await db.getClientPortalData(input.token);
+      }),
+  }),
+
+  // ==================== Payment Reminders (تذكيرات الدفع) ====================
+  paymentReminders: router({
+    setup: adminProcedure
+      .input(z.object({
+        clientId: z.number(),
+        paymentDayOfMonth: z.number().min(1).max(31),
+        enable: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { parse: parseCookie } = await import("cookie");
+        const { COOKIE_NAME } = await import("@shared/const");
+        const { createHeartbeatJob, deleteHeartbeatJob } = await import("../server/_core/heartbeat");
+        
+        const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[COOKIE_NAME] ?? "";
+        const client = await db.getClientById(input.clientId);
+        if (!client) throw new TRPCError({ code: "NOT_FOUND", message: "Client not found" });
+        
+        if (input.enable === false) {
+          if (client.paymentReminderTaskUid) {
+            await deleteHeartbeatJob(client.paymentReminderTaskUid, sessionToken);
+            await db.updateClientPaymentTaskUid(input.clientId, null);
+          }
+          return { ok: true, message: "تم إلغاء التذكير" };
+        }
+        
+        const dayOfMonth = input.paymentDayOfMonth;
+        const cronExpr = `0 9 ${dayOfMonth} * * *`; // 9 AM UTC on that day
+        const jobName = `payment-reminder-${input.clientId}`;
+        
+        if (client.paymentReminderTaskUid) {
+          await deleteHeartbeatJob(client.paymentReminderTaskUid, sessionToken);
+        }
+        
+        const job = await createHeartbeatJob({
+          name: jobName,
+          cron: cronExpr,
+          path: "/api/scheduled/paymentReminder",
+          payload: { clientId: input.clientId },
+          description: `تذكير دفع للعميل ${client.name}`,
+        }, sessionToken);
+        
+        await db.updateClientPaymentTaskUid(input.clientId, job.taskUid);
+        return { ok: true, message: "تم إعداد التذكير" };
       }),
   }),
 });

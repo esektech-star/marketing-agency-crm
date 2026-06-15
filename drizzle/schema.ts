@@ -27,11 +27,13 @@ export const clients = mysqlTable("clients", {
   serviceType: varchar("serviceType", { length: 255 }).notNull(),
   status: mysqlEnum("status", ["active", "pending", "completed"]).default("active").notNull(),
   startDate: timestamp("startDate").notNull(),
+  clientCode: varchar("clientCode", { length: 50 }), // كود العميل الفريد
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
   monthlyAmount: decimal("monthlyAmount", { precision: 12, scale: 2 }),
   paymentDate: int("paymentDate"), // يوم الدفع الشهري (1-31)
   source: varchar("source", { length: 255 }), // مصدر اكتساب العميل
+  paymentReminderTaskUid: varchar("paymentReminderTaskUid", { length: 65 }), // معرّف مهمة التذكير المجدولة
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -226,6 +228,7 @@ export const documents = mysqlTable("documents", {
   category: varchar("category", { length: 100 }),
   relatedClient: int("relatedClient"),
   relatedCampaign: int("relatedCampaign"),
+  isInternal: boolean("isInternal").default(false).notNull(), // ملف داخلي للوكالة (غير مرئي للعميل)
   uploadedBy: int("uploadedBy"),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
