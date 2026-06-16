@@ -73,9 +73,9 @@ describe("appUsers router", () => {
       password: "secret123",
       fullName: "Batool Designer",
       email: "batool@esektech.com",
-      role: "مصمم",
+      role: "designer",
       preferredLanguage: "he",
-      status: "نشط",
+      status: "active",
     });
 
     expect(store).toHaveLength(1);
@@ -93,9 +93,9 @@ describe("appUsers router", () => {
       username: "ahmad",
       password: "password1",
       fullName: "Ahmad",
-      role: "موظف",
+      role: "employee",
       preferredLanguage: "ar",
-      status: "نشط",
+      status: "active",
     });
 
     const list = await caller.appUsers.list();
@@ -110,9 +110,9 @@ describe("appUsers router", () => {
       username: "dup",
       password: "password1",
       fullName: "First",
-      role: "موظف" as const,
+      role: "employee" as const,
       preferredLanguage: "ar" as const,
-      status: "نشط" as const,
+      status: "active" as const,
     };
     await caller.appUsers.create(payload);
     await expect(caller.appUsers.create(payload)).rejects.toThrow();
@@ -124,9 +124,9 @@ describe("appUsers router", () => {
       username: "reset",
       password: "oldpassword",
       fullName: "Reset User",
-      role: "موظف",
+      role: "employee",
       preferredLanguage: "ar",
-      status: "نشط",
+      status: "active",
     });
 
     await caller.appUsers.resetPassword({ id: 1, newPassword: "newpassword" });
@@ -141,9 +141,9 @@ describe("appUsers router", () => {
       username: "todelete",
       password: "password1",
       fullName: "To Delete",
-      role: "موظف",
+      role: "employee",
       preferredLanguage: "ar",
-      status: "نشط",
+      status: "active",
     });
     expect(store).toHaveLength(1);
     await caller.appUsers.delete({ id: 1 });
