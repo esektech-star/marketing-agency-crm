@@ -741,6 +741,57 @@ export const appRouter = router({
         return { ok: true, message: "تم إعداد التذكير" };
       }),
   }),
+  // ==================== Subscriptions (المنويات) ====================
+  subscriptions: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getSubscriptions();
+    }),
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getSubscriptionById(input.id);
+      }),
+    create: protectedProcedure
+      .input(z.object({
+        softwareName: z.string().min(1),
+        monthlyAmount: z.number().positive(),
+        purpose: z.string().optional(),
+        website: z.string().optional(),
+        username: z.string().optional(),
+        password: z.string().optional(),
+        renewalDate: z.number().min(1).max(31).optional(),
+        status: z.enum(["active", "inactive", "expired"]).optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.createSubscription(input);
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        softwareName: z.string().optional(),
+        monthlyAmount: z.number().positive().optional(),
+        purpose: z.string().optional(),
+        website: z.string().optional(),
+        username: z.string().optional(),
+        password: z.string().optional(),
+        renewalDate: z.number().min(1).max(31).optional(),
+        status: z.enum(["active", "inactive", "expired"]).optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return await db.updateSubscription(id, data);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteSubscription(input.id);
+      }),
+    getTotalMonthlyCost: protectedProcedure.query(async () => {
+      return await db.getTotalMonthlySubscriptionCost();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

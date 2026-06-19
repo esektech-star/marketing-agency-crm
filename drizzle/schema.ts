@@ -62,6 +62,28 @@ export type Vendor = typeof vendors.$inferSelect;
 export type InsertVendor = typeof vendors.$inferInsert;
 
 /**
+ * جدول المنويات (الاشتراكات في التطبيقات والخدمات)
+ */
+export const subscriptions = mysqlTable("subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  softwareName: varchar("softwareName", { length: 255 }).notNull(),
+  monthlyAmount: decimal("monthlyAmount", { precision: 12, scale: 2 }).notNull(),
+  purpose: text("purpose"),
+  website: varchar("website", { length: 255 }),
+  username: varchar("username", { length: 255 }),
+  password: text("password"),
+  isEncrypted: boolean("isEncrypted").default(false),
+  renewalDate: int("renewalDate"),
+  status: mysqlEnum("status", ["active", "inactive", "expired"]).default("active").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
+
+/**
  * جدول أعضاء الفريق
  */
 export const teamMembers = mysqlTable("teamMembers", {

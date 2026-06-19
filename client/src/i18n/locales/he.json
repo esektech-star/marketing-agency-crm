@@ -400,6 +400,7 @@
     "dashboard": "לוח בקרה",
     "clients": "לקוחות",
     "vendors": "ספקים",
+    "subscriptions": "מנויים",
     "team": "צוות",
     "tasks": "משימות",
     "leads": "לידים",
@@ -407,7 +408,23 @@
     "campaigns": "קמפיינים",
     "reports": "דוחות",
     "documents": "ספריית קבצים",
+    "invoices": "חשבוניות",
+    "clientPortal": "שער לקוחות",
     "accessDetails": "פרטי גישה",
     "users": "משתמשים"
+  },
+  "subscriptions": {
+    "softwareName": "שם התוכנה",
+    "monthlyAmount": "הסכום החדשי",
+    "purpose": "העריך/השימוש",
+    "website": "איתר אינטרנט",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "renewalDate": "תאריך החדשה",
+    "list": "רשימה מנויים",
+    "totalMonthlyCost": "סהכי חדשים שנתיים",
+    "totalMonthlyCostDesc": "סהכי חדשים שנתיים על כל המנויים הפעילים",
+    "purposePlaceholder": "דוגמה: עיצוב גרפיקה ווידאו",
+    "leaveBlankToKeep": "השאר ריק כדי לשמור על הסיסמה הנוכחית"
   }
 }

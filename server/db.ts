@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -616,4 +616,61 @@ export async function getClientsWithPaymentToday() {
       eq(clients.status, "active"),
       eq(clients.paymentDate, today)
     ));
+}
+
+
+// ==================== Subscriptions (المنويات) ====================
+export async function getSubscriptions() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(subscriptions).orderBy(desc(subscriptions.createdAt));
+}
+
+export async function getSubscriptionById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(subscriptions).where(eq(subscriptions.id, id)).then(r => r[0]);
+}
+
+export async function createSubscription(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Encrypt password if provided
+  if (data.password) {
+    data.password = encryptSecret(data.password);
+    data.isEncrypted = true;
+  }
+  return await db.insert(subscriptions).values(data);
+}
+
+export async function updateSubscription(id: number, data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Encrypt password if provided
+  if (data.password) {
+    data.password = encryptSecret(data.password);
+    data.isEncrypted = true;
+  }
+  return await db.update(subscriptions).set(data).where(eq(subscriptions.id, id));
+}
+
+export async function deleteSubscription(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(subscriptions).where(eq(subscriptions.id, id));
+}
+
+export async function getSubscriptionsByStatus(status: 'active' | 'inactive' | 'expired') {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(subscriptions).where(eq(subscriptions.status, status));
+}
+
+export async function getTotalMonthlySubscriptionCost() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select()
+    .from(subscriptions)
+    .where(eq(subscriptions.status, "active"));
+  return result.reduce((sum, sub) => sum + (parseFloat(sub.monthlyAmount as any) || 0), 0);
 }

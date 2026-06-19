@@ -400,6 +400,7 @@
     "dashboard": "Dashboard",
     "clients": "Clients",
     "vendors": "Vendors",
+    "subscriptions": "Subscriptions",
     "team": "Team",
     "tasks": "Tasks",
     "leads": "Leads",
@@ -407,7 +408,23 @@
     "campaigns": "Campaigns",
     "reports": "Reports",
     "documents": "Documents",
+    "invoices": "Invoices",
+    "clientPortal": "Client Portal",
     "accessDetails": "Access Details",
     "users": "Users"
+  },
+  "subscriptions": {
+    "softwareName": "Software Name",
+    "monthlyAmount": "Monthly Amount",
+    "purpose": "Purpose/Usage",
+    "website": "Website",
+    "username": "Username",
+    "password": "Password",
+    "renewalDate": "Renewal Date",
+    "list": "Subscriptions List",
+    "totalMonthlyCost": "Total Monthly Cost",
+    "totalMonthlyCostDesc": "Total amount you spend monthly on all active subscriptions",
+    "purposePlaceholder": "Example: Graphic design and video editing",
+    "leaveBlankToKeep": "Leave blank to keep current password"
   }
 }

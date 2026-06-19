@@ -400,6 +400,7 @@
     "dashboard": "لوحة التحكم",
     "clients": "العملاء",
     "vendors": "الموردين",
+    "subscriptions": "المنويات",
     "team": "الفريق",
     "tasks": "المهام",
     "leads": "الليدز",
@@ -407,7 +408,23 @@
     "campaigns": "الحملات",
     "reports": "التقارير",
     "documents": "مكتبة الملفات",
+    "invoices": "الفواتير",
+    "clientPortal": "بوابة العملاء",
     "accessDetails": "تفاصيل الوصول",
     "users": "المستخدمون"
+  },
+  "subscriptions": {
+    "softwareName": "اسم البرنامج",
+    "monthlyAmount": "المبلغ الشهري",
+    "purpose": "الغرض/الاستخدام",
+    "website": "موقع الويب",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "renewalDate": "تاريخ التجديد",
+    "list": "قائمة المنويات",
+    "totalMonthlyCost": "إجمالي التكاليف الشهرية",
+    "totalMonthlyCostDesc": "إجمالي ما تنفقه شهرياً على جميع المنويات النشطة",
+    "purposePlaceholder": "مثال: تصميم الجرافيكس والفيديو",
+    "leaveBlankToKeep": "اترك فارغاً للاحتفاظ بكلمة المرور الحالية"
   }
 }

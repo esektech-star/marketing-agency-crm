@@ -43,6 +43,13 @@
       "when": 1781417668780,
       "tag": "0005_spicy_norman_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1781678443220,
+      "tag": "0006_simple_deathbird",
+      "breakpoints": true
     }
   ]
 }

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe, Package } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -34,6 +34,7 @@ const getMenuItems = (t: any) => [
   { icon: LayoutDashboard, label: t("sidebar.dashboard", "لوحة التحكم"), path: "/dashboard" },
   { icon: Users, label: t("sidebar.clients", "العملاء"), path: "/clients" },
   { icon: Building2, label: t("sidebar.vendors", "الموردين"), path: "/vendors" },
+  { icon: Package, label: t("sidebar.subscriptions", "المنويات"), path: "/subscriptions" },
   { icon: Users, label: t("sidebar.team", "الفريق"), path: "/team" },
   { icon: CheckCircle2, label: t("sidebar.tasks", "المهام"), path: "/tasks" },
   { icon: Zap, label: t("sidebar.leads", "الليدز"), path: "/leads" },
