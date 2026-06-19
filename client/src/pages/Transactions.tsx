@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, exportToCSV, formatTransactionsForExport } from "@/lib/exportUtils";
+import { parseRTLNumber, isValidNumber, getMonthAsString, getYearAsString } from "@/lib/numberUtils";
 
 const TYPE_VALUES = ["revenue", "expense"] as const;
 
@@ -26,8 +27,8 @@ export default function Transactions() {
     amount: "",
     description: "",
     date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('ar-SA', { month: '2-digit' }),
-    year: new Date().getFullYear(),
+    month: getMonthAsString(new Date()),
+    year: getYearAsString(new Date()),
     notes: "",
     relatedClient: "",
     relatedVendor: "",
@@ -59,7 +60,7 @@ export default function Transactions() {
           id: editingId,
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseFloat(formData.amount),
+          amount: parseRTLNumber(formData.amount),
           description: formData.description,
           date: new Date(formData.date),
           notes: formData.notes,
@@ -68,14 +69,18 @@ export default function Transactions() {
         });
         toast.success(t("transactions.editSuccess"));
       } else {
+        if (!isValidNumber(formData.amount)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
         await createMutation.mutateAsync({
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseFloat(formData.amount),
+          amount: parseRTLNumber(formData.amount),
           description: formData.description,
           date: new Date(formData.date),
-          month: formData.month,
-          year: formData.year,
+          month: getMonthAsString(new Date(formData.date)),
+          year: parseInt(getYearAsString(new Date(formData.date))),
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
           relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
@@ -88,7 +93,8 @@ export default function Transactions() {
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error(t("common.error"));
+      const errorMsg = error instanceof Error ? error.message : t("common.error");
+      toast.error(errorMsg);
     }
   };
 

@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { parseRTLNumber, isValidNumber } from "@/lib/numberUtils";
 
 const STATUS_VALUES = ["active", "disabled", "completed"] as const;
 
@@ -58,7 +59,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseFloat(formData.salary) : undefined,
+          salary: formData.salary ? parseRTLNumber(formData.salary) : undefined,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -71,7 +72,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseFloat(formData.salary) : undefined,
+          salary: formData.salary ? parseRTLNumber(formData.salary) : undefined,
           joinDate: new Date(formData.joinDate),
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
@@ -83,7 +84,8 @@ export default function TeamMembers() {
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error(t("common.error"));
+      const errorMsg = error instanceof Error ? error.message : t("common.error");
+      toast.error(errorMsg);
     }
   };
 
@@ -111,7 +113,8 @@ export default function TeamMembers() {
         toast.success(t("common.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error(t("common.error"));
+        const errorMsg = error instanceof Error ? error.message : t("common.error");
+        toast.error(errorMsg);
       }
     }
   };
