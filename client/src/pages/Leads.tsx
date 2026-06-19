@@ -9,15 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, exportToCSV, formatLeadsForExport } from "@/lib/exportUtils";
+import { shareViaWhatsApp, formatLeadShareMessage, formatLeadShareMessageHE, formatLeadShareMessageEN } from "@/lib/whatsappUtils";
 
 const STAGE_VALUES = ["new", "follow_up", "interest", "proposal", "negotiation", "closed"] as const;
 const STATUS_VALUES = ["active", "disabled", "lost"] as const;
 
 export default function Leads() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
@@ -392,18 +393,20 @@ export default function Leads() {
                       <TableCell dir="ltr" className="text-start">{lead.value ? `${t("common.currency")}${lead.value.toLocaleString('en-US')}` : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(lead)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => {
+                            const lang = i18n.language;
+                            let msg = '';
+                            if (lang === 'ar') msg = formatLeadShareMessage(lead.name, lead.source || '', lead.value);
+                            else if (lang === 'he') msg = formatLeadShareMessageHE(lead.name, lead.source || '', lead.value);
+                            else msg = formatLeadShareMessageEN(lead.name, lead.source || '', lead.value);
+                            shareViaWhatsApp({ message: msg, phoneNumber: lead.phone });
+                          }} title="Share via WhatsApp">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(lead)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(lead.id)}
-                          >
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(lead.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -9,14 +9,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, exportToCSV, formatClientsForExport } from "@/lib/exportUtils";
+import { shareViaWhatsApp, formatClientShareMessage, formatClientShareMessageHE, formatClientShareMessageEN } from "@/lib/whatsappUtils";
 
 const STATUS_VALUES = ["active", "pending", "completed"] as const;
 
 export default function Clients() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const emptyForm = {
@@ -342,6 +343,20 @@ export default function Clients() {
                       <TableCell>{client.phone || "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => {
+                            const lang = i18n.language;
+                            let message = '';
+                            if (lang === 'ar') {
+                              message = formatClientShareMessage(client.name, client.serviceType, client.monthlyAmount || 0);
+                            } else if (lang === 'he') {
+                              message = formatClientShareMessageHE(client.name, client.serviceType, client.monthlyAmount || 0);
+                            } else {
+                              message = formatClientShareMessageEN(client.name, client.serviceType, client.monthlyAmount || 0);
+                            }
+                            shareViaWhatsApp({ message, phoneNumber: client.phone });
+                          }} title="Share via WhatsApp">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => handleEdit(client)}>
                             <Pencil className="w-4 h-4" />
                           </Button>

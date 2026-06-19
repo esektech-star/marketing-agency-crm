@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { shareViaWhatsApp, formatCampaignShareMessage, formatCampaignShareMessageHE, formatCampaignShareMessageEN } from "@/lib/whatsappUtils";
 
 const STATUS_VALUES = ["planned", "active", "pending", "completed"] as const;
 
 export default function Campaigns() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -332,6 +333,17 @@ export default function Campaigns() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => {
+                            const lang = i18n.language;
+                            const startDate = new Date(campaign.startDate).toLocaleDateString();
+                            let msg = '';
+                            if (lang === 'ar') msg = formatCampaignShareMessage(campaign.name, campaign.platform, startDate);
+                            else if (lang === 'he') msg = formatCampaignShareMessageHE(campaign.name, campaign.platform, startDate);
+                            else msg = formatCampaignShareMessageEN(campaign.name, campaign.platform, startDate);
+                            shareViaWhatsApp({ message: msg });
+                          }} title="Share via WhatsApp">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => handleEdit(campaign)}><Pencil className="w-4 h-4" /></Button>
                           <Button size="sm" variant="destructive" onClick={() => handleDelete(campaign.id)}><Trash2 className="w-4 h-4" /></Button>
                         </div>

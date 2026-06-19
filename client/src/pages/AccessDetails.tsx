@@ -11,13 +11,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Copy, Check, Plus, Pencil, Trash2, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Loader2, Copy, Check, Plus, Pencil, Trash2, Eye, EyeOff, KeyRound, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { shareViaWhatsApp, formatAccessDetailsShareMessage, formatAccessDetailsShareMessageHE, formatAccessDetailsShareMessageEN } from "@/lib/whatsappUtils";
 
 const INTERNAL = "internal";
 
 export default function AccessDetails() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, loading } = useAuth();
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -284,6 +285,16 @@ export default function AccessDetails() {
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => {
+                                    const lang = i18n.language;
+                                    let msg = '';
+                                    if (lang === 'ar') msg = formatAccessDetailsShareMessage(clientName(item), item.platform, item.username);
+                                    else if (lang === 'he') msg = formatAccessDetailsShareMessageHE(clientName(item), item.platform, item.username);
+                                    else msg = formatAccessDetailsShareMessageEN(clientName(item), item.platform, item.username);
+                                    shareViaWhatsApp({ message: msg });
+                                  }} title="Share via WhatsApp">
+                                    <MessageCircle className="w-4 h-4" />
+                                  </Button>
                                   <Button size="sm" variant="outline" onClick={() => handleEdit(item)}>
                                     <Pencil className="w-4 h-4" />
                                   </Button>
