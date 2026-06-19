@@ -174,7 +174,22 @@
 - [ ] לאמת בפועל את יצירת משימה/לקוח/הכנסה/הוצאה לאחר תיקון ה-enum
 - [ ] בדוק טבלאות נוספות עם enum בערבית שעלולות להשבור CRUD
 
-## שלב 1: תיקון טפסים קריטיים
+## שלב 0: תיקון RTL בטלפון
+- [x] תיקון SidebarMenuButton - הוספת text-right ל-RTL
+- [x] תיקון TableHead ו-TableCell - הוספת text-right ל-RTL
+- [x] תיקון DashboardLayout - שימוש ב-collapsible="icon" בטלפון
+
+## שלב 1: הוספת Break-even point
+- [x] חישוב נקודה התעדל (Break-even) ב-getDashboardStats
+- [x] הוספת הפצה ב-Dashboard
+- [x] חישוב משכורות + מנויות
+
+## שלב 2: תרגום SALARY
+- [x] הוספת תרגום salary ב-he.json
+- [x] הוספה תרגום salary ב-ar.json
+- [x] הוספה תרגום salary ב-en.json
+
+## שלב 3: תיקון טפסים קריטיים
 - [ ] בדוק וסדר טופס הלקוחות
 - [ ] בדוק וסדר טופס הצוות
 - [ ] בדוק וסדר טופס הכספים (הכנסות/הוצאות)

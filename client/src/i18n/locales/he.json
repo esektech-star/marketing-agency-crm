@@ -156,6 +156,7 @@
     "role": "תפקיד",
     "position": "תפקיד (דרג)",
     "department": "מחלקה",
+    "salary": "משכורת חודשית",
     "joinDate": "תאריך הצטרפות",
     "statusDisabled": "מושבת",
     "statusEnded": "הסתיים",

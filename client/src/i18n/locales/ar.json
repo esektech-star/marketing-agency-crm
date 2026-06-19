@@ -156,6 +156,7 @@
     "role": "الدور الوظيفي",
     "position": "المنصب",
     "department": "القسم",
+    "salary": "الراتب الشهري",
     "joinDate": "تاريخ الانضمام",
     "statusDisabled": "معطل",
     "statusEnded": "منتهي",

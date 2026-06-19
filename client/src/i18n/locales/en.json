@@ -156,6 +156,7 @@
     "role": "Role",
     "position": "Position",
     "department": "Department",
+    "salary": "Monthly Salary",
     "joinDate": "Join Date",
     "statusDisabled": "Disabled",
     "statusEnded": "Ended",

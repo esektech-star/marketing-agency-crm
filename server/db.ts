@@ -586,6 +586,18 @@ export async function getDashboardStats() {
   }
   const leadsBySource = Object.entries(sourceMap).map(([name, value]) => ({ name, value }));
 
+  // حساب نقطة التعادل (Break-even point)
+  // نقطة التعادل = (المصروفات الثابتة الشهرية) / (هامش الربح)
+  // المصروفات الثابتة = المنويات + متوسط الرواتب
+  const team = await db.select().from(teamMembers);
+  const totalSalaries = team.reduce((sum, m) => sum + parseFloat((m.salary || 0).toString()), 0);
+  const monthlyFixedCosts = totalSubscriptionsCost + totalSalaries;
+  
+  // متوسط الهامش = (الإيرادات - المصروفات المتغيرة) / عدد العملاء
+  // نستخدم نسبة بسيطة: إذا كان لدينا عملاء، نحسب متوسط الإيرادات لكل عميل
+  const avgRevenuePerClient = clientsCount.length > 0 ? totalRevenue / clientsCount.length : 0;
+  const breakEvenClients = avgRevenuePerClient > 0 ? Math.ceil(monthlyFixedCosts / avgRevenuePerClient) : 0;
+
   return {
     activeClientsCount: clientsCount.length,
     pendingTasksCount: tasksCount.length,
@@ -593,6 +605,9 @@ export async function getDashboardStats() {
     totalRevenue,
     totalExpense,
     totalSubscriptionsCost,
+    totalSalaries,
+    monthlyFixedCosts,
+    breakEvenClients,
     netProfit: totalRevenue - totalExpense,
     monthlyData,
     leadsBySource,

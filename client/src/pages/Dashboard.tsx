@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Users, CheckCircle2, TrendingUp, Zap, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 const COLORS = ["#1e3a5f", "#F59E0B", "#5b9bd5", "#10B981"];
 
@@ -204,7 +205,7 @@ export default function Dashboard() {
       </div>
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">{t("transactions.totalIncome")}</CardTitle>
@@ -235,6 +236,20 @@ export default function Dashboard() {
             <div className={`text-2xl font-bold ${(stats?.netProfit || 0) >= 0 ? "text-emerald-600" : "text-red-600"}`}>
               {(stats?.netProfit || 0) >= 0 ? "+" : ""}{formatCurrency(stats?.netProfit || 0)}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">{t("dashboard.breakEvenClients", "Break-even Point")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[#8B5CF6]">
+              {stats?.breakEvenClients || 0}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t("dashboard.breakEvenDesc", "Clients to break even")}
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -178,7 +178,7 @@ function DashboardLayoutContent({
     <>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
-          collapsible="none"
+          collapsible={isMobile ? "icon" : "none"}
           variant="inset"
           className={`border-r-0 ${isRTL ? 'border-l' : 'border-r'}`}
           disableTransition={isResizing}
