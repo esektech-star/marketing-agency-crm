@@ -341,3 +341,50 @@ export const kpis = mysqlTable("kpis", {
 
 export type KPI = typeof kpis.$inferSelect;
 export type InsertKPI = typeof kpis.$inferInsert;
+
+
+/**
+ * جدول بيانات حملات Meta
+ * يتم تحديثه تلقائياً كل ساعة عبر Heartbeat job
+ */
+export const metaCampaigns = mysqlTable("metaCampaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: varchar("campaignId", { length: 255 }).notNull().unique(), // معرّف الحملة من Meta
+  campaignName: varchar("campaignName", { length: 255 }).notNull(),
+  objective: varchar("objective", { length: 100 }), // LINK_CLICKS, CONVERSIONS, REACH, إلخ
+  status: varchar("status", { length: 50 }), // ACTIVE, PAUSED, DELETED
+  
+  // مقاييس الأداء
+  impressions: int("impressions").default(0).notNull(),
+  clicks: int("clicks").default(0).notNull(), // Clicks (all)
+  linkClicks: int("linkClicks").default(0).notNull(), // Link clicks
+  spend: decimal("spend", { precision: 12, scale: 2 }).default("0").notNull(),
+  reach: int("reach").default(0).notNull(),
+  
+  // مقاييس التحويل
+  results: int("results").default(0).notNull(),
+  costPerResult: decimal("costPerResult", { precision: 12, scale: 2 }), // قد يكون null
+  
+  // مقاييس الفيديو
+  videoThreeSecondPlays: int("videoThreeSecondPlays").default(0),
+  videoPlays: int("videoPlays").default(0),
+  
+  // معدلات الأداء
+  ctr: decimal("ctr", { precision: 8, scale: 4 }).default("0"), // Click-through rate
+  cpm: decimal("cpm", { precision: 12, scale: 2 }).default("0"), // Cost per 1000 impressions
+  cpc: decimal("cpc", { precision: 12, scale: 2 }).default("0"), // Cost per click
+  
+  // بيانات ROAS (للحملات التي تتبع المبيعات)
+  roas: decimal("roas", { precision: 8, scale: 2 }), // Return on ad spend
+  
+  // تواريخ البيانات
+  startDate: timestamp("startDate"),
+  endDate: timestamp("endDate"),
+  dataFetchedAt: timestamp("dataFetchedAt").defaultNow().notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MetaCampaign = typeof metaCampaigns.$inferSelect;
+export type InsertMetaCampaign = typeof metaCampaigns.$inferInsert;
