@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, CheckCircle2, TrendingUp, Zap } from "lucide-react";
+import { Users, CheckCircle2, TrendingUp, Zap, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const COLORS = ["#1e3a5f", "#F59E0B", "#5b9bd5", "#10B981"];
@@ -129,6 +129,20 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-3xl font-bold text-[#10B981]">
               {formatCurrency(stats?.totalRevenue || 0)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow border-r-4 border-r-[#EF4444]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#EF4444]" />
+              {t("dashboard.monthlySubscriptions")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-[#EF4444]">
+              {formatCurrency(stats?.totalSubscriptionsCost || 0)}
             </div>
           </CardContent>
         </Card>

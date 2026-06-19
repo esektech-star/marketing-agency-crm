@@ -12,7 +12,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
-import Vendors from "./pages/Vendors";
+
 import Subscriptions from "./pages/Subscriptions";
 import TeamMembers from "./pages/TeamMembers";
 import Tasks from "./pages/Tasks";
@@ -63,13 +63,7 @@ function Router() {
           </DashboardLayout>
         )}
       </Route>
-      <Route path={"/vendors"}>
-        {() => (
-          <DashboardLayout>
-            <Vendors />
-          </DashboardLayout>
-        )}
-      </Route>
+
       <Route path={"/subscriptions"}>
         {() => (
           <DashboardLayout>

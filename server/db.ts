@@ -555,9 +555,11 @@ export async function getDashboardStats() {
   
   const revenueTransactions = await db.select().from(transactions).where(eq(transactions.type, "revenue"));
   const expenseTransactions = await db.select().from(transactions).where(eq(transactions.type, "expense"));
+  const allSubscriptions = await db.select().from(subscriptions);
 
   const totalRevenue = revenueTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
   const totalExpense = expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+  const totalSubscriptionsCost = allSubscriptions.reduce((sum, s) => sum + parseFloat(s.monthlyAmount.toString()), 0);
 
   // بيانات شهرية للرسوم البيانية
   const allTransactions = await db.select().from(transactions);
@@ -590,6 +592,7 @@ export async function getDashboardStats() {
     activeLeadsCount: leadsCount.length,
     totalRevenue,
     totalExpense,
+    totalSubscriptionsCost,
     netProfit: totalRevenue - totalExpense,
     monthlyData,
     leadsBySource,
