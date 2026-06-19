@@ -316,3 +316,28 @@ export const notifications = mysqlTable("notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+
+/**
+ * جدول مؤشرات الأداء الرئيسية (KPI)
+ * يتم تحديثه تلقائياً عند إضافة/تعديل العمليات المالية
+ */
+export const kpis = mysqlTable("kpis", {
+  id: int("id").autoincrement().primaryKey(),
+  year: int("year").notNull(),
+  month: int("month").notNull(), // 1-12
+  monthlyRevenue: decimal("monthlyRevenue", { precision: 12, scale: 2 }).default("0").notNull(),
+  quarterlyRevenue: decimal("quarterlyRevenue", { precision: 12, scale: 2 }).default("0").notNull(),
+  yearlyRevenue: decimal("yearlyRevenue", { precision: 12, scale: 2 }).default("0").notNull(),
+  monthlyChangePercent: decimal("monthlyChangePercent", { precision: 8, scale: 4 }).default("0").notNull(), // % שינוי חודשי
+  yearOverYearChangePercent: decimal("yearOverYearChangePercent", { precision: 8, scale: 4 }).default("0").notNull(), // % שינוי שנתי
+  quarterlyChangePercent: decimal("quarterlyChangePercent", { precision: 8, scale: 4 }).default("0").notNull(), // % שינוי רבעוני
+  activeClientsCount: int("activeClientsCount").default(0).notNull(),
+  totalExpenses: decimal("totalExpenses", { precision: 12, scale: 2 }).default("0").notNull(),
+  netProfit: decimal("netProfit", { precision: 12, scale: 2 }).default("0").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type KPI = typeof kpis.$inferSelect;
+export type InsertKPI = typeof kpis.$inferInsert;

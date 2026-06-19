@@ -50,6 +50,13 @@
       "when": 1781678443220,
       "tag": "0006_simple_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1781909119921,
+      "tag": "0007_soft_white_queen",
+      "breakpoints": true
     }
   ]
 }
