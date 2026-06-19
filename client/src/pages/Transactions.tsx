@@ -56,13 +56,15 @@ export default function Transactions() {
     
     try {
       if (editingId) {
+        const txDate = new Date(formData.date);
+        
         await updateMutation.mutateAsync({
           id: editingId,
           type: formData.type as "revenue" | "expense",
           category: formData.category,
           amount: parseRTLNumber(formData.amount),
           description: formData.description,
-          date: new Date(formData.date),
+          date: txDate,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
           relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
@@ -73,14 +75,18 @@ export default function Transactions() {
           toast.error(t("common.invalidNumber", "Invalid number format"));
           return;
         }
+        const txDate = new Date(formData.date);
+        const month = String(txDate.getMonth() + 1).padStart(2, '0');
+        const year = txDate.getFullYear();
+        
         await createMutation.mutateAsync({
           type: formData.type as "revenue" | "expense",
           category: formData.category,
           amount: parseRTLNumber(formData.amount),
           description: formData.description,
-          date: new Date(formData.date),
-          month: getMonthAsString(new Date(formData.date)),
-          year: parseInt(getYearAsString(new Date(formData.date))),
+          date: txDate,
+          month,
+          year,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
           relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
