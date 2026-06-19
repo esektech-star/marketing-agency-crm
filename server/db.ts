@@ -587,16 +587,18 @@ export async function getDashboardStats() {
   const leadsBySource = Object.entries(sourceMap).map(([name, value]) => ({ name, value }));
 
   // حساب نقطة التعادل (Break-even point)
-  // نقطة التعادل = (المصروفات الثابتة الشهرية) / (هامش الربح)
-  // المصروفات الثابتة = المنويات + متوسط الرواتب
-  const team = await db.select().from(teamMembers);
+  // نقطة التعادل = المصروفات الثابتة الشهرية / متوسط الإيرادات الشهرية لكل عميل
+  // المصروفات الثابتة = المنويات + الرواتب (النشطة فقط)
+  const team = await db.select().from(teamMembers).where(eq(teamMembers.status, "active"));
   const totalSalaries = team.reduce((sum, m) => sum + parseFloat((m.salary || 0).toString()), 0);
   const monthlyFixedCosts = totalSubscriptionsCost + totalSalaries;
   
-  // متوسط الهامش = (الإيرادات - المصروفات المتغيرة) / عدد العملاء
-  // نستخدم نسبة بسيطة: إذا كان لدينا عملاء، نحسب متوسط الإيرادات لكل عميل
-  const avgRevenuePerClient = clientsCount.length > 0 ? totalRevenue / clientsCount.length : 0;
-  const breakEvenClients = avgRevenuePerClient > 0 ? Math.ceil(monthlyFixedCosts / avgRevenuePerClient) : 0;
+  // الإيرادات الشهرية = مجموع monthlyAmount للعملاء النشطين
+  const monthlyRevenue = clientsCount.reduce((sum, c) => sum + parseFloat((c.monthlyAmount || 0).toString()), 0);
+  
+  // متوسط الإيرادات الشهرية لكل عميل
+  const avgMonthlyRevenuePerClient = clientsCount.length > 0 ? monthlyRevenue / clientsCount.length : 0;
+  const breakEvenClients = avgMonthlyRevenuePerClient > 0 ? Math.ceil(monthlyFixedCosts / avgMonthlyRevenuePerClient) : 0;
 
   return {
     activeClientsCount: clientsCount.length,
