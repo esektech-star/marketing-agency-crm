@@ -178,7 +178,12 @@ export async function getTeamMemberById(id: number) {
 function normalizeTeamMember(data: any) {
   const out = { ...data };
   if (out.salary !== undefined && out.salary !== null) {
-    out.salary = String(out.salary);
+    const numSalary = Number(out.salary);
+    if (!Number.isFinite(numSalary)) {
+      delete out.salary;
+    } else {
+      out.salary = String(out.salary);
+    }
   }
   return out;
 }

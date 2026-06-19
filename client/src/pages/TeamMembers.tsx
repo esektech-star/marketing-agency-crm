@@ -50,6 +50,20 @@ export default function TeamMembers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Validate salary if provided
+      let salary: number | undefined = undefined;
+      if (formData.salary && formData.salary.trim()) {
+        if (!isValidNumber(formData.salary)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
+        salary = parseRTLNumber(formData.salary);
+        if (!Number.isFinite(salary)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
+      }
+      
       if (editingId) {
         await updateMutation.mutateAsync({
           id: editingId,
@@ -59,7 +73,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseRTLNumber(formData.salary) : undefined,
+          salary,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -72,7 +86,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseRTLNumber(formData.salary) : undefined,
+          salary,
           joinDate: new Date(formData.joinDate),
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
