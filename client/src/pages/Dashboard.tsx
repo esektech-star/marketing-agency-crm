@@ -16,8 +16,11 @@ export default function Dashboard() {
 
   const currency = t("common.currency");
 
-  const formatCurrency = (value: number) =>
-    `${currency}${value.toLocaleString("en-US")}`;
+  const formatCurrency = (value: number | string) => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (!Number.isFinite(numValue)) return `${currency}0`;
+    return `${currency}${numValue.toLocaleString("en-US")}`;
+  };
 
   // تحية حسب وقت اليوم
   const hour = new Date().getHours();
