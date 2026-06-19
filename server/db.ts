@@ -182,7 +182,7 @@ function normalizeTeamMember(data: any) {
     if (!Number.isFinite(numSalary)) {
       delete out.salary;
     } else {
-      out.salary = String(out.salary);
+      out.salary = numSalary; // Keep as number for decimal type
     }
   }
   return out;

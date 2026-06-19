@@ -76,7 +76,10 @@
     "vendor": "المورد",
     "selectClient": "اختر العميل",
     "selectVendor": "اختر المورد",
-    "login": "تسجيل الدخول"
+    "login": "تسجيل الدخول",
+    "exported": "تم التصدير بنجاح",
+    "invalidNumber": "صيغة رقم غير صحيحة",
+    "saved": "تم الحفظ بنجاح"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -475,7 +478,14 @@
     "expenses": "المصروفات",
     "profit": "الربح",
     "perMonth": "لكل شهر",
-    "detailedTable": "جدول مفصل"
+    "detailedTable": "جدول مفصل",
+    "enterManualData": "أدخل البيانات يدويًا",
+    "enterRevenueData": "أدخل الإيرادات الشهرية للسنوات المختارة",
+    "monthChange": "التغيير الشهري",
+    "monthlyDetails": "التفاصيل الشهرية",
+    "totalProfit": "إجمالي الربح",
+    "year": "السنة",
+    "yearChange": "التغيير السنوي"
   },
   "landing": {
     "badge": "نظام إدارة سوكنة التسويق الرقمي",

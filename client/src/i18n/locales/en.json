@@ -76,7 +76,10 @@
     "vendor": "Vendor",
     "selectClient": "Select Client",
     "selectVendor": "Select Vendor",
-    "login": "Login"
+    "login": "Login",
+    "exported": "Exported successfully",
+    "invalidNumber": "Invalid number format",
+    "saved": "Saved successfully"
   },
   "auth": {
     "login": "Sign In",
@@ -475,7 +478,14 @@
     "expenses": "Expenses",
     "profit": "Profit",
     "perMonth": "Per Month",
-    "detailedTable": "Detailed Table"
+    "detailedTable": "Detailed Table",
+    "enterManualData": "Enter Manual Data",
+    "enterRevenueData": "Enter monthly revenue for selected years",
+    "monthChange": "Monthly Change",
+    "monthlyDetails": "Monthly Details",
+    "totalProfit": "Total Profit",
+    "year": "Year",
+    "yearChange": "Year-over-Year Change"
   },
   "landing": {
     "badge": "Digital Marketing Agency Management System",

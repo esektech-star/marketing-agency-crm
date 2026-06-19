@@ -76,7 +76,10 @@
     "vendor": "ספק",
     "selectClient": "בחר לקוח",
     "selectVendor": "בחר ספק",
-    "login": "התחברות"
+    "login": "התחברות",
+    "exported": "יוצא בהצלחה",
+    "invalidNumber": "פורמט מספר לא תקין",
+    "saved": "נשמר בהצלחה"
   },
   "auth": {
     "login": "התחברות",
@@ -475,7 +478,14 @@
     "expenses": "הוצאות",
     "profit": "רווח",
     "perMonth": "לחודש",
-    "detailedTable": "טבלה מפורטת"
+    "detailedTable": "טבלה מפורטת",
+    "enterManualData": "הכנס נתונים ידני",
+    "enterRevenueData": "הכנס הכנסות חודשיות לשנים שנבחרו",
+    "monthChange": "שינוי חודשי",
+    "monthlyDetails": "פרטים חודשיים",
+    "totalProfit": "סה״כ רווח",
+    "year": "שנה",
+    "yearChange": "שינוי שנתי"
   },
   "landing": {
     "badge": "מערכת ניהול סוכנות שיווק דיגיטלית",
