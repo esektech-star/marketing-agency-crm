@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, exportToCSV, formatClientsForExport } from "@/lib/exportUtils";
 
 const STATUS_VALUES = ["active", "pending", "completed"] as const;
 
@@ -133,14 +134,39 @@ export default function Clients() {
           <h1 className="text-3xl font-bold">{t("clients.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-              <Plus className="w-4 h-4 ms-2" />
-              {t("clients.addClient")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatClientsForExport(clients);
+              exportToExcel(formatted, `clients-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportExcel", "Export Excel")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatClientsForExport(clients);
+              exportToCSV(formatted, `clients-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportCSV", "Export CSV")}
+          </Button>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                <Plus className="w-4 h-4 ms-2" />
+                {t("clients.addClient")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>{editingId ? t("clients.editClient") : t("clients.addClient")}</DialogTitle>
               <DialogDescription>
@@ -264,8 +290,9 @@ export default function Clients() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>

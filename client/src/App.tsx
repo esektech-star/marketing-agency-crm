@@ -27,10 +27,12 @@ import Invoices from "./pages/Invoices";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
+import Landing from "./pages/Landing";
 
 function Router() {
   return (
     <Switch>
+      <Route path={"/landing"} component={Landing} />
       <Route path={"/"} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
       <Route path={"/invoices"}>

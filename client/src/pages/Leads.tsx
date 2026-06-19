@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, exportToCSV, formatLeadsForExport } from "@/lib/exportUtils";
 
 const STAGE_VALUES = ["new", "follow_up", "interest", "proposal", "negotiation", "closed"] as const;
 const STATUS_VALUES = ["active", "disabled", "lost"] as const;
@@ -183,14 +184,39 @@ export default function Leads() {
           <h1 className="text-3xl font-bold">{t("leads.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("leads.subtitle")}</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-              <Plus className="w-4 h-4 ms-2" />
-              {t("leads.addLead")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatLeadsForExport(leads);
+              exportToExcel(formatted, `leads-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportExcel", "Export Excel")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatLeadsForExport(leads);
+              exportToCSV(formatted, `leads-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportCSV", "Export CSV")}
+          </Button>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                <Plus className="w-4 h-4 ms-2" />
+                {t("leads.addLead")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? t("leads.editLead") : t("leads.addLead")}</DialogTitle>
               <DialogDescription>{editingId ? t("leads.editDesc") : t("leads.addDesc")}</DialogDescription>
@@ -316,8 +342,9 @@ export default function Leads() {
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
