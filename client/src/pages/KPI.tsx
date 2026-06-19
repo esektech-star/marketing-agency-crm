@@ -2,14 +2,41 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus, Download } from "lucide-react";
+import { toast } from "sonner";
+import { parseRTLNumber } from "@/lib/numberUtils";
+
+const MONTHS = [
+  { key: "01", label: "ינואר", labelAr: "يناير", labelEn: "January" },
+  { key: "02", label: "פברואר", labelAr: "فبراير", labelEn: "February" },
+  { key: "03", label: "מרץ", labelAr: "مارس", labelEn: "March" },
+  { key: "04", label: "אפריל", labelAr: "أبريل", labelEn: "April" },
+  { key: "05", label: "מאי", labelAr: "مايو", labelEn: "May" },
+  { key: "06", label: "יוני", labelAr: "يونيو", labelEn: "June" },
+  { key: "07", label: "יולי", labelAr: "يوليو", labelEn: "July" },
+  { key: "08", label: "אוגוסט", labelAr: "أغسطس", labelEn: "August" },
+  { key: "09", label: "ספטמבר", labelAr: "سبتمبر", labelEn: "September" },
+  { key: "10", label: "אוקטובר", labelAr: "أكتوبر", labelEn: "October" },
+  { key: "11", label: "נובמבר", labelAr: "نوفمبر", labelEn: "November" },
+  { key: "12", label: "דצמבר", labelAr: "ديسمبر", labelEn: "December" },
+];
 
 export default function KPI() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [comparisonYear, setComparisonYear] = useState<string>((new Date().getFullYear() - 1).toString());
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Manual data entry state
+  const [manualData, setManualData] = useState<Record<string, Record<string, string>>>({
+    [selectedYear]: {},
+    [comparisonYear]: {},
+  });
 
   // Mock data - in production, this would come from tRPC
   const mockKPIData = [
@@ -59,8 +86,65 @@ export default function KPI() {
     };
   }, []);
 
-  const formatCurrency = (value: number) => {
-    return `₪${(value || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  const formatCurrency = (value: number | string) => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (!Number.isFinite(numValue)) return "₪0";
+    return `₪${numValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  };
+
+  const handleManualDataChange = (year: string, month: string, value: string) => {
+    setManualData(prev => ({
+      ...prev,
+      [year]: {
+        ...prev[year],
+        [month]: value,
+      }
+    }));
+  };
+
+  const handleSaveManualData = () => {
+    try {
+      // Validate all entries
+      for (const year in manualData) {
+        for (const month in manualData[year]) {
+          const value = manualData[year][month];
+          if (value && !Number.isFinite(parseRTLNumber(value))) {
+            toast.error(t("common.invalidNumber", "Invalid number format"));
+            return;
+          }
+        }
+      }
+      
+      // Save to localStorage for now (in production, would save to database)
+      localStorage.setItem('kpi_manual_data', JSON.stringify(manualData));
+      toast.success(t("common.saved", "Saved successfully"));
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error(t("common.error", "Error saving data"));
+    }
+  };
+
+  const handleExportData = () => {
+    try {
+      const data = {
+        year: selectedYear,
+        comparisonYear,
+        manualData,
+        timestamp: new Date().toISOString(),
+      };
+      
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `kpi-data-${selectedYear}.json`;
+      link.click();
+      
+      toast.success(t("common.exported", "Exported successfully"));
+    } catch (error) {
+      toast.error(t("common.error", "Error exporting data"));
+    }
   };
 
   return (
@@ -71,8 +155,8 @@ export default function KPI() {
         <p className="text-muted-foreground mt-1">{t("kpi.subtitle", "מדדי ביצוע עיקריים והשוואה שנתית")}</p>
       </div>
 
-      {/* Year Selection */}
-      <div className="flex gap-4 flex-wrap">
+      {/* Controls */}
+      <div className="flex gap-4 flex-wrap items-end">
         <div>
           <label className="text-sm font-medium">{t("kpi.selectYear", "בחר שנה")}</label>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -99,177 +183,202 @@ export default function KPI() {
             </SelectContent>
           </Select>
         </div>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              {t("kpi.enterManualData", "הכנס נתונים ידני")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{t("kpi.enterManualData", "הכנס נתונים ידני")}</DialogTitle>
+              <DialogDescription>
+                {t("kpi.enterRevenueData", "הכנס הכנסות חודשיות לשנים שנבחרו")}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {[selectedYear, comparisonYear].map(year => (
+                <div key={year} className="space-y-4">
+                  <h3 className="font-semibold text-lg">{t("kpi.year", "שנה")}: {year}</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {MONTHS.map(month => (
+                      <div key={month.key} className="space-y-1">
+                        <Label className="text-xs">{month.label}</Label>
+                        <Input
+                          type="text"
+                          placeholder="0"
+                          value={manualData[year]?.[month.key] || ""}
+                          onChange={(e) => handleManualDataChange(year, month.key, e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex gap-2 justify-end mt-6">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                {t("common.cancel", "ביטול")}
+              </Button>
+              <Button onClick={handleSaveManualData}>
+                {t("common.save", "שמור")}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Button variant="outline" className="gap-2" onClick={handleExportData}>
+          <Download className="w-4 h-4" />
+          {t("common.export", "ייצוא")}
+        </Button>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("kpi.totalRevenue", "סה\"כ הכנסות")}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t("kpi.totalRevenue", "סה״כ הכנסות")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(yearlyStats.totalRevenue)}</div>
-            <p className="text-xs text-green-600 mt-1">↑ 12.5% {t("kpi.fromLastYear", "מהשנה שעברה")}</p>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(yearlyStats.totalRevenue)}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("kpi.totalExpenses", "סה\"כ הוצאות")}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t("kpi.totalExpenses", "סה״כ הוצאות")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(yearlyStats.totalExpenses)}</div>
-            <p className="text-xs text-red-600 mt-1">↑ 8.3% {t("kpi.fromLastYear", "מהשנה שעברה")}</p>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(yearlyStats.totalExpenses)}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("kpi.netProfit", "רווח נקי")}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t("kpi.totalProfit", "סה״כ רווח")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(yearlyStats.totalProfit)}</div>
-            <p className="text-xs text-green-600 mt-1">↑ 15.2% {t("kpi.fromLastYear", "מהשנה שעברה")}</p>
+            <div className="text-2xl font-bold text-blue-600">
+              {formatCurrency(yearlyStats.totalProfit)}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("kpi.avgMonthlyRevenue", "ממוצע חודשי")}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t("kpi.profitMargin", "שולי רווח")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(yearlyStats.avgMonthlyRevenue)}</div>
-            <p className="text-xs text-muted-foreground mt-1">{t("kpi.perMonth", "לחודש")}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("kpi.profitMargin", "מרווח רווח")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{yearlyStats.profitMargin}%</div>
-            <p className="text-xs text-green-600 mt-1">↑ 2.1% {t("kpi.improvement", "שיפור")}</p>
+            <div className="text-2xl font-bold text-purple-600">
+              {yearlyStats.profitMargin}%
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Monthly Revenue Chart */}
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("kpi.monthlyRevenue", "הכנסות חודשיות")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={mockKPIData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                <Legend />
+                <Line type="monotone" dataKey="revenue" stroke="#10B981" name={t("kpi.revenue", "הכנסות")} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("kpi.yearComparison", "השוואה שנתית")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={mockComparisonData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                <Legend />
+                <Bar dataKey="year1" fill="#1e3a5f" name={selectedYear} />
+                <Bar dataKey="year2" fill="#F59E0B" name={comparisonYear} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Monthly Details Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t("kpi.monthlyRevenue", "הכנסות חודשיות")}</CardTitle>
-          <CardDescription>{t("kpi.revenueAndExpenses", "הכנסות והוצאות לפי חודש")}</CardDescription>
+          <CardTitle>{t("kpi.monthlyDetails", "פרטים חודשיים")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockKPIData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              <Legend />
-              <Bar dataKey="revenue" fill="#3b82f6" name={t("kpi.revenue", "הכנסות")} />
-              <Bar dataKey="expenses" fill="#ef4444" name={t("kpi.expenses", "הוצאות")} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Year Comparison Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("kpi.yearComparison", "השוואה שנתית")}</CardTitle>
-          <CardDescription>{t("kpi.compareYears", `השוואה בין ${selectedYear} ל-${comparisonYear}`)}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockComparisonData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              <Legend />
-              <Line type="monotone" dataKey="year1" stroke="#3b82f6" name={selectedYear} strokeWidth={2} />
-              <Line type="monotone" dataKey="year2" stroke="#10b981" name={comparisonYear} strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Monthly Change Percentage */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("kpi.monthlyChange", "שינוי חודשי")}</CardTitle>
-          <CardDescription>{t("kpi.percentageChange", "אחוז שינוי מחודש לחודש")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockKPIData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => `${(value as number).toFixed(2)}%`} />
-              <Legend />
-              <Line type="monotone" dataKey="changePercent" stroke="#8b5cf6" name={t("kpi.monthlyChange", "שינוי חודשי")} strokeWidth={2} />
-              <Line type="monotone" dataKey="yoyChange" stroke="#f59e0b" name={t("kpi.yearOverYear", "שינוי שנתי")} strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* KPI Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("kpi.detailedTable", "טבלה מפורטת")}</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-right py-2 px-4">{t("kpi.month", "חודש")}</th>
-                <th className="text-right py-2 px-4">{t("kpi.revenue", "הכנסות")}</th>
-                <th className="text-right py-2 px-4">{t("kpi.expenses", "הוצאות")}</th>
-                <th className="text-right py-2 px-4">{t("kpi.profit", "רווח")}</th>
-                <th className="text-right py-2 px-4">{t("kpi.monthlyChange", "שינוי חודשי")}</th>
-                <th className="text-right py-2 px-4">{t("kpi.yearOverYear", "שינוי שנתי")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockKPIData.map((row, idx) => (
-                <tr key={idx} className="border-b hover:bg-slate-50">
-                  <td className="py-2 px-4">{row.month}</td>
-                  <td className="py-2 px-4">{formatCurrency(row.revenue)}</td>
-                  <td className="py-2 px-4">{formatCurrency(row.expenses)}</td>
-                  <td className="py-2 px-4 text-green-600 font-medium">{formatCurrency(row.profit)}</td>
-                  <td className="py-2 px-4">
-                    <div className="flex items-center gap-1">
-                      {row.changePercent > 0 ? (
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4 text-red-600" />
-                      )}
-                      <span className={row.changePercent > 0 ? "text-green-600" : "text-red-600"}>
-                        {row.changePercent.toFixed(2)}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-2 px-4">
-                    <span className="text-blue-600 font-medium">{row.yoyChange.toFixed(2)}%</span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-right py-2 px-2">{t("kpi.month", "חודש")}</th>
+                  <th className="text-right py-2 px-2">{t("kpi.revenue", "הכנסות")}</th>
+                  <th className="text-right py-2 px-2">{t("kpi.expenses", "הוצאות")}</th>
+                  <th className="text-right py-2 px-2">{t("kpi.profit", "רווח")}</th>
+                  <th className="text-right py-2 px-2">{t("kpi.monthChange", "שינוי חודשי")}</th>
+                  <th className="text-right py-2 px-2">{t("kpi.yearChange", "שינוי שנתי")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {mockKPIData.map((row, idx) => (
+                  <tr key={idx} className="border-b hover:bg-muted/50">
+                    <td className="py-2 px-2">{row.month}</td>
+                    <td className="py-2 px-2 text-green-600">{formatCurrency(row.revenue)}</td>
+                    <td className="py-2 px-2 text-red-600">{formatCurrency(row.expenses)}</td>
+                    <td className="py-2 px-2 text-blue-600">{formatCurrency(row.profit)}</td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-1">
+                        {row.changePercent >= 0 ? (
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 text-red-600" />
+                        )}
+                        <span className={row.changePercent >= 0 ? "text-green-600" : "text-red-600"}>
+                          {row.changePercent >= 0 ? "+" : ""}{row.changePercent}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-1">
+                        {row.yoyChange >= 0 ? (
+                          <TrendingUp className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 text-red-600" />
+                        )}
+                        <span className={row.yoyChange >= 0 ? "text-green-600" : "text-red-600"}>
+                          {row.yoyChange >= 0 ? "+" : ""}{row.yoyChange}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>
