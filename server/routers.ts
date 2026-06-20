@@ -427,6 +427,26 @@ export const appRouter = router({
       }),
   }),
 
+  // ==================== Meta Ads Campaigns ====================
+  metaCampaigns: router({
+    list: protectedProcedure.query(async () => {
+      const metaAds = await import('./metaAds');
+      return await metaAds.getMetaCampaigns();
+    }),
+    getById: protectedProcedure
+      .input(z.object({ campaignId: z.string() }))
+      .query(async ({ input }) => {
+        const metaAds = await import('./metaAds');
+        return await metaAds.getMetaCampaignById(input.campaignId);
+      }),
+    delete: adminProcedure
+      .input(z.object({ campaignId: z.string() }))
+      .mutation(async ({ input }) => {
+        const metaAds = await import('./metaAds');
+        return await metaAds.deleteMetaCampaign(input.campaignId);
+      }),
+  }),
+
   // ==================== App Users (إدارة المستخدمين) — محصورة بالمدير (admin) ====================
   appUsers: router({
     list: adminProcedure.query(async () => {

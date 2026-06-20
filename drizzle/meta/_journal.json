@@ -57,6 +57,13 @@
       "when": 1781909119921,
       "tag": "0007_soft_white_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1781914341368,
+      "tag": "0008_sparkling_paladin",
+      "breakpoints": true
     }
   ]
 }

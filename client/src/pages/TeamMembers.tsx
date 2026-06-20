@@ -50,18 +50,40 @@ export default function TeamMembers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        toast.error(t("team.nameRequired", "Name is required"));
+        return;
+      }
+      if (!formData.role.trim()) {
+        toast.error(t("team.roleRequired", "Role is required"));
+        return;
+      }
+      if (!formData.joinDate) {
+        toast.error(t("team.joinDateRequired", "Join date is required"));
+        return;
+      }
+      
+      // Validate joinDate is a valid date
+      const joinDate = new Date(formData.joinDate);
+      if (!Number.isFinite(joinDate.getTime())) {
+        toast.error(t("team.invalidJoinDate", "Invalid join date"));
+        return;
+      }
+      
       // Validate salary if provided
-      let salary: number | undefined = undefined;
+      let salary: string | undefined = undefined;
       if (formData.salary && formData.salary.trim()) {
         if (!isValidNumber(formData.salary)) {
           toast.error(t("common.invalidNumber", "Invalid number format"));
           return;
         }
-        salary = parseRTLNumber(formData.salary);
-        if (!Number.isFinite(salary)) {
+        const numSalary = parseRTLNumber(formData.salary);
+        if (!Number.isFinite(numSalary)) {
           toast.error(t("common.invalidNumber", "Invalid number format"));
           return;
         }
+        salary = String(numSalary); // Convert to string for decimal type
       }
       
       if (editingId) {
@@ -73,7 +95,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary,
+          salary: salary ? parseFloat(salary) : undefined,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -86,8 +108,8 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary,
-          joinDate: new Date(formData.joinDate),
+          salary: salary ? parseFloat(salary) : undefined,
+          joinDate: joinDate,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });

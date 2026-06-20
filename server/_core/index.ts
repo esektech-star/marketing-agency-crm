@@ -49,6 +49,32 @@ async function startServer() {
     })
   );
 
+  // Meta Ads Sync Handler
+  app.post("/api/scheduled/metaAdsFetch", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) return res.status(403).json({ error: "cron-only" });
+      
+      const { fetchAndSaveMetaCampaigns } = await import("../metaAdsEdgeFunction");
+      
+      // Get ad account ID from environment or request
+      const adAccountId = process.env.META_AD_ACCOUNT_ID || "";
+      if (!adAccountId) {
+        return res.status(400).json({ error: "META_AD_ACCOUNT_ID not configured" });
+      }
+      
+      const result = await fetchAndSaveMetaCampaigns(adAccountId);
+      res.json({ ok: true, ...result });
+    } catch (err) {
+      console.error("[MetaAdsFetch]", err);
+      res.status(500).json({ 
+        error: String(err), 
+        timestamp: new Date().toISOString(),
+        context: { url: req.url, taskUid: (await sdk.authenticateRequest(req)).taskUid }
+      });
+    }
+  });
+
   // Payment Reminder Handler
   app.post("/api/scheduled/paymentReminder", async (req, res) => {
     try {

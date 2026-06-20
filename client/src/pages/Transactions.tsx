@@ -55,6 +55,38 @@ export default function Transactions() {
     e.preventDefault();
     
     try {
+      // Validate amount
+      if (!formData.amount || !formData.amount.trim()) {
+        toast.error(t("transactions.amountRequired", "Amount is required"));
+        return;
+      }
+      if (!isValidNumber(formData.amount)) {
+        toast.error(t("common.invalidNumber", "Invalid number format"));
+        return;
+      }
+      const amount = parseRTLNumber(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        toast.error(t("transactions.amountMustBePositive", "Amount must be positive"));
+        return;
+      }
+      
+      // Validate date
+      if (!formData.date) {
+        toast.error(t("transactions.dateRequired", "Date is required"));
+        return;
+      }
+      const txDate = new Date(formData.date);
+      if (!Number.isFinite(txDate.getTime())) {
+        toast.error(t("transactions.invalidDate", "Invalid date"));
+        return;
+      }
+      
+      // Validate category
+      if (!formData.category || !formData.category.trim()) {
+        toast.error(t("transactions.categoryRequired", "Category is required"));
+        return;
+      }
+      
       if (editingId) {
         const txDate = new Date(formData.date);
         
@@ -62,7 +94,7 @@ export default function Transactions() {
           id: editingId,
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseRTLNumber(formData.amount),
+          amount: amount,
           description: formData.description,
           date: txDate,
           notes: formData.notes,
@@ -82,7 +114,7 @@ export default function Transactions() {
         await createMutation.mutateAsync({
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseRTLNumber(formData.amount),
+          amount: amount,
           description: formData.description,
           date: txDate,
           month,
