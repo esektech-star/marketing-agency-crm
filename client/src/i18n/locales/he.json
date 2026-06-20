@@ -446,5 +446,10 @@
   "kpi.totalRevenue": "סך הכנסות",
   "kpi.totalExpense": "סך הוצאות",
   "kpi.netProfit": "רווח נקי",
-  "kpi.fromLastMonth": "מהחודש שעבר"
+  "kpi.fromLastMonth": "מהחודש שעבר",
+  "kpi.selectYear": "בחר שנה",
+  "kpi.comparisonYear": "שנה להשוואה",
+  "kpi.enterManualData": "הכנס נתונים ידני",
+  "kpi.enterRevenueData": "הכנס הכנסות חודשיות לשנים שנבחרו",
+  "kpi.year": "שנה"
 }

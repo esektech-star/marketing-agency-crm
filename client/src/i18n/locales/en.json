@@ -446,5 +446,10 @@
   "kpi.totalRevenue": "Total Revenue",
   "kpi.totalExpense": "Total Expense",
   "kpi.netProfit": "Net Profit",
-  "kpi.fromLastMonth": "from last month"
+  "kpi.fromLastMonth": "from last month",
+  "kpi.selectYear": "Select Year",
+  "kpi.comparisonYear": "Comparison Year",
+  "kpi.enterManualData": "Enter Manual Data",
+  "kpi.enterRevenueData": "Enter monthly revenue for selected years",
+  "kpi.year": "Year"
 }

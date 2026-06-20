@@ -446,5 +446,10 @@
   "kpi.totalRevenue": "إجمالي الإيرادات",
   "kpi.totalExpense": "إجمالي المصروفات",
   "kpi.netProfit": "الربح الصافي",
-  "kpi.fromLastMonth": "من الشهر الماضي"
+  "kpi.fromLastMonth": "من الشهر الماضي",
+  "kpi.selectYear": "اختر السنة",
+  "kpi.comparisonYear": "السنة للمقارنة",
+  "kpi.enterManualData": "أدخل البيانات يدويًا",
+  "kpi.enterRevenueData": "أدخل الإيرادات الشهرية للسنوات المختارة",
+  "kpi.year": "السنة"
 }
