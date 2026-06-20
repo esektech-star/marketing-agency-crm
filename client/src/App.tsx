@@ -19,6 +19,7 @@ import Tasks from "./pages/Tasks";
 import Leads from "./pages/Leads";
 import Transactions from "./pages/Transactions";
 import Campaigns from "./pages/Campaigns";
+import MetaCampaigns from "./pages/MetaCampaigns";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import AccessDetails from "./pages/AccessDetails";
@@ -27,12 +28,22 @@ import Invoices from "./pages/Invoices";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
+import Landing from "./pages/Landing";
+import KPI from "./pages/KPI";
 
 function Router() {
   return (
     <Switch>
+      <Route path={"/landing"} component={Landing} />
       <Route path={"/"} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
+      <Route path={"/kpi"}>
+        {() => (
+          <DashboardLayout>
+            <KPI />
+          </DashboardLayout>
+        )}
+      </Route>
       <Route path={"/invoices"}>
         {() => (
           <DashboardLayout>
@@ -103,6 +114,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Campaigns />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/meta-campaigns"}>
+        {() => (
+          <DashboardLayout>
+            <MetaCampaigns />
           </DashboardLayout>
         )}
       </Route>

@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, exportToCSV, formatTransactionsForExport } from "@/lib/exportUtils";
+import { parseRTLNumber, isValidNumber, getMonthAsString, getYearAsString } from "@/lib/numberUtils";
 
 const TYPE_VALUES = ["revenue", "expense"] as const;
 
@@ -25,8 +27,8 @@ export default function Transactions() {
     amount: "",
     description: "",
     date: new Date().toISOString().split('T')[0],
-    month: new Date().toLocaleString('ar-SA', { month: '2-digit' }),
-    year: new Date().getFullYear(),
+    month: getMonthAsString(new Date()),
+    year: getYearAsString(new Date()),
     notes: "",
     relatedClient: "",
     relatedVendor: "",
@@ -53,28 +55,70 @@ export default function Transactions() {
     e.preventDefault();
     
     try {
+      // Validate amount
+      if (!formData.amount || !formData.amount.trim()) {
+        toast.error(t("transactions.amountRequired", "Amount is required"));
+        return;
+      }
+      if (!isValidNumber(formData.amount)) {
+        toast.error(t("common.invalidNumber", "Invalid number format"));
+        return;
+      }
+      const amount = parseRTLNumber(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        toast.error(t("transactions.amountMustBePositive", "Amount must be positive"));
+        return;
+      }
+      
+      // Validate date
+      if (!formData.date) {
+        toast.error(t("transactions.dateRequired", "Date is required"));
+        return;
+      }
+      const txDate = new Date(formData.date);
+      if (!Number.isFinite(txDate.getTime())) {
+        toast.error(t("transactions.invalidDate", "Invalid date"));
+        return;
+      }
+      
+      // Validate category
+      if (!formData.category || !formData.category.trim()) {
+        toast.error(t("transactions.categoryRequired", "Category is required"));
+        return;
+      }
+      
       if (editingId) {
+        const txDate = new Date(formData.date);
+        
         await updateMutation.mutateAsync({
           id: editingId,
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseFloat(formData.amount),
+          amount: amount,
           description: formData.description,
-          date: new Date(formData.date),
+          date: txDate,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
           relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
         });
         toast.success(t("transactions.editSuccess"));
       } else {
+        if (!isValidNumber(formData.amount)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
+        const txDate = new Date(formData.date);
+        const month = String(txDate.getMonth() + 1).padStart(2, '0');
+        const year = txDate.getFullYear();
+        
         await createMutation.mutateAsync({
           type: formData.type as "revenue" | "expense",
           category: formData.category,
-          amount: parseFloat(formData.amount),
+          amount: amount,
           description: formData.description,
-          date: new Date(formData.date),
-          month: formData.month,
-          year: formData.year,
+          date: txDate,
+          month,
+          year,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
           relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
@@ -87,7 +131,8 @@ export default function Transactions() {
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error(t("common.error"));
+      const errorMsg = error instanceof Error ? error.message : t("common.error");
+      toast.error(errorMsg);
     }
   };
 
@@ -189,14 +234,39 @@ export default function Transactions() {
           <h1 className="text-3xl font-bold">{t("transactions.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("transactions.subtitle")}</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-              <Plus className="w-4 h-4 ms-2" />
-              {t("transactions.addTransaction")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatTransactionsForExport(transactions);
+              exportToExcel(formatted, `transactions-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportExcel", "Export Excel")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatTransactionsForExport(transactions);
+              exportToCSV(formatted, `transactions-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportCSV", "Export CSV")}
+          </Button>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                <Plus className="w-4 h-4 ms-2" />
+                {t("transactions.addTransaction")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? t("transactions.editTransaction") : t("transactions.addTransaction")}</DialogTitle>
               <DialogDescription>{editingId ? t("transactions.editDesc") : t("transactions.addDesc")}</DialogDescription>
@@ -304,8 +374,9 @@ export default function Transactions() {
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

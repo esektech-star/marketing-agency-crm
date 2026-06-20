@@ -9,14 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { exportToExcel, exportToCSV, formatLeadsForExport } from "@/lib/exportUtils";
+import { shareViaWhatsApp, formatLeadShareMessage, formatLeadShareMessageHE, formatLeadShareMessageEN } from "@/lib/whatsappUtils";
 
 const STAGE_VALUES = ["new", "follow_up", "interest", "proposal", "negotiation", "closed"] as const;
 const STATUS_VALUES = ["active", "disabled", "lost"] as const;
 
 export default function Leads() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
@@ -183,14 +185,39 @@ export default function Leads() {
           <h1 className="text-3xl font-bold">{t("leads.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("leads.subtitle")}</p>
         </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-              <Plus className="w-4 h-4 ms-2" />
-              {t("leads.addLead")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatLeadsForExport(leads);
+              exportToExcel(formatted, `leads-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportExcel", "Export Excel")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const formatted = formatLeadsForExport(leads);
+              exportToCSV(formatted, `leads-${new Date().toISOString().split('T')[0]}`);
+              toast.success(t("common.exportSuccess", "Exported successfully"));
+            }}
+          >
+            <Download className="w-4 h-4 ms-2" />
+            {t("common.exportCSV", "Export CSV")}
+          </Button>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setEditingId(null); setFormData(emptyForm); }} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
+                <Plus className="w-4 h-4 ms-2" />
+                {t("leads.addLead")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? t("leads.editLead") : t("leads.addLead")}</DialogTitle>
               <DialogDescription>{editingId ? t("leads.editDesc") : t("leads.addDesc")}</DialogDescription>
@@ -316,8 +343,9 @@ export default function Leads() {
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>{t("common.cancel")}</Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -365,18 +393,20 @@ export default function Leads() {
                       <TableCell dir="ltr" className="text-start">{lead.value ? `${t("common.currency")}${lead.value.toLocaleString('en-US')}` : "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(lead)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => {
+                            const lang = i18n.language;
+                            let msg = '';
+                            if (lang === 'ar') msg = formatLeadShareMessage(lead.name, lead.source || '', lead.value);
+                            else if (lang === 'he') msg = formatLeadShareMessageHE(lead.name, lead.source || '', lead.value);
+                            else msg = formatLeadShareMessageEN(lead.name, lead.source || '', lead.value);
+                            shareViaWhatsApp({ message: msg, phoneNumber: lead.phone });
+                          }} title="Share via WhatsApp">
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(lead)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(lead.id)}
-                          >
+                          <Button size="sm" variant="destructive" onClick={() => handleDelete(lead.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

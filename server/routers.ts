@@ -427,6 +427,26 @@ export const appRouter = router({
       }),
   }),
 
+  // ==================== Meta Ads Campaigns ====================
+  metaCampaigns: router({
+    list: protectedProcedure.query(async () => {
+      const metaAds = await import('./metaAds');
+      return await metaAds.getMetaCampaigns();
+    }),
+    getById: protectedProcedure
+      .input(z.object({ campaignId: z.string() }))
+      .query(async ({ input }) => {
+        const metaAds = await import('./metaAds');
+        return await metaAds.getMetaCampaignById(input.campaignId);
+      }),
+    delete: adminProcedure
+      .input(z.object({ campaignId: z.string() }))
+      .mutation(async ({ input }) => {
+        const metaAds = await import('./metaAds');
+        return await metaAds.deleteMetaCampaign(input.campaignId);
+      }),
+  }),
+
   // ==================== App Users (إدارة المستخدمين) — محصورة بالمدير (admin) ====================
   appUsers: router({
     list: adminProcedure.query(async () => {
@@ -788,10 +808,32 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return await db.deleteSubscription(input.id);
       }),
-    getTotalMonthlyCost: protectedProcedure.query(async () => {
+        getTotalMonthlyCost: protectedProcedure.query(async () => {
       return await db.getTotalMonthlySubscriptionCost();
     }),
   }),
-});
 
+  // ==================== KPI (مؤشرات الأداء) ====================
+  kpi: router({
+    getYearlyData: protectedProcedure
+      .input(z.object({ year: z.number() }))
+      .query(async ({ input }) => {
+        const { getYearlyKPIData } = await import("./kpi");
+        return await getYearlyKPIData(input.year);
+      }),
+    getComparison: protectedProcedure
+      .input(z.object({ year1: z.number(), year2: z.number() }))
+      .query(async ({ input }) => {
+        const { getYearComparisonKPI } = await import("./kpi");
+        return await getYearComparisonKPI(input.year1, input.year2);
+      }),
+    updateMonthly: adminProcedure
+      .input(z.object({ year: z.number(), month: z.number() }))
+      .mutation(async ({ input }) => {
+        const { updateMonthlyKPI } = await import("./kpi");
+        await updateMonthlyKPI(input.year, input.month);
+        return { success: true };
+      }),
+  }),
+});
 export type AppRouter = typeof appRouter;

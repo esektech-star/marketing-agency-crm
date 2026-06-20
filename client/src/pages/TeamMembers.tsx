@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { parseRTLNumber, isValidNumber } from "@/lib/numberUtils";
 
 const STATUS_VALUES = ["active", "disabled", "completed"] as const;
 
@@ -49,6 +50,42 @@ export default function TeamMembers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        toast.error(t("team.nameRequired", "Name is required"));
+        return;
+      }
+      if (!formData.role.trim()) {
+        toast.error(t("team.roleRequired", "Role is required"));
+        return;
+      }
+      if (!formData.joinDate) {
+        toast.error(t("team.joinDateRequired", "Join date is required"));
+        return;
+      }
+      
+      // Validate joinDate is a valid date
+      const joinDate = new Date(formData.joinDate);
+      if (!Number.isFinite(joinDate.getTime())) {
+        toast.error(t("team.invalidJoinDate", "Invalid join date"));
+        return;
+      }
+      
+      // Validate salary if provided
+      let salary: string | undefined = undefined;
+      if (formData.salary && formData.salary.trim()) {
+        if (!isValidNumber(formData.salary)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
+        const numSalary = parseRTLNumber(formData.salary);
+        if (!Number.isFinite(numSalary)) {
+          toast.error(t("common.invalidNumber", "Invalid number format"));
+          return;
+        }
+        salary = String(numSalary); // Convert to string for decimal type
+      }
+      
       if (editingId) {
         await updateMutation.mutateAsync({
           id: editingId,
@@ -58,7 +95,7 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseFloat(formData.salary) : undefined,
+          salary: salary ? parseFloat(salary) : undefined,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -71,8 +108,8 @@ export default function TeamMembers() {
           phone: formData.phone,
           email: formData.email,
           department: formData.department,
-          salary: formData.salary ? parseFloat(formData.salary) : undefined,
-          joinDate: new Date(formData.joinDate),
+          salary: salary ? parseFloat(salary) : undefined,
+          joinDate: joinDate,
           status: formData.status as "active" | "disabled" | "completed",
           notes: formData.notes,
         });
@@ -83,7 +120,8 @@ export default function TeamMembers() {
       setIsOpen(false);
       refetch();
     } catch (error) {
-      toast.error(t("common.error"));
+      const errorMsg = error instanceof Error ? error.message : t("common.error");
+      toast.error(errorMsg);
     }
   };
 
@@ -111,7 +149,8 @@ export default function TeamMembers() {
         toast.success(t("common.deleteSuccess"));
         refetch();
       } catch (error) {
-        toast.error(t("common.error"));
+        const errorMsg = error instanceof Error ? error.message : t("common.error");
+        toast.error(errorMsg);
       }
     }
   };

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe, Package } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe, Package, PieChart, Megaphone } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -39,6 +39,8 @@ const getMenuItems = (t: any) => [
   { icon: Zap, label: t("sidebar.leads", "الليدز"), path: "/leads" },
   { icon: TrendingUp, label: t("sidebar.transactions", "المالية"), path: "/transactions" },
   { icon: BarChart3, label: t("sidebar.campaigns", "الحملات"), path: "/campaigns" },
+  { icon: Megaphone, label: t("sidebar.metaCampaigns", "حملات Meta"), path: "/meta-campaigns" },
+  { icon: PieChart, label: t("sidebar.kpi", "مؤشرات الأداء"), path: "/kpi" },
   { icon: LineChartIcon, label: t("sidebar.reports", "التقارير"), path: "/reports" },
   { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
   { icon: Receipt, label: t("sidebar.invoices", "الفواتير"), path: "/invoices" },
@@ -178,7 +180,7 @@ function DashboardLayoutContent({
     <>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
-          collapsible="none"
+          collapsible={isMobile ? "icon" : "none"}
           variant="inset"
           className={`border-r-0 ${isRTL ? 'border-l' : 'border-r'}`}
           disableTransition={isResizing}
