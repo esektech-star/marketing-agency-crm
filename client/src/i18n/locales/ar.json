@@ -432,6 +432,7 @@
     "leads": "الليدز",
     "transactions": "المالية",
     "campaigns": "الحملات",
+    "metaCampaigns": "حملات Meta",
     "reports": "التقارير",
     "documents": "مكتبة الملفات",
     "invoices": "الفواتير",
@@ -528,5 +529,29 @@
     "terms": "شروط الاستخدام",
     "security": "الأمان",
     "allRightsReserved": "جميع الحقوق محفوظة"
+  },
+  "metaCampaigns": {
+    "title": "حملات Meta",
+    "description": "عرض وإدارة حملات الإعلانات على Meta",
+    "campaigns": "الحملات",
+    "campaignCount": "الإجمالي: {{count}} حملة",
+    "noCampaigns": "لم يتم العثور على حملات",
+    "name": "اسم الحملة",
+    "objective": "الهدف",
+    "status": "الحالة",
+    "impressions": "العرض",
+    "clicks": "النقرات (الكل)",
+    "linkClicks": "نقرات الرابط",
+    "spend": "الإنفاق",
+    "reach": "الوصول",
+    "ctr": "معدل النقرات",
+    "cpm": "سعر الألف عرض",
+    "cpc": "سعر النقرة",
+    "roas": "عائد الإنفاق",
+    "campaignId": "معرف الحملة",
+    "lastUpdated": "آخر تحديث",
+    "details": "تفاصيل الحملة",
+    "info": "يتم مزامنة هذه البيانات تلقائياً من حساب Meta الإعلانات الخاص بك. يتم التحديث كل ساعة.",
+    "deleteSuccess": "تم حذف الحملة بنجاح"
   }
 }

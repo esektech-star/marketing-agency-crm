@@ -528,5 +528,29 @@
     "terms": "תנאי שימוש",
     "security": "אבטחה",
     "allRightsReserved": "כל הזכויות שמורות"
+  },
+  "metaCampaigns": {
+    "title": "קמפיינים ב-Meta",
+    "description": "צפייה וניהול קמפיינים פרסומיים ב-Meta",
+    "campaigns": "קמפיינים",
+    "campaignCount": "סה\"כ: {{count}} קמפיינים",
+    "noCampaigns": "לא נמצאו קמפיינים",
+    "name": "שם הקמפיין",
+    "objective": "מטרה",
+    "status": "סטטוס",
+    "impressions": "חשיפות",
+    "clicks": "קליקים (הכל)",
+    "linkClicks": "קליקים על קישור",
+    "spend": "הוצאה",
+    "reach": "הגעה",
+    "ctr": "שיעור קליקים",
+    "cpm": "עלות לאלף חשיפות",
+    "cpc": "עלות לקליק",
+    "roas": "תשואה על הוצאה",
+    "campaignId": "מזהה קמפיין",
+    "lastUpdated": "עדכון אחרון",
+    "details": "פרטי קמפיין",
+    "info": "נתונים אלה מסתנכרנים באופן אוטומטי מחשבון Meta Ads שלך. עדכונים מתרחשים כל שעה.",
+    "deleteSuccess": "הקמפיין נמחק בהצלחה"
   }
 }

@@ -528,5 +528,29 @@
     "terms": "Terms of Use",
     "security": "Security",
     "allRightsReserved": "All rights reserved"
+  },
+  "metaCampaigns": {
+    "title": "Meta Campaigns",
+    "description": "View and manage your Meta advertising campaigns",
+    "campaigns": "Campaigns",
+    "campaignCount": "Total: {{count}} campaigns",
+    "noCampaigns": "No campaigns found",
+    "name": "Campaign Name",
+    "objective": "Objective",
+    "status": "Status",
+    "impressions": "Impressions",
+    "clicks": "Clicks (all)",
+    "linkClicks": "Link clicks",
+    "spend": "Spend",
+    "reach": "Reach",
+    "ctr": "CTR",
+    "cpm": "CPM",
+    "cpc": "CPC",
+    "roas": "ROAS",
+    "campaignId": "Campaign ID",
+    "lastUpdated": "Last Updated",
+    "details": "Campaign Details",
+    "info": "This data is automatically synced from your Meta Ads account. Updates occur hourly.",
+    "deleteSuccess": "Campaign deleted successfully"
   }
 }
