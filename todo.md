@@ -232,10 +232,10 @@
 
 
 ## שלב 7: דמג Meta Marketing API עם Edge Function
-- [ ] הגדר Meta Marketing MCP connector
-- [ ] צור טבלת metaCampaigns בקובץ schema.ts
-- [ ] צור edge function לקריאת נתוני הקמפיינים מ-Meta API
-- [ ] הוסף procedures ל-tRPC לקריאת נתוני הקמפיינים
+- [x] הגדר Meta Marketing MCP connector
+- [x] צור טבלת metaCampaigns בקובץ schema.ts
+- [x] צור edge function לקריאת נתוני הקמפיינים מ-Meta API
+- [x] הוסף procedures ל-tRPC לקריאת נתוני הקמפיינים
 - [ ] הגדר Heartbeat job לעדכון נתונים כל שעה
 - [ ] חבר דף Campaigns ל-nתוני Meta אמיתיים
 - [ ] הוסף טבלה עם מדדי ביצוע (Impressions, Clicks, Spend, ROAS)

@@ -2,16 +2,12 @@
  * Edge Function: Fetch Meta Ads Campaign Data
  * Called by Heartbeat job to retrieve campaign metrics from Meta API
  * 
- * This function uses the meta-marketing MCP connector to fetch data
- * and stores it in the metaCampaigns table
+ * Uses the Manus built-in Data API to call Meta Marketing connector
  */
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { callDataApi } from './_core/dataApi';
 import { saveMetaCampaigns } from './metaAds';
 import { InsertMetaCampaign } from '../drizzle/schema';
-
-const execAsync = promisify(exec);
 
 interface MetaCampaignData {
   id: string;
@@ -48,6 +44,15 @@ export async function fetchAndSaveMetaCampaigns(adAccountId: string) {
     // Step 1: Get all campaigns from the ad account
     const campaignsResult = await fetchCampaignsFromMeta(adAccountId);
     console.log(`[Meta Ads Edge] Retrieved ${campaignsResult.length} campaigns`);
+
+    if (campaignsResult.length === 0) {
+      return {
+        success: true,
+        message: 'No campaigns found',
+        count: 0,
+        timestamp: new Date().toISOString(),
+      };
+    }
 
     // Step 2: For each campaign, fetch detailed metrics
     const campaignsWithMetrics = await Promise.all(
@@ -106,26 +111,35 @@ export async function fetchAndSaveMetaCampaigns(adAccountId: string) {
 }
 
 /**
- * Fetch campaigns from Meta API using MCP
- * Uses manus-mcp-cli to call meta_marketing_get_campaigns
+ * Fetch campaigns from Meta API using Manus Data API
  */
 async function fetchCampaignsFromMeta(adAccountId: string): Promise<MetaCampaignData[]> {
   try {
     // Format ad account ID
     const formattedId = adAccountId.startsWith('act_') ? adAccountId : `act_${adAccountId}`;
 
-    // Call MCP tool to get campaigns
-    const command = `manus-mcp-cli tool call meta_marketing_get_campaigns --server meta-marketing --input '{"ad_account_id":"${formattedId}'}'`;
-    
-    const { stdout } = await execAsync(command);
-    const result = JSON.parse(stdout);
+    console.log(`[Meta Ads] Fetching campaigns for account: ${formattedId}`);
 
-    if (!result.campaigns) {
-      console.warn('[Meta Ads Edge] No campaigns found in response');
+    // Call Manus Data API which routes to Meta Marketing connector
+    const result = await callDataApi('meta_marketing_get_campaigns', {
+      query: {
+        ad_account_id: formattedId,
+      },
+    });
+
+    if (!result || typeof result !== 'object') {
+      console.warn('[Meta Ads Edge] Invalid response from Meta API');
       return [];
     }
 
-    return result.campaigns;
+    const campaigns = (result as any).campaigns || [];
+    
+    if (!Array.isArray(campaigns)) {
+      console.warn('[Meta Ads Edge] No campaigns array in response');
+      return [];
+    }
+
+    return campaigns;
   } catch (error) {
     console.error('[Meta Ads Edge] Error fetching campaigns from Meta:', error);
     throw new Error(`Failed to fetch campaigns from Meta API: ${error}`);
@@ -140,15 +154,30 @@ async function fetchCampaignMetrics(
   campaign: MetaCampaignData
 ): Promise<MetaCampaignData> {
   try {
-    // Call MCP tool to get campaign insights
-    const command = `manus-mcp-cli tool call meta_marketing_get_insights --server meta-marketing --input '{"object_type":"campaign","object_id":"${campaignId}","level":"campaign"}'`;
-    
-    const { stdout } = await execAsync(command);
-    const result = JSON.parse(stdout);
+    console.log(`[Meta Ads] Fetching metrics for campaign: ${campaignId}`);
+
+    // Call Manus Data API to get campaign insights
+    const result = await callDataApi('meta_marketing_get_insights', {
+      query: {
+        object_type: 'campaign',
+        object_id: campaignId,
+        level: 'campaign',
+      },
+    });
+
+    if (!result || typeof result !== 'object') {
+      console.warn(`[Meta Ads Edge] Invalid insights response for campaign ${campaignId}`);
+      return {
+        ...campaign,
+        insights: {},
+      };
+    }
+
+    const insights = (result as any).insights?.[0] || {};
 
     return {
       ...campaign,
-      insights: result.insights?.[0] || {},
+      insights,
     };
   } catch (error) {
     console.error(`[Meta Ads Edge] Error fetching metrics for campaign ${campaignId}:`, error);

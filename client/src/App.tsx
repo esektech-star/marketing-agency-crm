@@ -19,6 +19,7 @@ import Tasks from "./pages/Tasks";
 import Leads from "./pages/Leads";
 import Transactions from "./pages/Transactions";
 import Campaigns from "./pages/Campaigns";
+import MetaCampaigns from "./pages/MetaCampaigns";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import AccessDetails from "./pages/AccessDetails";
@@ -113,6 +114,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Campaigns />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/meta-campaigns"}>
+        {() => (
+          <DashboardLayout>
+            <MetaCampaigns />
           </DashboardLayout>
         )}
       </Route>
