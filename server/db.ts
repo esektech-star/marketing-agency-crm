@@ -165,20 +165,43 @@ export async function deleteVendor(id: number) {
 export async function getTeamMembers() {
   const db = await getDb();
   if (!db) return [];
-  return await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
+  const results = await db.select().from(teamMembers).orderBy(desc(teamMembers.createdAt));
+  
+  // Convert salary from string to number for all members
+  return results.map(member => ({
+    ...member,
+    salary: member.salary !== null && member.salary !== undefined ? parseFloat(String(member.salary)) : null,
+  }));
 }
 
 export async function getTeamMemberById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
   const result = await db.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  if (result.length === 0) return undefined;
+  
+  const member = result[0];
+  // Convert salary from string to number if present
+  if (member.salary !== null && member.salary !== undefined) {
+    member.salary = parseFloat(String(member.salary));
+  }
+  return member;
 }
 
 function normalizeTeamMember(data: any) {
   const out = { ...data };
+  // Ensure salary is a number if provided
   if (out.salary !== undefined && out.salary !== null) {
-    out.salary = String(out.salary);
+    const numSalary = typeof out.salary === 'string' ? parseFloat(out.salary) : out.salary;
+    if (Number.isFinite(numSalary)) {
+      out.salary = numSalary;
+    } else {
+      out.salary = null;
+    }
+  }
+  // Ensure joinDate is a Date object
+  if (out.joinDate && !(out.joinDate instanceof Date)) {
+    out.joinDate = new Date(out.joinDate);
   }
   return out;
 }
@@ -186,13 +209,48 @@ function normalizeTeamMember(data: any) {
 export async function createTeamMember(data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.insert(teamMembers).values(normalizeTeamMember(data));
+  
+  // Validate required fields
+  if (!data.name || !data.name.trim()) {
+    throw new Error("Team member name is required");
+  }
+  if (!data.role || !data.role.trim()) {
+    throw new Error("Team member role is required");
+  }
+  if (!data.joinDate) {
+    throw new Error("Join date is required");
+  }
+  
+  const normalized = normalizeTeamMember(data);
+  const result = await db.insert(teamMembers).values(normalized);
+  
+  // Return the created record
+  return await getTeamMemberById(result[0]?.insertId || result.lastID);
 }
 
 export async function updateTeamMember(id: number, data: any) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.update(teamMembers).set(normalizeTeamMember(data)).where(eq(teamMembers.id, id));
+  
+  // Validate that member exists
+  const existing = await getTeamMemberById(id);
+  if (!existing) {
+    throw new Error("Team member not found");
+  }
+  
+  // Validate required fields if provided
+  if (data.name !== undefined && (!data.name || !data.name.trim())) {
+    throw new Error("Team member name cannot be empty");
+  }
+  if (data.role !== undefined && (!data.role || !data.role.trim())) {
+    throw new Error("Team member role cannot be empty");
+  }
+  
+  const normalized = normalizeTeamMember(data);
+  await db.update(teamMembers).set(normalized).where(eq(teamMembers.id, id));
+  
+  // Return the updated record
+  return await getTeamMemberById(id);
 }
 
 export async function deleteTeamMember(id: number) {

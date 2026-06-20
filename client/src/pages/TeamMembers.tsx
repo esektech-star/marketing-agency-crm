@@ -89,29 +89,36 @@ export default function TeamMembers() {
       if (editingId) {
         await updateMutation.mutateAsync({
           id: editingId,
-          name: formData.name,
-          role: formData.role,
-          position: formData.position,
-          phone: formData.phone,
-          email: formData.email,
-          department: formData.department,
+          name: formData.name.trim(),
+          role: formData.role.trim(),
+          position: formData.position.trim() || undefined,
+          phone: formData.phone.trim() || undefined,
+          email: formData.email.trim() || undefined,
+          department: formData.department.trim() || undefined,
           salary: salary ? parseFloat(salary) : undefined,
           status: formData.status as "active" | "disabled" | "completed",
-          notes: formData.notes,
+          notes: formData.notes.trim() || undefined,
         });
         toast.success(t("common.editSuccess"));
       } else {
+        // Ensure joinDate is properly formatted for API
+        const apiJoinDate = new Date(formData.joinDate);
+        if (!Number.isFinite(apiJoinDate.getTime())) {
+          toast.error(t("team.invalidJoinDate", "Invalid join date"));
+          return;
+        }
+        
         await createMutation.mutateAsync({
-          name: formData.name,
-          role: formData.role,
-          position: formData.position,
-          phone: formData.phone,
-          email: formData.email,
-          department: formData.department,
+          name: formData.name.trim(),
+          role: formData.role.trim(),
+          position: formData.position.trim() || undefined,
+          phone: formData.phone.trim() || undefined,
+          email: formData.email.trim() || undefined,
+          department: formData.department.trim() || undefined,
           salary: salary ? parseFloat(salary) : undefined,
-          joinDate: joinDate,
+          joinDate: apiJoinDate,
           status: formData.status as "active" | "disabled" | "completed",
-          notes: formData.notes,
+          notes: formData.notes.trim() || undefined,
         });
         toast.success(t("common.addSuccess"));
       }
