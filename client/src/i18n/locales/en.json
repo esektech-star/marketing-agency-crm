@@ -161,7 +161,8 @@
     "joinDate": "Join Date",
     "statusDisabled": "Disabled",
     "statusEnded": "Ended",
-    "empty": "No team members yet. Start by adding a new member."
+    "empty": "No team members yet. Start by adding a new member.",
+    "invalidJoinDate": "Invalid join date"
   },
   "tasks": {
     "title": "Task Tracking",
