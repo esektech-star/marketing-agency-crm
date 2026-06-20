@@ -481,6 +481,13 @@
     "documents": "Documents",
     "campaignName": "Campaign name",
     "invoiceNumber": "Invoice number",
-    "clientCode": "Client code"
+    "clientCode": "Client code",
+    "invalidLink": "Invalid link",
+    "linkExpired": "This link has expired. Please contact the agency.",
+    "invalidLinkDesc": "Portal link is incorrect or no longer available.",
+    "campaignsDesc": "Results and status of your campaigns",
+    "noCampaigns": "No campaigns available.",
+    "invoicesDesc": "All invoices and financial documents",
+    "noInvoices": "No invoices available."
   }
 }

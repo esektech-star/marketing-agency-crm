@@ -481,6 +481,13 @@
     "documents": "קבצים",
     "campaignName": "שם קמפיין",
     "invoiceNumber": "מספר חשבונית",
-    "clientCode": "קוד לקוח"
+    "clientCode": "קוד לקוח",
+    "invalidLink": "קישור לא חוקי",
+    "linkExpired": "קישור זה פג תוקף. אנא צור קשר עם הסוכנות.",
+    "invalidLinkDesc": "קישור הפורטל אינו נכון או כבר לא זמין.",
+    "campaignsDesc": "תוצאות ומצב הקמפיינים שלך",
+    "noCampaigns": "אין קמפיינים כרגע.",
+    "invoicesDesc": "כל החשבוניות והמסמכים הפיננסיים",
+    "noInvoices": "אין חשבוניות כרגע."
   }
 }

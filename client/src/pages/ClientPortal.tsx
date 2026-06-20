@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Download, FileText, BarChart3, Receipt, FolderOpen, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
@@ -27,6 +28,7 @@ function fmtMoney(n: number) {
 }
 
 export default function ClientPortal() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/portal/:token");
   const token = params?.token || "";
   const { data, isLoading } = trpc.clientPortal.getData.useQuery({ token }, { enabled: !!token });
@@ -45,9 +47,9 @@ export default function ClientPortal() {
         <Card className="max-w-md w-full">
           <CardContent className="py-10 text-center space-y-3">
             <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto" />
-            <h2 className="text-xl font-bold">رابط غير صالح</h2>
+            <h2 className="text-xl font-bold">{t("clientPortal.invalidLink", "رابط غير صالح")}</h2>
             <p className="text-muted-foreground">
-              {(data as any)?.expired ? "انتهت صلاحية رابط الوصول هذا. يرجى التواصل مع الوكالة." : "رابط البوابة غير صحيح أو لم يعد متاحاً."}
+              {(data as any)?.expired ? t("clientPortal.linkExpired", "انتهت صلاحية رابط الوصول هذا. يرجى التواصل مع الوكالة.") : t("clientPortal.invalidLinkDesc", "رابط البوابة غير صحيح أو لم يعد متاحاً.")}
             </p>
           </CardContent>
         </Card>
@@ -61,10 +63,10 @@ export default function ClientPortal() {
     <div className="min-h-screen bg-slate-50" dir="rtl">
       <header className="bg-[#1e3a5f] text-white py-6 shadow-md">
         <div className="container">
-          <p className="text-sm opacity-80">esek tech — بوابة العميل</p>
+          <p className="text-sm opacity-80">esek tech — {t("clientPortal.portalTitle", "بوابة العميل")}</p>
           <h1 className="text-2xl font-bold mt-1">{portal.client.name}</h1>
           <p className="text-sm opacity-80 mt-1">
-            {portal.client.serviceType}{portal.client.clientCode ? ` · كود العميل: ${portal.client.clientCode}` : ""}
+            {portal.client.serviceType}{portal.client.clientCode ? ` · ${t("clientPortal.clientCode", "كود العميل")}: ${portal.client.clientCode}` : ""}
           </p>
         </div>
       </header>
@@ -73,8 +75,8 @@ export default function ClientPortal() {
         {portal.permissions.canViewCampaigns && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#1e3a5f]" /> الحملات</CardTitle>
-              <CardDescription>نتائج وحالة حملاتك التسويقية</CardDescription>
+              <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5 text-[#1e3a5f]" /> {t("clientPortal.campaigns", "الحملات")}</CardTitle>
+              <CardDescription>{t("clientPortal.campaignsDesc", "نتائج وحالة حملاتك التسويقية")}</CardDescription>
             </CardHeader>
             <CardContent>
               {portal.campaigns.length === 0 ? (
