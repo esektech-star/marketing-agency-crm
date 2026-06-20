@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Download, FileText, Receipt } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download, FileText, Receipt, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { openWhatsApp } from "@/lib/whatsapp";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
@@ -250,6 +251,15 @@ export default function Invoices() {
                       <TableCell>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" onClick={() => handleEdit(inv)}><Pencil className="w-4 h-4" /></Button>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            const client = clients.find((c: any) => c.id === parseInt(inv.relatedClient));
+                            if (client?.phone) {
+                              const msg = `فاتورة رقم ${inv.invoiceNumber}\nالمبلغ: ₪${parseFloat(inv.amount).toLocaleString('en-US')}\nتاريخ الاستحقاق: ${new Date(inv.dueDate).toLocaleDateString('ar-EG')}`;
+                              openWhatsApp(client.phone, msg);
+                            } else {
+                              toast.error("لا يوجد رقم هاتف للعميل");
+                            }
+                          }}><MessageCircle className="w-4 h-4" /></Button>
                           <Button size="sm" variant="destructive" onClick={() => handleDelete(inv.id)}><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </TableCell>
