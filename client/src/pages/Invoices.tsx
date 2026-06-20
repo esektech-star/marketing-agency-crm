@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Pencil, Trash2, Loader2, Download, FileText, Receipt, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { useTranslation } from "react-i18next";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
@@ -27,6 +28,7 @@ function fmtMoney(n: number) {
 }
 
 export default function Invoices() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -69,7 +71,7 @@ export default function Invoices() {
           mimeType: file.type,
         });
         setForm((f) => ({ ...f, fileKey: res.key, fileUrl: res.url }));
-        toast.success("تم رفع ملف الفاتورة");
+        toast.success(t("invoices.uploadSuccess", "تم رفع ملف الفاتورة"));
       } catch {
         toast.error("فشل رفع الملف");
       } finally {
@@ -81,7 +83,7 @@ export default function Invoices() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.relatedClient) { toast.error("اختر العميل"); return; }
+    if (!form.relatedClient) { toast.error(t("invoices.selectClient", "اختر العميل")); return; }
     try {
       const payload = {
         invoiceNumber: form.invoiceNumber,
@@ -95,10 +97,10 @@ export default function Invoices() {
       };
       if (editingId) {
         await updateMutation.mutateAsync({ id: editingId, ...payload });
-        toast.success("تم تحديث الفاتورة");
+        toast.success(t("invoices.updateSuccess", "تم تحديث الفاتورة"));
       } else {
         await createMutation.mutateAsync(payload);
-        toast.success("تم إنشاء الفاتورة");
+        toast.success(t("invoices.createSuccess", "تم إنشاء الفاتورة"));
       }
       resetForm();
       setIsOpen(false);
@@ -124,10 +126,10 @@ export default function Invoices() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("هل أنت متأكد من حذف هذه الفاتورة؟")) return;
+    if (!confirm(t("invoices.deleteConfirm", "هل أنت متأكد من حذف هذه الفاتورة؟"))) return;
     try {
       await deleteMutation.mutateAsync({ id });
-      toast.success("تم حذف الفاتورة");
+      toast.success(t("invoices.deleteSuccess", "تم حذف الفاتورة"));
       utils.invoices.list.invalidate();
     } catch {
       toast.error("حدث خطأ أثناء الحذف");
@@ -144,23 +146,23 @@ export default function Invoices() {
         <Dialog open={isOpen} onOpenChange={(o) => { setIsOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-              <Plus className="w-4 h-4 ml-2" /> فاتورة جديدة
+              <Plus className="w-4 h-4 ml-2" /> {t("invoices.newInvoice", "فاتورة جديدة")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل الفاتورة" : "فاتورة جديدة"}</DialogTitle>
-              <DialogDescription>أدخل تفاصيل الفاتورة وأرفق ملفها إن وجد</DialogDescription>
+              <DialogTitle>{editingId ? t("invoices.editInvoice", "تعديل الفاتورة") : t("invoices.newInvoice", "فاتورة جديدة")}</DialogTitle>
+              <DialogDescription>{t("invoices.invoiceDetails", "أدخل تفاصيل الفاتورة وأرفق ملفها إن وجد")}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label>رقم الفاتورة</Label>
+                <Label>{t("invoices.invoiceNumber", "رقم الفاتورة")}</Label>
                 <Input value={form.invoiceNumber} onChange={(e) => setForm({ ...form, invoiceNumber: e.target.value })} required />
               </div>
               <div>
-                <Label>العميل</Label>
+                <Label>{t("invoices.client", "العميل")}</Label>
                 <Select value={form.relatedClient} onValueChange={(v) => setForm({ ...form, relatedClient: v })}>
-                  <SelectTrigger><SelectValue placeholder="اختر العميل" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("invoices.selectClient", "اختر العميل")} /></SelectTrigger>
                   <SelectContent>
                     {clients.map((c: any) => (<SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>))}
                   </SelectContent>
@@ -188,7 +190,7 @@ export default function Invoices() {
                 </Select>
               </div>
               <div>
-                <Label>ملف الفاتورة (اختياري)</Label>
+                <Label>{t("invoices.invoiceFile", "ملف الفاتورة (اختياري)")}</Label>
                 <Input type="file" onChange={(e) => handleFile(e.target.files?.[0] || null)} />
                 {uploading && <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> جارٍ الرفع...</p>}
                 {form.fileUrl && !uploading && <p className="text-xs text-green-700 mt-1">تم إرفاق الملف</p>}

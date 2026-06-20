@@ -451,5 +451,36 @@
   "kpi.comparisonYear": "السنة للمقارنة",
   "kpi.enterManualData": "أدخل البيانات يدويًا",
   "kpi.enterRevenueData": "أدخل الإيرادات الشهرية للسنوات المختارة",
-  "kpi.year": "السنة"
+  "kpi.year": "السنة",
+  "invoices": {
+    "uploadSuccess": "تم رفع ملف الفاتورة",
+    "selectClient": "اختر العميل",
+    "updateSuccess": "تم تحديث الفاتورة",
+    "createSuccess": "تم إنشاء الفاتورة",
+    "deleteConfirm": "هل أنت متأكد من حذف هذه الفاتورة؟",
+    "deleteSuccess": "تم حذف الفاتورة",
+    "newInvoice": "فاتورة جديدة",
+    "editInvoice": "تعديل الفاتورة",
+    "invoiceDetails": "أدخل تفاصيل الفاتورة وأرفق ملفها إن وجد",
+    "invoiceNumber": "رقم الفاتورة",
+    "client": "العميل",
+    "invoiceFile": "ملف الفاتورة (اختياري)",
+    "dueDate": "تاريخ الاستحقاق",
+    "amount": "المبلغ",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "download": "تحميل",
+    "send": "إرسال"
+  },
+  "clientPortal": {
+    "portalTitle": "بوابة العميل",
+    "campaigns": "الحملات",
+    "invoices": "الفواتير",
+    "documents": "الملفات",
+    "campaignName": "اسم الحملة",
+    "invoiceNumber": "رقم الفاتورة",
+    "clientCode": "كود العميل"
+  }
 }

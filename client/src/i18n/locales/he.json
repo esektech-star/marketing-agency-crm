@@ -451,5 +451,36 @@
   "kpi.comparisonYear": "שנה להשוואה",
   "kpi.enterManualData": "הכנס נתונים ידני",
   "kpi.enterRevenueData": "הכנס הכנסות חודשיות לשנים שנבחרו",
-  "kpi.year": "שנה"
+  "kpi.year": "שנה",
+  "invoices": {
+    "uploadSuccess": "הקובץ הועלה בהצלחה",
+    "selectClient": "בחר לקוח",
+    "updateSuccess": "החשבונית עודכנה",
+    "createSuccess": "החשבונית נוצרה",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק חשבונית זו?",
+    "deleteSuccess": "החשבונית נמחקה",
+    "newInvoice": "חשבונית חדשה",
+    "editInvoice": "ערוך חשבונית",
+    "invoiceDetails": "הזן פרטי חשבונית",
+    "invoiceNumber": "מספר חשבונית",
+    "client": "לקוח",
+    "invoiceFile": "קובץ חשבונית (אופציונלי)",
+    "dueDate": "תאריך היעד",
+    "amount": "סכום",
+    "status": "סטטוס",
+    "actions": "פעולות",
+    "edit": "ערוך",
+    "delete": "מחק",
+    "download": "הורד",
+    "send": "שלח"
+  },
+  "clientPortal": {
+    "portalTitle": "פורטל לקוח",
+    "campaigns": "קמפיינים",
+    "invoices": "חשבוניות",
+    "documents": "קבצים",
+    "campaignName": "שם קמפיין",
+    "invoiceNumber": "מספר חשבונית",
+    "clientCode": "קוד לקוח"
+  }
 }

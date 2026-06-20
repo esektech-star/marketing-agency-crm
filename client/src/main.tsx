@@ -8,6 +8,13 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 import "./i18n/config";
+import { LanguageProvider } from "./contexts/LanguageContext";
+
+// Initialize language on app start
+const savedLanguage = localStorage.getItem('language') || 'ar';
+document.documentElement.lang = savedLanguage;
+document.documentElement.dir = savedLanguage === 'en' ? 'ltr' : 'rtl';
+document.body.dir = savedLanguage === 'en' ? 'ltr' : 'rtl';
 
 const queryClient = new QueryClient();
 
@@ -56,7 +63,9 @@ const trpcClient = trpc.createClient({
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </QueryClientProvider>
   </trpc.Provider>
 );

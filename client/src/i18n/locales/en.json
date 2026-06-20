@@ -451,5 +451,36 @@
   "kpi.comparisonYear": "Comparison Year",
   "kpi.enterManualData": "Enter Manual Data",
   "kpi.enterRevenueData": "Enter monthly revenue for selected years",
-  "kpi.year": "Year"
+  "kpi.year": "Year",
+  "invoices": {
+    "uploadSuccess": "Invoice file uploaded",
+    "selectClient": "Select client",
+    "updateSuccess": "Invoice updated",
+    "createSuccess": "Invoice created",
+    "deleteConfirm": "Are you sure you want to delete this invoice?",
+    "deleteSuccess": "Invoice deleted",
+    "newInvoice": "New invoice",
+    "editInvoice": "Edit invoice",
+    "invoiceDetails": "Enter invoice details",
+    "invoiceNumber": "Invoice number",
+    "client": "Client",
+    "invoiceFile": "Invoice file (optional)",
+    "dueDate": "Due date",
+    "amount": "Amount",
+    "status": "Status",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "download": "Download",
+    "send": "Send"
+  },
+  "clientPortal": {
+    "portalTitle": "Client Portal",
+    "campaigns": "Campaigns",
+    "invoices": "Invoices",
+    "documents": "Documents",
+    "campaignName": "Campaign name",
+    "invoiceNumber": "Invoice number",
+    "clientCode": "Client code"
+  }
 }
