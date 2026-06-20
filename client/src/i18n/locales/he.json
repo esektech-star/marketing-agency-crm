@@ -120,7 +120,9 @@
     "revenue": "הכנסות",
     "expenses": "הוצאות",
     "noTasks": "אין משימות אחרונות",
-    "noLeads": "אין לידים"
+    "noLeads": "אין לידים",
+    "dashboard.breakEvenPoint": "נקודת איזון",
+    "dashboard.profitMargin": "מרווח רווח"
   },
   "clients": {
     "title": "ניהול לקוחות",
@@ -426,5 +428,23 @@
     "totalMonthlyCostDesc": "סהכי חדשים שנתיים על כל המנויים הפעילים",
     "purposePlaceholder": "דוגמה: עיצוב גרפיקה ווידאו",
     "leaveBlankToKeep": "השאר ריק כדי לשמור על הסיסמה הנוכחית"
-  }
+  },
+  "kpi.title": "לוח בקרה של KPI",
+  "kpi.subtitle": "ניתוח מקיף של מדדי ביצוע וקשורים",
+  "kpi.revenueGrowth": "גדילת הכנסות",
+  "kpi.clientRetention": "שמירה על לקוחות",
+  "kpi.profitMargin": "מרווח רווח",
+  "kpi.costPerLead": "עלות לליד",
+  "kpi.yearOverYear": "שנה לשנה",
+  "kpi.revenueComparison": "השוואת הכנסות בין שנים",
+  "kpi.conversionFunnel": "משפך המרה",
+  "kpi.leadToClient": "מליד ללקוח",
+  "kpi.leads": "ליידים",
+  "kpi.clients": "לקוחות",
+  "kpi.activeProjects": "פרויקטים פעילים",
+  "kpi.performanceSummary": "סיכום ביצוע",
+  "kpi.totalRevenue": "סך הכנסות",
+  "kpi.totalExpense": "סך הוצאות",
+  "kpi.netProfit": "רווח נקי",
+  "kpi.fromLastMonth": "מהחודש שעבר"
 }

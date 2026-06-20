@@ -120,7 +120,9 @@
     "revenue": "الإيرادات",
     "expenses": "المصروفات",
     "noTasks": "لا توجد مهام حديثة",
-    "noLeads": "لا يوجد عملاء محتملون"
+    "noLeads": "لا يوجد عملاء محتملون",
+    "dashboard.breakEvenPoint": "نقطة التعادل",
+    "dashboard.profitMargin": "هامش الربح"
   },
   "clients": {
     "title": "إدارة العملاء",
@@ -426,5 +428,23 @@
     "totalMonthlyCostDesc": "إجمالي ما تنفقه شهرياً على جميع المنويات النشطة",
     "purposePlaceholder": "مثال: تصميم الجرافيكس والفيديو",
     "leaveBlankToKeep": "اترك فارغاً للاحتفاظ بكلمة المرور الحالية"
-  }
+  },
+  "kpi.title": "لوحة مؤشرات الأداء الرئيسية",
+  "kpi.subtitle": "تحليل شامل لمؤشرات الأداء والمقاييس الرئيسية",
+  "kpi.revenueGrowth": "نمو الإيرادات",
+  "kpi.clientRetention": "الاحتفاظ بالعملاء",
+  "kpi.profitMargin": "هامش الربح",
+  "kpi.costPerLead": "التكلفة لكل ليد",
+  "kpi.yearOverYear": "مقارنة سنة بسنة",
+  "kpi.revenueComparison": "مقارنة الإيرادات بين السنوات",
+  "kpi.conversionFunnel": "قمع التحويل",
+  "kpi.leadToClient": "من الليد إلى العميل",
+  "kpi.leads": "الليدز",
+  "kpi.clients": "العملاء",
+  "kpi.activeProjects": "المشاريع النشطة",
+  "kpi.performanceSummary": "ملخص الأداء",
+  "kpi.totalRevenue": "إجمالي الإيرادات",
+  "kpi.totalExpense": "إجمالي المصروفات",
+  "kpi.netProfit": "الربح الصافي",
+  "kpi.fromLastMonth": "من الشهر الماضي"
 }

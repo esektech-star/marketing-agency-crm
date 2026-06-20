@@ -120,7 +120,9 @@
     "revenue": "Revenue",
     "expenses": "Expenses",
     "noTasks": "No recent tasks",
-    "noLeads": "No leads"
+    "noLeads": "No leads",
+    "dashboard.breakEvenPoint": "Break-even Point",
+    "dashboard.profitMargin": "Profit Margin"
   },
   "clients": {
     "title": "Client Management",
@@ -426,5 +428,23 @@
     "totalMonthlyCostDesc": "Total amount you spend monthly on all active subscriptions",
     "purposePlaceholder": "Example: Graphic design and video editing",
     "leaveBlankToKeep": "Leave blank to keep current password"
-  }
+  },
+  "kpi.title": "KPI Dashboard",
+  "kpi.subtitle": "Comprehensive analysis of key performance indicators and metrics",
+  "kpi.revenueGrowth": "Revenue Growth",
+  "kpi.clientRetention": "Client Retention",
+  "kpi.profitMargin": "Profit Margin",
+  "kpi.costPerLead": "Cost Per Lead",
+  "kpi.yearOverYear": "Year-over-Year",
+  "kpi.revenueComparison": "Revenue comparison between years",
+  "kpi.conversionFunnel": "Conversion Funnel",
+  "kpi.leadToClient": "From Lead to Client",
+  "kpi.leads": "Leads",
+  "kpi.clients": "Clients",
+  "kpi.activeProjects": "Active Projects",
+  "kpi.performanceSummary": "Performance Summary",
+  "kpi.totalRevenue": "Total Revenue",
+  "kpi.totalExpense": "Total Expense",
+  "kpi.netProfit": "Net Profit",
+  "kpi.fromLastMonth": "from last month"
 }

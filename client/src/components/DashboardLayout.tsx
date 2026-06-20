@@ -33,7 +33,6 @@ import EsekTechLogo from './EsekTechLogo';
 const getMenuItems = (t: any) => [
   { icon: LayoutDashboard, label: t("sidebar.dashboard", "لوحة التحكم"), path: "/dashboard" },
   { icon: Users, label: t("sidebar.clients", "العملاء"), path: "/clients" },
-  { icon: Building2, label: t("sidebar.vendors", "الموردين"), path: "/vendors" },
   { icon: Package, label: t("sidebar.subscriptions", "المنويات"), path: "/subscriptions" },
   { icon: Users, label: t("sidebar.team", "الفريق"), path: "/team" },
   { icon: CheckCircle2, label: t("sidebar.tasks", "المهام"), path: "/tasks" },

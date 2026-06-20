@@ -584,6 +584,14 @@ export async function getDashboardStats() {
   }
   const leadsBySource = Object.entries(sourceMap).map(([name, value]) => ({ name, value }));
 
+  // حساب نقطة التعادل (Break-even point)
+  // نقطة التعادل = إجمالي المصروفات الثابتة / (سعر البيع - التكلفة المتغيرة)
+  // تقدير بسيط: نقطة التعادل = إجمالي المصروفات
+  const breakEvenPoint = totalExpense;
+  
+  // حساب هامش الربح
+  const profitMargin = totalRevenue > 0 ? ((totalRevenue - totalExpense) / totalRevenue) * 100 : 0;
+
   return {
     activeClientsCount: clientsCount.length,
     pendingTasksCount: tasksCount.length,
@@ -591,6 +599,8 @@ export async function getDashboardStats() {
     totalRevenue,
     totalExpense,
     netProfit: totalRevenue - totalExpense,
+    breakEvenPoint,
+    profitMargin,
     monthlyData,
     leadsBySource,
   };
