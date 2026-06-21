@@ -1,4 +1,4 @@
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -770,3 +770,93 @@ export async function getTotalMonthlySubscriptionCost() {
     .where(eq(subscriptions.status, "active"));
   return result.reduce((sum, sub) => sum + (parseFloat(sub.monthlyAmount as any) || 0), 0);
 }
+
+// ==================== SEARCH ====================
+export async function globalSearch(query: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const searchTerm = `%${query}%`;
+  
+  // Search clients
+  const clientResults = await db.select()
+    .from(clients)
+    .where(sql`${clients.name} LIKE ${searchTerm} OR ${clients.email} LIKE ${searchTerm} OR ${clients.phone} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  // Search tasks
+  const taskResults = await db.select()
+    .from(tasks)
+    .where(sql`${tasks.title} LIKE ${searchTerm} OR ${tasks.description} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  // Search leads
+  const leadResults = await db.select()
+    .from(leads)
+    .where(sql`${leads.name} LIKE ${searchTerm} OR ${leads.email} LIKE ${searchTerm} OR ${leads.phone} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  // Search transactions
+  const transactionResults = await db.select()
+    .from(transactions)
+    .where(sql`${transactions.type} LIKE ${searchTerm} OR ${transactions.description} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  // Search campaigns
+  const campaignResults = await db.select()
+    .from(campaigns)
+    .where(sql`${campaigns.name} LIKE ${searchTerm} OR ${campaigns.description} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  // Search invoices
+  const invoiceResults = await db.select()
+    .from(invoices)
+    .where(sql`${invoices.invoiceNumber} LIKE ${searchTerm}`)
+    .limit(5);
+  
+  return {
+    clients: clientResults.map(c => ({
+      id: c.id,
+      type: 'client',
+      title: c.name,
+      subtitle: c.email,
+      path: `/clients`,
+    })),
+    tasks: taskResults.map(t => ({
+      id: t.id,
+      type: 'task',
+      title: t.title,
+      subtitle: t.description,
+      path: `/tasks`,
+    })),
+    leads: leadResults.map(l => ({
+      id: l.id,
+      type: 'lead',
+      title: l.name,
+      subtitle: l.email,
+      path: `/leads`,
+    })),
+    transactions: transactionResults.map(t => ({
+      id: t.id,
+      type: 'transaction',
+      title: `${t.type}: ${t.description}`,
+      subtitle: `₪${t.amount}`,
+      path: `/transactions`,
+    })),
+    campaigns: campaignResults.map(c => ({
+      id: c.id,
+      type: 'campaign',
+      title: c.name,
+      subtitle: c.description,
+      path: `/campaigns`,
+    })),
+    invoices: invoiceResults.map(i => ({
+      id: i.id,
+      type: 'invoice',
+      title: `Invoice #${i.invoiceNumber}`,
+      subtitle: `₪${i.amount}`,
+      path: `/invoices`,
+    })),
+  };
+}
+

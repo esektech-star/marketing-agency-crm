@@ -39,6 +39,11 @@ export const appRouter = router({
     getStats: protectedProcedure.query(async () => {
       return await db.getDashboardStats();
     }),
+    search: protectedProcedure
+      .input(z.object({ query: z.string().min(1).max(100) }))
+      .query(async ({ input }) => {
+        return await db.globalSearch(input.query);
+      }),
   }),
 
   // ==================== Clients ====================

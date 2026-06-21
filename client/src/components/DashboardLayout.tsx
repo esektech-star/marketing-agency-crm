@@ -29,6 +29,7 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import LanguageSwitcher from './LanguageSwitcher';
 import EsekTechLogo from './EsekTechLogo';
+import { SearchBar } from './SearchBar';
 
 const getMenuItems = (t: any) => [
   { icon: LayoutDashboard, label: t("sidebar.dashboard", "لوحة التحكم"), path: "/dashboard" },
@@ -291,7 +292,7 @@ function DashboardLayoutContent({
       </div>
 
       <SidebarInset>
-        <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+        <div className="flex border-b h-14 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40 gap-4">
           {isMobile && (
             <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
@@ -304,6 +305,7 @@ function DashboardLayoutContent({
               </div>
             </div>
           )}
+          {!isMobile && <SearchBar />}
           <div className="flex-1" />
           <LanguageSwitcher />
         </div>

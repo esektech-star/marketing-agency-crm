@@ -542,5 +542,11 @@
     "october": "October",
     "november": "November",
     "december": "December"
+  },
+  "search": {
+    "placeholder": "Search clients, tasks, invoices...",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "typeToSearch": "Type to search for clients, tasks, leads, transactions, campaigns, and invoices"
   }
 }
