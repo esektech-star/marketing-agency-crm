@@ -136,7 +136,10 @@
     "statusActive": "Active",
     "statusPending": "Pending",
     "statusEnded": "Ended",
-    "empty": "No clients yet. Start by adding a new client."
+    "empty": "No clients yet. Start by adding a new client.",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address"
   },
   "vendors": {
     "title": "Vendor Management",
@@ -162,7 +165,8 @@
     "statusDisabled": "Disabled",
     "statusEnded": "Ended",
     "empty": "No team members yet. Start by adding a new member.",
-    "invalidJoinDate": "Invalid join date"
+    "invalidJoinDate": "Invalid join date",
+    "salary": "Salary"
   },
   "tasks": {
     "title": "Task Tracking",
@@ -490,5 +494,31 @@
     "noCampaigns": "No campaigns available.",
     "invoicesDesc": "All invoices and financial documents",
     "noInvoices": "No invoices available."
+  },
+  "landing": {
+    "heroTitle": "Manage Your Company from One Place"
+  },
+  "kpi": {
+    "title": "KPI Dashboard",
+    "yearOverYear": "Year Over Year"
+  },
+  "metaCampaigns": {
+    "title": "Meta Campaigns"
+  },
+  "breakEvenPoint": "Break-even Point",
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending"
+  },
+  "approval": {
+    "title": "Approval Required",
+    "subtitle": "Your account needs owner approval before accessing the system",
+    "message": "Your account is ready, but needs approval from the system owner. Please wait or contact the owner.",
+    "step1": "Your account has been created successfully",
+    "step2": "Waiting for owner approval",
+    "requestApproval": "Request Approval",
+    "approvalSuccess": "Your account has been approved successfully",
+    "approvalError": "An error occurred during approval"
   }
 }

@@ -136,7 +136,10 @@
     "statusActive": "פעיל",
     "statusPending": "ממתין",
     "statusEnded": "הסתיים",
-    "empty": "אין לקוחות עדיין. התחל בהוספת לקוח חדש."
+    "empty": "אין לקוחות עדיין. התחל בהוספת לקוח חדש.",
+    "phone": "מספר טלפון",
+    "email": "דוא״ל",
+    "address": "כתובת"
   },
   "vendors": {
     "title": "ניהול ספקים",
@@ -156,13 +159,14 @@
     "editMember": "ערוך חבר צוות",
     "memberName": "שם החבר",
     "role": "תפקיד",
-    "position": "תפקיד (דרג)",
+    "position": "תפקיד",
     "department": "מחלקה",
     "joinDate": "תאריך הצטרפות",
     "statusDisabled": "מושבת",
     "statusEnded": "הסתיים",
     "empty": "אין חברי צוות עדיין. התחל בהוספת חבר חדש.",
-    "invalidJoinDate": "תאריך ההצטרפות אינו תקין"
+    "invalidJoinDate": "תאריך ההצטרפות אינו תקין",
+    "salary": "משכורת"
   },
   "tasks": {
     "title": "מעקב משימות",
@@ -490,5 +494,31 @@
     "noCampaigns": "אין קמפיינים כרגע.",
     "invoicesDesc": "כל החשבוניות והמסמכים הפיננסיים",
     "noInvoices": "אין חשבוניות כרגע."
+  },
+  "landing": {
+    "heroTitle": "נהל את החברה שלך ממקום אחד"
+  },
+  "kpi": {
+    "title": "מדדי ביצוע",
+    "yearOverYear": "השוואה שנתית"
+  },
+  "metaCampaigns": {
+    "title": "קמפיינים של Meta"
+  },
+  "breakEvenPoint": "נקודת ההפסקה",
+  "status": {
+    "active": "פעיל",
+    "inactive": "לא פעיל",
+    "pending": "בהמתנה"
+  },
+  "approval": {
+    "title": "זקוק לאישור",
+    "subtitle": "יש לקבל אישור מהבעלים לפני גישה למערכת",
+    "message": "החשבון שלך מוכן, אך זקוק לאישור מבעלי המערכת. אנא המתן או צור קשר עם הבעלים.",
+    "step1": "החשבון שלך נוצר בהצלחה",
+    "step2": "בהמתנה לאישור הבעלים",
+    "requestApproval": "בקש אישור",
+    "approvalSuccess": "החשבון שלך אושר בהצלחה",
+    "approvalError": "אירעה שגיאה במהלך האישור"
   }
 }
