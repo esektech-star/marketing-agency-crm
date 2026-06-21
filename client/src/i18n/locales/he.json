@@ -520,5 +520,19 @@
     "requestApproval": "בקש אישור",
     "approvalSuccess": "החשבון שלך אושר בהצלחה",
     "approvalError": "אירעה שגיאה במהלך האישור"
+  },
+  "months": {
+    "january": "ינואר",
+    "february": "פברואר",
+    "march": "מרץ",
+    "april": "אפריל",
+    "may": "מאי",
+    "june": "יוני",
+    "july": "יולי",
+    "august": "אוגוסט",
+    "september": "ספטמבר",
+    "october": "אוקטובר",
+    "november": "נובמבר",
+    "december": "דצמבר"
   }
 }

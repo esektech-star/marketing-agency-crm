@@ -520,5 +520,19 @@
     "requestApproval": "طلب الموافقة",
     "approvalSuccess": "تم الموافقة على حسابك بنجاح",
     "approvalError": "حدث خطأ أثناء الموافقة"
+  },
+  "months": {
+    "january": "يناير",
+    "february": "فبراير",
+    "march": "مارس",
+    "april": "أبريل",
+    "may": "مايو",
+    "june": "يونيو",
+    "july": "يوليو",
+    "august": "أغسطس",
+    "september": "سبتمبر",
+    "october": "أكتوبر",
+    "november": "نوفمبر",
+    "december": "ديسمبر"
   }
 }

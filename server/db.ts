@@ -182,10 +182,11 @@ export async function getTeamMemberById(id: number) {
   
   const member = result[0];
   // Convert salary from string to number if present
-  if (member.salary !== null && member.salary !== undefined) {
-    member.salary = parseFloat(String(member.salary));
+  const memberData = { ...member };
+  if (memberData.salary !== null && memberData.salary !== undefined) {
+    memberData.salary = parseFloat(String(memberData.salary)) as any;
   }
-  return member;
+  return memberData;
 }
 
 function normalizeTeamMember(data: any) {
@@ -225,7 +226,8 @@ export async function createTeamMember(data: any) {
   const result = await db.insert(teamMembers).values(normalized);
   
   // Return the created record
-  return await getTeamMemberById(result[0]?.insertId || result.lastID);
+  const insertedId = (result as any)[0]?.insertId || (result as any).lastID || 0;
+  return await getTeamMemberById(insertedId);
 }
 
 export async function updateTeamMember(id: number, data: any) {

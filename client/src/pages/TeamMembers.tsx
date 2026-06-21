@@ -213,7 +213,7 @@ export default function TeamMembers() {
                 <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
               </div>
               <div>
-                <Label htmlFor="salary">{t("team.salary", "Salary")}</Label>
+                <Label htmlFor="salary">{t("team.salary")}</Label>
                 <Input id="salary" type="number" step="0.01" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: e.target.value })} placeholder="0.00" />
               </div>
               <div>
