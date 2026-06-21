@@ -170,16 +170,21 @@ export default function Transactions() {
   };
 
   // تنسيق الأرقام بالإنجليزية دائماً مع رمز الشيقل
+  const parseAmount = (amount: any): number => {
+    if (typeof amount === 'number') return amount;
+    if (typeof amount === 'string') return parseFloat(amount) || 0;
+    return 0;
+  };
   const fmt = (n: number) => `₪${(n || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   const fmtDate = (d: any) => new Date(d).toLocaleDateString("en-GB");
 
   const totalIncome = transactions
     .filter((t: any) => t.type === "revenue")
-    .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    .reduce((sum: number, t: any) => sum + parseAmount(t.amount), 0);
 
   const totalExpenses = transactions
     .filter((t: any) => t.type === "expense")
-    .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+    .reduce((sum: number, t: any) => sum + parseAmount(t.amount), 0);
 
   const netProfit = totalIncome - totalExpenses;
 
@@ -197,7 +202,7 @@ export default function Transactions() {
         const d = new Date(t.date);
         return t.type === type && d.getMonth() === m && d.getFullYear() === y;
       })
-      .reduce((s: number, t: any) => s + (t.amount || 0), 0);
+      .reduce((s: number, t: any) => s + parseAmount(t.amount), 0);
 
   const incomeThisMonth = sumBy("revenue", curMonth, curYear);
   const incomeLastMonth = sumBy("revenue", prevMonth, prevYear);
