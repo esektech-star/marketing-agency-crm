@@ -60,13 +60,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
+  
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
-  const { i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar' || i18n.language === 'he';
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -75,8 +76,6 @@ export default function DashboardLayout({
   if (loading) {
     return <DashboardLayoutSkeleton />
   }
-
-  const { t } = useTranslation();
 
   if (!user) {
     return (
