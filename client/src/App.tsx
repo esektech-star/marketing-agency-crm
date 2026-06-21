@@ -30,7 +30,7 @@ import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import KPI from "./pages/KPI";
-import TranslationManager from "./pages/TranslationManager";
+
 
 function Router() {
   return (
@@ -42,13 +42,6 @@ function Router() {
         {() => (
           <DashboardLayout>
             <KPI />
-          </DashboardLayout>
-        )}
-      </Route>
-      <Route path={"/translations"}>
-        {() => (
-          <DashboardLayout>
-            <TranslationManager />
           </DashboardLayout>
         )}
       </Route>

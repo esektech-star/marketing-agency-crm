@@ -47,7 +47,6 @@ const getMenuItems = (t: any) => [
   { icon: Globe, label: t("sidebar.clientPortal", "بوابة العملاء"), path: "/client-portal", adminOnly: true },
   { icon: KeyRound, label: t("sidebar.accessDetails", "تفاصيل الوصول"), path: "/access-details" },
   { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users", adminOnly: true },
-  { icon: Languages, label: t("sidebar.translations", "إدارة الترجمات"), path: "/translations", adminOnly: true },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
