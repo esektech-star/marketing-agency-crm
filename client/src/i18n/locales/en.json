@@ -60,14 +60,19 @@
     "back": "Back",
     "yes": "Yes",
     "no": "No",
-    "copied": "Copied"
+    "copied": "Copied",
+    "approve": "Approve",
+    "reject": "Reject"
   },
   "auth": {
     "login": "Sign In",
     "logout": "Sign out",
     "signInTitle": "Sign in to continue",
     "signInDesc": "Accessing the dashboard requires signing in. Continue to start the sign-in process.",
-    "loginRequired": "You must sign in first"
+    "loginRequired": "You must sign in first",
+    "signInToContinue": "Sign in to continue",
+    "dashboardRequiresAuth": "Access to this dashboard requires authentication. Continue to launch the login flow.",
+    "signIn": "Sign in"
   },
   "home": {
     "badge": "Digital Marketing Agency Management System",
@@ -519,7 +524,10 @@
     "step2": "Waiting for owner approval",
     "requestApproval": "Request Approval",
     "approvalSuccess": "Your account has been approved successfully",
-    "approvalError": "An error occurred during approval"
+    "approvalError": "An error occurred during approval",
+    "pending": "Awaiting Approval",
+    "pendingMessage": "Your account is pending approval from the system owner. Please wait or contact the owner.",
+    "noUsers": "No pending users to approve"
   },
   "months": {
     "january": "January",

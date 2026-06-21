@@ -4,23 +4,51 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertCircle, CheckCircle2, Loader2, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function UserApproval() {
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if not authenticated or not admin
   useEffect(() => {
-    // If user is not authenticated, redirect to login
     if (!isAuthenticated) {
       setLocation("/");
+    } else if (user && user.role !== "admin") {
+      setLocation("/dashboard");
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, user, setLocation]);
 
-  if (!isAuthenticated) {
+  const { data: pendingUsers = [], isLoading, refetch } = trpc.auth.getPendingUsers.useQuery();
+  const approveMutation = trpc.auth.approveUser.useMutation();
+  const rejectMutation = trpc.auth.rejectUser.useMutation();
+
+  const handleApprove = async (userId: number) => {
+    try {
+      await approveMutation.mutateAsync({ userId });
+      toast.success(t("approval.approvalSuccess", "User approved successfully"));
+      refetch();
+    } catch (error) {
+      toast.error(t("approval.approvalError", "An error occurred during approval"));
+    }
+  };
+
+  const handleReject = async (userId: number) => {
+    try {
+      await rejectMutation.mutateAsync({ userId });
+      toast.success(t("common.deleteSuccess", "User rejected and removed"));
+      refetch();
+    } catch (error) {
+      toast.error(t("common.error", "An error occurred"));
+    }
+  };
+
+  if (!isAuthenticated || (user && user.role !== "admin")) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -31,72 +59,93 @@ export default function UserApproval() {
     );
   }
 
-  const handleApprove = async () => {
-    try {
-      setIsLoading(true);
-      // TODO: Call approval API when available
-      toast.success(t("approval.approvalSuccess", "تم الموافقة على حسابك بنجاح"));
-      setLocation("/dashboard");
-    } catch (error) {
-      toast.error(t("approval.approvalError", "حدث خطأ أثناء الموافقة"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <AlertCircle className="w-12 h-12 text-amber-500" />
-          </div>
-          <CardTitle className="text-2xl">{t("approval.title", "تحتاج إلى موافقة")}</CardTitle>
-          <CardDescription>{t("approval.subtitle", "يجب أن يوافق المالك على حسابك قبل الوصول إلى النظام")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-gray-700">
-              {t("approval.message", "حسابك جاهز، لكن يحتاج إلى موافقة من مالك النظام. يرجى الانتظار أو التواصل مع المالك.")}
-            </p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <AlertCircle className="w-6 h-6 text-amber-500" />
+              {t("approval.title", "User Approvals")}
+            </CardTitle>
+            <CardDescription>
+              {t("approval.subtitle", "Manage pending user approvals")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {pendingUsers.length === 0 ? (
+              <Alert>
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <AlertDescription>
+                  {t("approval.noUsers", "No pending users to approve")}
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("common.name", "Name")}</TableHead>
+                      <TableHead>{t("common.email", "Email")}</TableHead>
+                      <TableHead>{t("common.date", "Created")}</TableHead>
+                      <TableHead className="text-right">{t("common.actions", "Actions")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pendingUsers.map((pendingUser: any) => (
+                      <TableRow key={pendingUser.id}>
+                        <TableCell className="font-medium">{pendingUser.name || "N/A"}</TableCell>
+                        <TableCell>{pendingUser.email || "N/A"}</TableCell>
+                        <TableCell>
+                          {new Date(pendingUser.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(pendingUser.id)}
+                            disabled={approveMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {approveMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                            {t("common.approve", "Approve")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleReject(pendingUser.id)}
+                            disabled={rejectMutation.isPending}
+                          >
+                            {rejectMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                            {t("common.reject", "Reject")}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span>{t("approval.step1", "تم إنشاء حسابك بنجاح")}</span>
+            <div className="pt-4">
+              <Button
+                onClick={() => setLocation("/dashboard")}
+                variant="outline"
+                className="w-full"
+              >
+                {t("common.back", "Back to Dashboard")}
+              </Button>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <AlertCircle className="w-4 h-4 text-amber-500" />
-              <span>{t("approval.step2", "في انتظار موافقة المالك")}</span>
-            </div>
-          </div>
-
-          <div className="pt-4 space-y-3">
-            <Button
-              onClick={handleApprove}
-              disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
-            >
-              {isLoading ? (
-                <>
-                  <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {t("common.loading", "جاري المعالجة...")}
-                </>
-              ) : (
-                t("approval.requestApproval", "طلب الموافقة")
-              )}
-            </Button>
-            <Button
-              onClick={() => setLocation("/")}
-              variant="outline"
-              className="w-full"
-            >
-              {t("common.back", "العودة")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

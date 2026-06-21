@@ -58,6 +58,14 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     } else if (user.openId === ENV.ownerOpenId) {
       values.role = 'admin';
       updateSet.role = 'admin';
+      values.isApproved = true; // Owner is auto-approved
+      updateSet.isApproved = true;
+    }
+
+    // Handle approval status
+    if (user.isApproved !== undefined) {
+      values.isApproved = user.isApproved;
+      updateSet.isApproved = user.isApproved;
     }
 
     if (!values.lastSignedIn) {
@@ -86,6 +94,24 @@ export async function getUserByOpenId(openId: string) {
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getPendingUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(users).where(eq(users.isApproved, false)).orderBy(desc(users.createdAt));
+}
+
+export async function approveUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.update(users).set({ isApproved: true }).where(eq(users.id, userId));
+}
+
+export async function deleteUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.delete(users).where(eq(users.id, userId));
 }
 
 // ==================== Clients ====================

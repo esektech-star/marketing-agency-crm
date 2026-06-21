@@ -76,16 +76,18 @@ export default function DashboardLayout({
     return <DashboardLayoutSkeleton />
   }
 
+  const { t } = useTranslation();
+
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              Sign in to continue
+              {t("auth.signInToContinue", "Sign in to continue")}
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires authentication. Continue to launch the login flow.
+              {t("auth.dashboardRequiresAuth", "Access to this dashboard requires authentication. Continue to launch the login flow.")}
             </p>
           </div>
           <Button
@@ -95,7 +97,35 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            Sign in
+            {t("auth.signIn", "Sign in")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is approved
+  if (!user.isApproved) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
+          <div className="flex flex-col items-center gap-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-center">
+              {t("approval.pending", "Awaiting Approval")}
+            </h1>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">
+              {t("approval.pendingMessage", "Your account is pending approval from the system owner. Please wait or contact the owner.")}
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              window.location.href = getLoginUrl();
+            }}
+            variant="outline"
+            size="lg"
+            className="w-full"
+          >
+            {t("common.back", "Back")}
           </Button>
         </div>
       </div>

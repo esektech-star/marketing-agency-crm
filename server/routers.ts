@@ -19,6 +19,19 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+    getPendingUsers: adminProcedure.query(async () => {
+      return await db.getPendingUsers();
+    }),
+    approveUser: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.approveUser(input.userId);
+      }),
+    rejectUser: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteUser(input.userId);
+      }),
   }),
 
   // ==================== Dashboard ====================
