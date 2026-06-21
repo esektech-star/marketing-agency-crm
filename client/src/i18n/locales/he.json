@@ -423,7 +423,10 @@
     "invoices": "חשבוניות",
     "clientPortal": "פורטל לקוחות",
     "accessDetails": "פרטי גישה",
-    "users": "משתמשים"
+    "users": "משתמשים",
+    "metaCampaigns": "קמפיינים ב-Meta",
+    "kpi": "מדדי ביצוע",
+    "translations": "ניהול תרגומים"
   },
   "subscriptions": {
     "softwareName": "שם התוכנה",
