@@ -87,9 +87,11 @@ export default function Transactions() {
         return;
       }
       
+      // Calculate month and year from date
+      const month = String(txDate.getMonth() + 1).padStart(2, '0');
+      const year = txDate.getFullYear();
+      
       if (editingId) {
-        const txDate = new Date(formData.date);
-        
         await updateMutation.mutateAsync({
           id: editingId,
           type: formData.type as "revenue" | "expense",
@@ -103,14 +105,6 @@ export default function Transactions() {
         });
         toast.success(t("transactions.editSuccess"));
       } else {
-        if (!isValidNumber(formData.amount)) {
-          toast.error(t("common.invalidNumber", "Invalid number format"));
-          return;
-        }
-        const txDate = new Date(formData.date);
-        const month = String(txDate.getMonth() + 1).padStart(2, '0');
-        const year = txDate.getFullYear();
-        
         await createMutation.mutateAsync({
           type: formData.type as "revenue" | "expense",
           category: formData.category,
@@ -299,11 +293,11 @@ export default function Transactions() {
                 <Label htmlFor="amount">{t("transactions.amount")}</Label>
                 <Input
                   id="amount"
-                  type="number"
+                  type="text"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   placeholder="0.00"
-                  step="0.01"
+                  inputMode="decimal"
                   required
                 />
               </div>

@@ -37,16 +37,33 @@ export default function Subscriptions() {
   const deleteMutation = trpc.subscriptions.delete.useMutation();
 
   const handleSubmit = async () => {
-    if (!formData.softwareName || !formData.monthlyAmount) {
-      toast.error(t("common.requiredFields"));
+    if (!formData.softwareName || !formData.softwareName.trim()) {
+      toast.error(t("subscriptions.softwareNameRequired", "اسم البرنامج مطلوب"));
+      return;
+    }
+    if (!formData.monthlyAmount || parseFloat(formData.monthlyAmount) <= 0) {
+      toast.error(t("subscriptions.amountRequired", "المبلغ الشهري مطلوب وأكبر من صفر"));
       return;
     }
 
     try {
+      const monthlyAmount = parseFloat(formData.monthlyAmount);
+      if (!Number.isFinite(monthlyAmount) || monthlyAmount <= 0) {
+        toast.error(t("subscriptions.invalidAmount", "مبلغ غير صحيح"));
+        return;
+      }
+      
+      const renewalDate = formData.renewalDate ? parseInt(formData.renewalDate) : undefined;
+      if (renewalDate && (!Number.isFinite(renewalDate) || renewalDate < 1 || renewalDate > 31)) {
+        toast.error(t("subscriptions.invalidRenewalDate", "يوم التجديد يجب أن يكون بين 1 و 31"));
+        return;
+      }
+      
       const data = {
         ...formData,
-        monthlyAmount: parseFloat(formData.monthlyAmount),
-        renewalDate: formData.renewalDate ? parseInt(formData.renewalDate) : undefined,
+        softwareName: formData.softwareName.trim(),
+        monthlyAmount: monthlyAmount,
+        renewalDate: renewalDate,
       };
 
       if (editingId) {

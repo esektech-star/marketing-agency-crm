@@ -83,13 +83,36 @@ export default function Invoices() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.relatedClient) { toast.error(t("invoices.selectClient", "اختر العميل")); return; }
+    
+    if (!form.relatedClient) { 
+      toast.error(t("invoices.selectClient", "اختر العميل")); 
+      return; 
+    }
+    if (!form.invoiceNumber || !form.invoiceNumber.trim()) {
+      toast.error(t("invoices.invoiceNumberRequired", "رقم الفاتورة مطلوب"));
+      return;
+    }
+    if (!form.amount || parseFloat(form.amount) <= 0) {
+      toast.error(t("invoices.amountRequired", "المبلغ مطلوب وأكبر من صفر"));
+      return;
+    }
+    if (!form.dueDate) {
+      toast.error(t("invoices.dueDateRequired", "تاريخ الاستحقاق مطلوب"));
+      return;
+    }
+    
     try {
+      const dueDate = new Date(form.dueDate);
+      if (!Number.isFinite(dueDate.getTime())) {
+        toast.error(t("invoices.invalidDate", "تاريخ غير صحيح"));
+        return;
+      }
+      
       const payload = {
-        invoiceNumber: form.invoiceNumber,
+        invoiceNumber: form.invoiceNumber.trim(),
         relatedClient: parseInt(form.relatedClient),
-        amount: parseFloat(form.amount || "0"),
-        dueDate: new Date(form.dueDate),
+        amount: parseFloat(form.amount),
+        dueDate: dueDate,
         status: form.status as any,
         notes: form.notes || undefined,
         fileKey: form.fileKey || undefined,
