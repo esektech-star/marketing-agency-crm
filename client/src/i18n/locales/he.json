@@ -507,8 +507,30 @@
     "heroTitle": "נהל את החברה שלך ממקום אחד"
   },
   "kpi": {
-    "title": "מדדי ביצוע",
-    "yearOverYear": "השוואה שנתית"
+    "title": "ניתוח KPI",
+    "subtitle": "ניתוח ביצוע עסקי של לקוחות",
+    "yearOverYear": "השוואה שנתית",
+    "selectClient": "בחר לקוח",
+    "selectPeriod": "בחר תקופה",
+    "selectYear": "בחר שנה",
+    "comparisonYear": "שנה להשוואה",
+    "enterRevenue": "הכנס הכנסות",
+    "enterMonthlyRevenue": "הכנס הכנסות חודשיות לשנים שנבחרו",
+    "year": "שנה",
+    "totalRevenue": "סה״כ הכנסות",
+    "comparisonRevenue": "הכנסות השוואה",
+    "growth": "גדילה",
+    "periodComparison": "השוואת תקופות",
+    "detailedComparison": "השוואה מפורטת",
+    "period": "תקופה",
+    "monthlyDetails": "פרטים חודשיים",
+    "month": "חודש",
+    "revenue": "הכנסות",
+    "expenses": "הוצאות",
+    "profit": "רווח",
+    "monthChange": "שינוי חודשי",
+    "yearChange": "שינוי שנתי",
+    "monthlyRevenue": "הכנסות חודשיות"
   },
   "metaCampaigns": {
     "title": "קמפיינים של Meta"

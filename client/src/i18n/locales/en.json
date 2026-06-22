@@ -504,8 +504,30 @@
     "heroTitle": "Manage Your Company from One Place"
   },
   "kpi": {
-    "title": "KPI Dashboard",
-    "yearOverYear": "Year Over Year"
+    "title": "KPI Analysis",
+    "subtitle": "Client Business Performance Analysis",
+    "yearOverYear": "Year Over Year",
+    "selectClient": "Select Client",
+    "selectPeriod": "Select Period",
+    "selectYear": "Select Year",
+    "comparisonYear": "Comparison Year",
+    "enterRevenue": "Enter Revenue",
+    "enterMonthlyRevenue": "Enter monthly revenue for selected years",
+    "year": "Year",
+    "totalRevenue": "Total Revenue",
+    "comparisonRevenue": "Comparison Revenue",
+    "growth": "Growth",
+    "periodComparison": "Period Comparison",
+    "detailedComparison": "Detailed Comparison",
+    "period": "Period",
+    "monthlyDetails": "Monthly Details",
+    "month": "Month",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "profit": "Profit",
+    "monthChange": "Monthly Change",
+    "yearChange": "Year Change",
+    "monthlyRevenue": "Monthly Revenue"
   },
   "metaCampaigns": {
     "title": "Meta Campaigns"
