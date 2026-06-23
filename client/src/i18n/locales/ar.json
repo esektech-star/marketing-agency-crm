@@ -504,30 +504,8 @@
     "heroTitle": "أدر شركتك من مكان واحد"
   },
   "kpi": {
-    "title": "تحليل KPI",
-    "subtitle": "تحليل أداء الأعمال للعملاء",
-    "yearOverYear": "مقارنة سنة بسنة",
-    "selectClient": "اختر عميلاً",
-    "selectPeriod": "اختر فترة",
-    "selectYear": "اختر سنة",
-    "comparisonYear": "سنة المقارنة",
-    "enterRevenue": "أدخل الإيرادات",
-    "enterMonthlyRevenue": "أدخل الإيرادات الشهرية للسنوات المختارة",
-    "year": "سنة",
-    "totalRevenue": "إجمالي الإيرادات",
-    "comparisonRevenue": "إيرادات المقارنة",
-    "growth": "النمو",
-    "periodComparison": "مقارنة الفترات",
-    "detailedComparison": "مقارنة مفصلة",
-    "period": "فترة",
-    "monthlyDetails": "التفاصيل الشهرية",
-    "month": "شهر",
-    "revenue": "الإيرادات",
-    "expenses": "المصروفات",
-    "profit": "الربح",
-    "monthChange": "التغيير الشهري",
-    "yearChange": "التغيير السنوي",
-    "monthlyRevenue": "الإيرادات الشهرية"
+    "title": "مؤشرات الأداء",
+    "yearOverYear": "مقارنة سنة بسنة"
   },
   "metaCampaigns": {
     "title": "حملات Meta"
