@@ -12,6 +12,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import ClientProfile from "./pages/ClientProfile";
 
 import Subscriptions from "./pages/Subscriptions";
 import TeamMembers from "./pages/TeamMembers";
@@ -72,6 +73,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Clients />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/clients/:id"}>
+        {() => (
+          <DashboardLayout>
+            <ClientProfile />
           </DashboardLayout>
         )}
       </Route>

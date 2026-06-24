@@ -173,3 +173,42 @@
 - [x] סידור תפריט צד ימין/שמאל לפי שפה
 - [x] לאמת בפועל את יצירת משימה/לקוח/הכנסה/הוצאה לאחר תיקון ה-enum
 - [x] בדוק טבלאות נוספות עם enum בערבית שעלולות להשבור CRUD
+
+## Phase 3: Client Profile Enhancement (Major Reform - In Progress)
+- [x] Create ClientProfile.tsx component with 6 tabs (Overview, Campaigns, Tasks, Strategy, Invoices, Timeline)
+- [x] Wire ClientProfile route in App.tsx (/clients/:id)
+- [ ] Populate Strategy tab with client strategy details and recommendations
+- [ ] Enhance Timeline tab with real activity data from database
+- [ ] Add backend procedures for client-specific data (tasks, campaigns, invoices)
+- [ ] Test ClientProfile navigation from Clients list
+- [ ] Verify RTL support for all tabs
+
+## Phase 1 Revisit: Dashboard Real-Time Data
+- [ ] Add tasks.list procedure to server/routers.ts
+- [ ] Add campaigns.list procedure to server/routers.ts
+- [ ] Update Dashboard to use real data instead of placeholders
+- [ ] Implement backend queries for Today Focus section
+- [ ] Implement backend queries for Campaign Overview section
+- [ ] Implement backend queries for Alerts section
+
+## Phase 4: Campaigns Module Enhancement
+- [x] Add advanced filters to Campaigns page (search, status, platform)
+- [x] Add sorting by name, budget, and start date with visual indicators
+- [x] Add platform selection dropdown in form
+- [x] Display filtered count vs total count
+- [ ] Create Campaigns detail view (modal or dedicated page)
+- [ ] Add performance metrics to campaign cards
+- [ ] Implement campaign status management
+
+## Phase 5: Tasks Kanban Board
+- [ ] Create Kanban board component with drag-and-drop
+- [ ] Implement task status columns (Todo, In Progress, Done)
+- [ ] Add task creation from Kanban board
+- [ ] Implement real-time task updates
+- [ ] Add task filtering and sorting
+
+## Phase 6: AI Integration
+- [ ] Integrate LLM for client insights
+- [ ] Add AI-powered recommendations in Strategy tab
+- [ ] Implement AI chat for client queries
+- [ ] Add AI-generated reports

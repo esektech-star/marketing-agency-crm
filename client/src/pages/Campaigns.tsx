@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video, MessageCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video, MessageCircle, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { shareViaWhatsApp, formatCampaignShareMessage, formatCampaignShareMessageHE, formatCampaignShareMessageEN } from "@/lib/whatsappUtils";
 
 const STATUS_VALUES = ["planned", "active", "pending", "completed"] as const;
+const PLATFORMS = ["Facebook", "Instagram", "Google Ads", "TikTok", "LinkedIn", "Twitter", "YouTube", "Other"] as const;
 
 export default function Campaigns() {
   const { t, i18n } = useTranslation();
@@ -21,6 +22,13 @@ export default function Campaigns() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter and sort states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [platformFilter, setPlatformFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"name" | "budget" | "startDate">("startDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const emptyForm = {
     name: "",
@@ -172,6 +180,50 @@ export default function Campaigns() {
     }
   };
 
+  const filteredCampaigns = campaigns
+    .filter((campaign: any) => {
+      const matchesSearch = campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        campaign.platform.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        campaign.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || campaign.status === statusFilter;
+      const matchesPlatform = platformFilter === "all" || campaign.platform === platformFilter;
+      return matchesSearch && matchesStatus && matchesPlatform;
+    })
+    .sort((a: any, b: any) => {
+      let aVal: any, bVal: any;
+      
+      if (sortBy === "name") {
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+      } else if (sortBy === "budget") {
+        aVal = a.budget || 0;
+        bVal = b.budget || 0;
+      } else {
+        aVal = new Date(a.startDate).getTime();
+        bVal = new Date(b.startDate).getTime();
+      }
+
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  const toggleSort = (field: "name" | "budget" | "startDate") => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: "name" | "budget" | "startDate" }) => {
+    if (sortBy !== field) return null;
+    return sortOrder === "asc" ? 
+      <ChevronUp className="w-4 h-4 inline ms-1" /> : 
+      <ChevronDown className="w-4 h-4 inline ms-1" />;
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center flex-wrap gap-4">
@@ -198,7 +250,12 @@ export default function Campaigns() {
               </div>
               <div>
                 <Label htmlFor="platform">{t("campaigns.platform")}</Label>
-                <Input id="platform" value={formData.platform} onChange={(e) => setFormData({ ...formData, platform: e.target.value })} placeholder={t("campaigns.platform")} required />
+                <Select value={formData.platform} onValueChange={(value) => setFormData({ ...formData, platform: value })}>
+                  <SelectTrigger><SelectValue placeholder={t("campaigns.selectPlatform", "Select platform")} /></SelectTrigger>
+                  <SelectContent>
+                    {PLATFORMS.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="budget">{t("campaigns.budget")}</Label>
@@ -278,25 +335,106 @@ export default function Campaigns() {
         </Dialog>
       </div>
 
+      {/* Filters Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t("campaigns.filters", "Filters")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="search" className="text-sm">{t("common.search", "Search")}</Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder={t("campaigns.searchPlaceholder", "Search campaigns...")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="ps-8"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="status-filter" className="text-sm">{t("campaigns.status", "Status")}</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="status-filter" className="mt-1">
+                  <SelectValue placeholder={t("common.all", "All")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all", "All")}</SelectItem>
+                  {STATUS_VALUES.map((s) => (<SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="platform-filter" className="text-sm">{t("campaigns.platform", "Platform")}</Label>
+              <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                <SelectTrigger id="platform-filter" className="mt-1">
+                  <SelectValue placeholder={t("common.all", "All")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all", "All")}</SelectItem>
+                  {PLATFORMS.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setPlatformFilter("all");
+                }}
+                className="w-full mt-6"
+              >
+                {t("common.clearFilters", "Clear Filters")}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Campaigns Table */}
       <Card>
         <CardHeader>
           <CardTitle>{t("campaigns.listTitle")}</CardTitle>
-          <CardDescription>{t("campaigns.count")}: {campaigns.length}</CardDescription>
+          <CardDescription>
+            {t("campaigns.count")}: {filteredCampaigns.length} / {campaigns.length}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-          ) : campaigns.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">{t("campaigns.empty")}</div>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {campaigns.length === 0 ? t("campaigns.empty") : t("campaigns.noResults", "No campaigns match your filters")}
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("campaigns.campaignName")}</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => toggleSort("name")}
+                    >
+                      {t("campaigns.campaignName")} <SortIcon field="name" />
+                    </TableHead>
                     <TableHead>{t("campaigns.platform")}</TableHead>
-                    <TableHead>{t("campaigns.budget")}</TableHead>
-                    <TableHead>{t("campaigns.startDate")}</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => toggleSort("budget")}
+                    >
+                      {t("campaigns.budget")} <SortIcon field="budget" />
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => toggleSort("startDate")}
+                    >
+                      {t("campaigns.startDate")} <SortIcon field="startDate" />
+                    </TableHead>
                     <TableHead>{t("campaigns.endDate")}</TableHead>
                     <TableHead>{t("campaigns.status")}</TableHead>
                     <TableHead>{t("campaigns.media", "Media")}</TableHead>
@@ -304,7 +442,7 @@ export default function Campaigns() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {campaigns.map((campaign: any) => (
+                  {filteredCampaigns.map((campaign: any) => (
                     <TableRow key={campaign.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{campaign.name}</TableCell>
                       <TableCell>{campaign.platform}</TableCell>
