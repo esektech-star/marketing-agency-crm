@@ -9,17 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Download, MessageCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Download, MessageCircle, Search, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { exportToExcel, exportToCSV, formatClientsForExport } from "@/lib/exportUtils";
 import { shareViaWhatsApp, formatClientShareMessage, formatClientShareMessageHE, formatClientShareMessageEN } from "@/lib/whatsappUtils";
 
 const STATUS_VALUES = ["active", "pending", "completed"] as const;
+type SortField = "name" | "startDate" | "monthlyAmount" | "status";
+type SortOrder = "asc" | "desc";
 
 export default function Clients() {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>("name");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const emptyForm = {
     name: "",
     serviceType: "",
@@ -35,7 +41,40 @@ export default function Clients() {
   };
   const [formData, setFormData] = useState(emptyForm);
 
-  const { data: clients = [], isLoading, refetch } = trpc.clients.list.useQuery();
+  const { data: allClients = [], isLoading, refetch } = trpc.clients.list.useQuery();
+  
+  // Filter and sort clients
+  const clients = allClients
+    .filter(client => {
+      const matchesSearch = searchTerm === "" || 
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.clientCode?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === null || client.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      let aVal: any = a[sortField];
+      let bVal: any = b[sortField];
+      
+      if (sortField === "startDate") {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      } else if (sortField === "monthlyAmount") {
+        aVal = parseFloat(aVal) || 0;
+        bVal = parseFloat(bVal) || 0;
+      } else if (sortField === "name") {
+        aVal = aVal.toLowerCase();
+        bVal = bVal.toLowerCase();
+      }
+      
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
   const createMutation = trpc.clients.create.useMutation();
   const updateMutation = trpc.clients.update.useMutation();
   const deleteMutation = trpc.clients.delete.useMutation();
@@ -130,10 +169,51 @@ export default function Clients() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold">{t("clients.title")}</h1>
+        <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder={t("common.search", "Search...")}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1 min-w-64"
+        />
+        <Select value={statusFilter || "all"} onValueChange={(value) => setStatusFilter(value === "all" ? null : value)}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("common.allStatuses", "All Status")}</SelectItem>
+            {STATUS_VALUES.map((s) => (
+              <SelectItem key={s} value={s}>{localizedStatus(s)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{t("clients.title")}</h1>
-          <p className="text-muted-foreground mt-1">{t("clients.subtitle")}</p>
+        <div className="flex gap-2">
+          <Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">{t("clients.clientName")}</SelectItem>
+              <SelectItem value="startDate">{t("clients.startDate")}</SelectItem>
+              <SelectItem value="monthlyAmount">{t("clients.monthlyAmount", "Monthly Payment")}</SelectItem>
+              <SelectItem value="status">{t("common.status")}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          >
+            {sortOrder === "asc" ? "↑" : "↓"}
+          </Button>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button
