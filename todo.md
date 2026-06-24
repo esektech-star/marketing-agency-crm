@@ -201,11 +201,13 @@
 - [ ] Implement campaign status management
 
 ## Phase 5: Tasks Kanban Board
-- [ ] Create Kanban board component with drag-and-drop
-- [ ] Implement task status columns (Todo, In Progress, Done)
-- [ ] Add task creation from Kanban board
-- [ ] Implement real-time task updates
-- [ ] Add task filtering and sorting
+- [x] Create Kanban board component with drag-and-drop
+- [x] Implement task status columns (Todo, In Progress, Done, Cancelled)
+- [x] Add task card with priority and due date indicators
+- [x] Implement drag-and-drop status updates
+- [x] Add Table/Kanban view toggle in Tasks page
+- [x] Display task count per column
+- [x] Show overdue and due-soon warnings with visual indicators
 
 ## Phase 6: AI Integration
 - [ ] Integrate LLM for client insights
