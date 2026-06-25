@@ -29,6 +29,7 @@ import Invoices from "@/pages/Invoices";
 import ActivityFeed from "@/pages/ActivityFeed";
 import Analytics from "@/pages/Analytics";
 import Benchmarking from "@/pages/Benchmarking";
+import BackupSchedule from "@/pages/BackupSchedule";
 import Alerts from "@/pages/Alerts";
 import ReportScheduling from "@/pages/ReportScheduling";
 import ClientFeedbackPage from "@/pages/ClientFeedbackPage";
@@ -186,6 +187,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Benchmarking />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/backup-schedule"}>
+        {() => (
+          <DashboardLayout>
+            <BackupSchedule />
           </DashboardLayout>
         )}
       </Route>

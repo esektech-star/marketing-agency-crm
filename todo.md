@@ -314,3 +314,10 @@
 - [x] Implement ROI threshold filter (ROI min/max slider)
 - [x] Add platform/type multi-select filters (checkboxes for platforms and status)
 - [x] Create filter presets (reset button and apply button)
+
+## Phase 21: Automated Backup & Archive
+- [x] Create BackupSchedule page for configuring backups (BackupSchedule.tsx)
+- [x] Implement scheduled backup exports (daily, weekly, monthly with time selection)
+- [x] Add archive old campaigns functionality with retention policies (archive section with 90-day threshold)
+- [x] Create backup history and restore functionality (download/restore buttons)
+- [x] Add data export in multiple formats (CSV, JSON, Excel checkboxes)
