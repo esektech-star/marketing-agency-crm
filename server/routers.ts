@@ -890,5 +890,41 @@ export const appRouter = router({
         return await generateClientReport(input.clientId);
       }),
   }),
+
+  // ==================== Presence Tracking ====================
+  presence: router({
+    updateStatus: protectedProcedure
+      .input(z.object({
+        status: z.enum(["online", "away", "offline"]),
+        sessionId: z.string().optional(),
+        deviceInfo: z.object({
+          browser: z.string().optional(),
+          os: z.string().optional(),
+          userAgent: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await db.updateUserPresence(
+          ctx.user.id,
+          input.status,
+          input.sessionId,
+          input.deviceInfo
+        );
+      }),
+    getStatus: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getUserPresence(input.userId);
+      }),
+    getAllStatus: protectedProcedure.query(async () => {
+      return await db.getAllPresence();
+    }),
+    logout: protectedProcedure.mutation(async ({ ctx }) => {
+      if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+      await db.setUserOffline(ctx.user.id);
+      return { success: true };
+    }),
+  }),
 });
 export type AppRouter = typeof appRouter;

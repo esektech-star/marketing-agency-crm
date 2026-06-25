@@ -318,6 +318,24 @@ export const notifications = mysqlTable("notifications", {
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
+/**
+ * جدول تتبع وجود الفريق (Presence Tracking)
+ */
+export const presenceTracking = mysqlTable("presenceTracking", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  status: mysqlEnum("status", ["online", "away", "offline"]).default("offline").notNull(),
+  lastActivityAt: timestamp("lastActivityAt").defaultNow().notNull(),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+  sessionId: varchar("sessionId", { length: 255 }),
+  deviceInfo: json("deviceInfo"), // معلومات الجهاز {browser, os, userAgent}
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PresenceTracking = typeof presenceTracking.$inferSelect;
+export type InsertPresenceTracking = typeof presenceTracking.$inferInsert;
+
 
 /**
  * جدول مؤشرات الأداء الرئيسية (KPI)

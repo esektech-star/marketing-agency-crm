@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -860,3 +860,158 @@ export async function globalSearch(query: string) {
   };
 }
 
+
+
+/**
+ * تحديث حالة الوجود للمستخدم
+ */
+export async function updateUserPresence(userId: number, status: "online" | "away" | "offline", sessionId?: string, deviceInfo?: any): Promise<PresenceTracking | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update presence: database not available");
+    return null;
+  }
+
+  try {
+    // البحث عن وجود سابق
+    const existing = await db
+      .select()
+      .from(presenceTracking)
+      .where(eq(presenceTracking.userId, userId))
+      .limit(1)
+      .then(rows => rows[0] || null);
+
+    if (existing) {
+      // تحديث السجل الموجود
+      const updated = await db
+        .update(presenceTracking)
+        .set({
+          status,
+          lastActivityAt: new Date(),
+          lastSeenAt: status === "offline" ? new Date() : existing.lastSeenAt,
+          sessionId: sessionId || existing.sessionId,
+          deviceInfo: deviceInfo || existing.deviceInfo,
+        })
+        .where(eq(presenceTracking.userId, userId));
+      
+      return existing;
+    } else {
+      // إنشاء سجل جديد
+      await db.insert(presenceTracking).values({
+        userId,
+        status,
+        sessionId: sessionId || "",
+        deviceInfo: deviceInfo || null,
+      });
+
+      return {
+        id: 0,
+        userId,
+        status,
+        lastActivityAt: new Date(),
+        lastSeenAt: new Date(),
+        sessionId: sessionId || "",
+        deviceInfo: deviceInfo || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
+  } catch (error) {
+    console.error("[Database] Error updating presence:", error);
+    return null;
+  }
+}
+
+/**
+ * الحصول على حالة الوجود للمستخدم
+ */
+export async function getUserPresence(userId: number): Promise<PresenceTracking | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get presence: database not available");
+    return null;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(presenceTracking)
+      .where(eq(presenceTracking.userId, userId))
+      .limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting presence:", error);
+    return null;
+  }
+}
+
+/**
+ * الحصول على حالات الوجود لجميع أعضاء الفريق
+ */
+export async function getAllPresence(): Promise<PresenceTracking[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get all presence: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(presenceTracking);
+  } catch (error) {
+    console.error("[Database] Error getting all presence:", error);
+    return [];
+  }
+}
+
+/**
+ * تعيين المستخدم كـ offline عند تسجيل الخروج
+ */
+export async function setUserOffline(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot set offline: database not available");
+    return;
+  }
+
+  try {
+    await db
+      .update(presenceTracking)
+      .set({
+        status: "offline",
+        lastSeenAt: new Date(),
+      })
+      .where(eq(presenceTracking.userId, userId));
+  } catch (error) {
+    console.error("[Database] Error setting offline:", error);
+  }
+}
+
+/**
+ * تنظيف جلسات المستخدمين القدماء (أكثر من ساعة بدون نشاط)
+ */
+export async function cleanupInactivePresence(inactiveMinutes: number = 60): Promise<number> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot cleanup presence: database not available");
+    return 0;
+  }
+
+  try {
+    const cutoffTime = new Date(Date.now() - inactiveMinutes * 60 * 1000);
+    
+    const result = await db
+      .update(presenceTracking)
+      .set({ status: "offline" })
+      .where(
+        and(
+          eq(presenceTracking.status, "online"),
+          sql`${presenceTracking.lastActivityAt} < ${cutoffTime}`
+        )
+      );
+
+    return 0; // Drizzle doesn't return affected rows count, so we return 0
+  } catch (error) {
+    console.error("[Database] Error cleaning up presence:", error);
+    return 0;
+  }
+}

@@ -351,3 +351,12 @@
 - [x] Implement export to PDF, Excel, CSV formats
 - [x] Add report scheduling and email delivery
 - [x] Create report history and saved reports management
+
+## Phase 26: Team Presence Indicators
+- [x] Create presence tracking system (online, away, offline states)
+- [x] Add real-time status updates via WebSocket/polling
+- [x] Display presence indicators in team member list
+- [x] Show last seen timestamp for offline members
+- [x] Add presence status in dashboard header
+- [x] Implement automatic away detection after inactivity
+- [x] Create presence history tracking
