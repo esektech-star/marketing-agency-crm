@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import swaggerUi from "swagger-ui-express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
@@ -12,6 +13,7 @@ import { getDb } from "../db";
 import { notifyOwner } from "./notification";
 import { eq } from "drizzle-orm";
 import { clients } from "../../drizzle/schema";
+import { swaggerSpec } from "../swagger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +42,20 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  
+  // Swagger/OpenAPI documentation
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      url: "/api/swagger.json",
+    },
+  }));
+  
+  // Serve Swagger spec as JSON
+  app.get("/api/swagger.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",

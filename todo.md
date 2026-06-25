@@ -335,3 +335,10 @@
 - [x] Implement offline-first data caching (network-first for API, cache-first for static)
 - [x] Add push notification support (push event handler in Service Worker)
 - [x] Create PWA install prompts (PWAInstallPrompt component with beforeinstallprompt)
+
+## Phase 24: API Documentation
+- [x] Create Swagger/OpenAPI specification
+- [x] Add interactive API explorer (Swagger UI)
+- [x] Document all tRPC procedures
+- [x] Create API usage examples
+- [x] Add authentication documentation
