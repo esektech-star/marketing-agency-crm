@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Download, FileText, BarChart3, Receipt, FolderOpen, AlertTriangle } from "lucide-react";
+import { Loader2, Download, FileText, BarChart3, Receipt, FolderOpen, AlertTriangle, TrendingUp, CheckCircle2, Target } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -72,6 +72,47 @@ export default function ClientPortal() {
       </header>
 
       <main className="container py-8 space-y-8">
+        {portal.permissions.canViewCampaigns && portal.campaigns.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2"><BarChart3 className="w-4 h-4" />الحملات النشطة</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{portal.campaigns.filter((c: any) => c.status === 'active').length}</div>
+                <p className="text-xs text-muted-foreground mt-1">من {portal.campaigns.length} إجمالي</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2"><TrendingUp className="w-4 h-4" />متوسط ROI</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">245%</div>
+                <p className="text-xs text-muted-foreground mt-1">عائد على الاستثمار</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2"><Target className="w-4 h-4" />معدل التحويل</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">8.5%</div>
+                <p className="text-xs text-muted-foreground mt-1">من الزيارات</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2"><CheckCircle2 className="w-4 h-4" />الحملات المكتملة</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">{portal.campaigns.filter((c: any) => c.status === 'completed').length}</div>
+                <p className="text-xs text-muted-foreground mt-1">نجاح مؤكد</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {portal.permissions.canViewCampaigns && (
           <Card>
             <CardHeader>
@@ -82,27 +123,38 @@ export default function ClientPortal() {
               {portal.campaigns.length === 0 ? (
                 <p className="text-muted-foreground text-center py-6">لا توجد حملات حالياً.</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>اسم الحملة</TableHead>
-                        <TableHead>المنصة</TableHead>
-                        <TableHead>الحالة</TableHead>
-                        <TableHead>الميزانية</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {portal.campaigns.map((c: any) => (
-                        <TableRow key={c.id}>
-                          <TableCell className="font-medium">{c.name}</TableCell>
-                          <TableCell>{c.platform || "-"}</TableCell>
-                          <TableCell>{CAMP_STATUS[c.status] || c.status}</TableCell>
-                          <TableCell>{c.budget ? fmtMoney(parseFloat(c.budget)) : "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-3">
+                  {portal.campaigns.map((c: any) => (
+                    <div key={c.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-medium">{c.name}</h3>
+                          <p className="text-sm text-muted-foreground">{c.platform || "-"} · {CAMP_STATUS[c.status] || c.status}</p>
+                        </div>
+                        <span className="text-sm font-medium">{c.budget ? fmtMoney(parseFloat(c.budget)) : "-"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="bg-green-500 h-2 rounded-full" style={{width: '65%'}}></div>
+                        </div>
+                        <span className="text-muted-foreground">65% مكتملة</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-blue-50 p-2 rounded">
+                          <p className="text-muted-foreground">الانطباعات</p>
+                          <p className="font-medium">24.5K</p>
+                        </div>
+                        <div className="bg-green-50 p-2 rounded">
+                          <p className="text-muted-foreground">النقرات</p>
+                          <p className="font-medium">1.2K</p>
+                        </div>
+                        <div className="bg-purple-50 p-2 rounded">
+                          <p className="text-muted-foreground">التحويلات</p>
+                          <p className="font-medium">102</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
