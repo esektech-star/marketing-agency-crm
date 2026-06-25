@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit2, Trash2, Loader2, Calendar, DollarSign, Target } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import WorkflowApprovals from "@/components/WorkflowApprovals";
 
 export default function CampaignDetail() {
   const { t, i18n } = useTranslation();
@@ -216,6 +217,15 @@ export default function CampaignDetail() {
             <p className="text-muted-foreground">{campaign.notes}</p>
           </CardContent>
         </Card>
+      )}
+
+      {campaign.status === "planned" && (
+        <WorkflowApprovals
+          campaignId={campaign.id?.toString()}
+          campaignName={campaign.name}
+          onApprove={() => refetch()}
+          onReject={() => refetch()}
+        />
       )}
     </div>
   );
