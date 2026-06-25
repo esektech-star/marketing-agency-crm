@@ -177,28 +177,28 @@
 ## Phase 3: Client Profile Enhancement (Major Reform - In Progress)
 - [x] Create ClientProfile.tsx component with 6 tabs (Overview, Campaigns, Tasks, Strategy, Invoices, Timeline)
 - [x] Wire ClientProfile route in App.tsx (/clients/:id)
-- [ ] Populate Strategy tab with client strategy details and recommendations
-- [ ] Enhance Timeline tab with real activity data from database
-- [ ] Add backend procedures for client-specific data (tasks, campaigns, invoices)
-- [ ] Test ClientProfile navigation from Clients list
-- [ ] Verify RTL support for all tabs
+- [x] Populate Strategy tab with client strategy details and recommendations
+- [x] Enhance Timeline tab with real activity data from database
+- [x] Add backend procedures for client-specific data (tasks, campaigns, invoices)
+- [x] Test ClientProfile navigation from Clients list
+- [x] Verify RTL support for all tabs
 
 ## Phase 1 Revisit: Dashboard Real-Time Data
-- [ ] Add tasks.list procedure to server/routers.ts
-- [ ] Add campaigns.list procedure to server/routers.ts
-- [ ] Update Dashboard to use real data instead of placeholders
-- [ ] Implement backend queries for Today Focus section
-- [ ] Implement backend queries for Campaign Overview section
-- [ ] Implement backend queries for Alerts section
+- [x] Add tasks.list procedure to server/routers.ts (already exists)
+- [x] Add campaigns.list procedure to server/routers.ts (already exists)
+- [x] Update Dashboard to use real data instead of placeholders (using trpc.dashboard.getStats)
+- [x] Implement backend queries for Today Focus section (via getStats)
+- [x] Implement backend queries for Campaign Overview section (via getStats)
+- [x] Implement backend queries for Alerts section (via getStats)
 
 ## Phase 4: Campaigns Module Enhancement
 - [x] Add advanced filters to Campaigns page (search, status, platform)
 - [x] Add sorting by name, budget, and start date with visual indicators
 - [x] Add platform selection dropdown in form
 - [x] Display filtered count vs total count
-- [ ] Create Campaigns detail view (modal or dedicated page)
-- [ ] Add performance metrics to campaign cards
-- [ ] Implement campaign status management
+- [x] Create Campaigns detail view (modal or dedicated page)
+- [x] Add performance metrics to campaign cards (ROI calculation)
+- [x] Implement campaign status management (status badges, days remaining)
 
 ## Phase 5: Tasks Kanban Board
 - [x] Create Kanban board component with drag-and-drop

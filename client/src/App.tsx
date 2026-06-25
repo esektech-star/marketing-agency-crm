@@ -13,6 +13,7 @@ import { Loader2 } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
+import CampaignDetail from "./pages/CampaignDetail";
 
 import Subscriptions from "./pages/Subscriptions";
 import TeamMembers from "./pages/TeamMembers";
@@ -123,6 +124,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Campaigns />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/campaigns/:id"}>
+        {() => (
+          <DashboardLayout>
+            <CampaignDetail />
           </DashboardLayout>
         )}
       </Route>

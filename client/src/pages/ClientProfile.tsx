@@ -219,9 +219,60 @@ export default function ClientProfile() {
           <Card>
             <CardHeader>
               <CardTitle>{t("clients.strategy", "Strategy")}</CardTitle>
+              <CardDescription>{t("clients.strategyDesc", "Client strategy and recommendations")}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-center py-8">{t("common.comingSoon", "Coming Soon")}</p>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg bg-blue-50">
+                  <p className="text-sm font-medium text-blue-900 mb-2">{t("clients.campaignCount", "Active Campaigns")}</p>
+                  <p className="text-2xl font-bold text-blue-700">{clientCampaigns.length}</p>
+                </div>
+                <div className="p-4 border rounded-lg bg-green-50">
+                  <p className="text-sm font-medium text-green-900 mb-2">{t("clients.taskCount", "Pending Tasks")}</p>
+                  <p className="text-2xl font-bold text-green-700">{clientTasks.filter((t: any) => t.status !== 'completed').length}</p>
+                </div>
+                <div className="p-4 border rounded-lg bg-purple-50">
+                  <p className="text-sm font-medium text-purple-900 mb-2">{t("clients.monthlyRevenue", "Monthly Revenue")}</p>
+                  <p className="text-2xl font-bold text-purple-700">₪{typeof client.monthlyAmount === 'number' ? (client.monthlyAmount as number).toFixed(0) : client.monthlyAmount || "0"}</p>
+                </div>
+                <div className="p-4 border rounded-lg bg-orange-50">
+                  <p className="text-sm font-medium text-orange-900 mb-2">{t("clients.clientDuration", "Client Duration")}</p>
+                  <p className="text-2xl font-bold text-orange-700">{Math.floor((new Date().getTime() - new Date(client.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} {t("common.months", "months")}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">{t("clients.recommendations", "Recommendations")}</h3>
+                <div className="space-y-2">
+                  {clientCampaigns.length === 0 && (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800">{t("clients.recCampaigns", "Consider launching new campaigns to boost engagement")}</p>
+                    </div>
+                  )}
+                  {clientTasks.filter((t: any) => t.status === 'pending').length > 5 && (
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-sm text-orange-800">{t("clients.recTasks", "High number of pending tasks - prioritize completion")}</p>
+                    </div>
+                  )}
+                  {typeof client.monthlyAmount === 'number' && client.monthlyAmount > 5000 && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800">{t("clients.recVIP", "This is a high-value client - ensure premium support")}</p>
+                    </div>
+                  )}
+                  {clientCampaigns.length > 0 && clientTasks.filter((t: any) => t.status === 'pending').length <= 2 && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">{t("clients.recPerformance", "Client is performing well - maintain current strategy")}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">{t("clients.strategyNotes", "Strategy Notes")}</h3>
+                <div className="p-4 bg-muted rounded-lg min-h-[100px]">
+                  <p className="text-sm text-muted-foreground">{client.notes || t("common.noNotes", "No strategy notes yet")}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -253,21 +304,63 @@ export default function ClientProfile() {
           <Card>
             <CardHeader>
               <CardTitle>{t("clients.timeline", "Timeline")}</CardTitle>
+              <CardDescription>{t("clients.activityHistory", "Client activity and milestones")}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                  <div>
-                    <p className="font-medium">{t("common.created")}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(client.createdAt).toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                  <div>
-                    <p className="font-medium">{t("common.updated")}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(client.updatedAt).toLocaleString()}</p>
+              <div className="space-y-6">
+                <div className="relative">
+                  <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-border"></div>
+                  <div className="space-y-6 ps-8">
+                    <div className="flex gap-4">
+                      <div className="absolute left-0 w-4 h-4 rounded-full bg-primary border-2 border-background mt-1"></div>
+                      <div>
+                        <p className="font-medium">{t("common.created")}</p>
+                        <p className="text-sm text-muted-foreground">{new Date(client.createdAt).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t("clients.clientAdded", "Client added to system")}</p>
+                      </div>
+                    </div>
+
+                    {clientCampaigns.length > 0 && (
+                      <div className="flex gap-4">
+                        <div className="absolute left-0 w-4 h-4 rounded-full bg-blue-500 border-2 border-background mt-1"></div>
+                        <div>
+                          <p className="font-medium">{t("clients.campaignStarted", "Campaigns Started")}</p>
+                          <p className="text-sm text-muted-foreground">{clientCampaigns.length} {t("common.campaigns", "campaigns")} active</p>
+                          <p className="text-xs text-muted-foreground mt-1">{t("clients.campaignDesc", "Marketing campaigns launched")}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {clientTasks.length > 0 && (
+                      <div className="flex gap-4">
+                        <div className="absolute left-0 w-4 h-4 rounded-full bg-green-500 border-2 border-background mt-1"></div>
+                        <div>
+                          <p className="font-medium">{t("clients.tasksCreated", "Tasks Created")}</p>
+                          <p className="text-sm text-muted-foreground">{clientTasks.length} {t("common.tasks", "tasks")} total</p>
+                          <p className="text-xs text-muted-foreground mt-1">{t("clients.taskDesc", "Work items assigned")}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {typeof client.monthlyAmount === 'number' && client.monthlyAmount > 0 && (
+                      <div className="flex gap-4">
+                        <div className="absolute left-0 w-4 h-4 rounded-full bg-purple-500 border-2 border-background mt-1"></div>
+                        <div>
+                          <p className="font-medium">{t("clients.subscriptionActive", "Subscription Active")}</p>
+                          <p className="text-sm text-muted-foreground">₪{typeof client.monthlyAmount === 'number' ? (client.monthlyAmount as number).toFixed(0) : client.monthlyAmount}/month</p>
+                          <p className="text-xs text-muted-foreground mt-1">{t("clients.subscriptionDesc", "Monthly billing active")}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-4">
+                      <div className="absolute left-0 w-4 h-4 rounded-full bg-muted-foreground border-2 border-background mt-1"></div>
+                      <div>
+                        <p className="font-medium">{t("common.updated")}</p>
+                        <p className="text-sm text-muted-foreground">{new Date(client.updatedAt).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t("clients.lastModified", "Last modified")}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

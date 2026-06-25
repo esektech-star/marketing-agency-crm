@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ type SortOrder = "asc" | "desc";
 
 export default function Clients() {
   const { t, i18n } = useTranslation();
+  const [, navigate] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -423,6 +425,9 @@ export default function Clients() {
                       <TableCell>{client.phone || "-"}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/clients/${client.id}`)} title="View Profile">
+                            {t("common.view", "View")}
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => {
                             const lang = i18n.language;
                             let message = '';

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -18,6 +19,7 @@ const PLATFORMS = ["Facebook", "Instagram", "Google Ads", "TikTok", "LinkedIn", 
 
 export default function Campaigns() {
   const { t, i18n } = useTranslation();
+  const [, navigate] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -471,6 +473,9 @@ export default function Campaigns() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/campaigns/${campaign.id}`)} title="View Details">
+                            {t("common.view", "View")}
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => {
                             const lang = i18n.language;
                             const startDate = new Date(campaign.startDate).toLocaleDateString();
