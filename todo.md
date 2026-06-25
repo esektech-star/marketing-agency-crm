@@ -321,3 +321,10 @@
 - [x] Add archive old campaigns functionality with retention policies (archive section with 90-day threshold)
 - [x] Create backup history and restore functionality (download/restore buttons)
 - [x] Add data export in multiple formats (CSV, JSON, Excel checkboxes)
+
+## Phase 22: Real-time Collaboration
+- [x] Implement WebSocket server integration (websocket.ts with connection management)
+- [x] Add real-time notifications via WebSocket (broadcast notifications)
+- [x] Implement live activity feed updates (activity message type)
+- [x] Add real-time comment updates (comment message type with author tracking)
+- [x] Create presence indicators (who's online with user presence tracking)
