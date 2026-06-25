@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { shareViaWhatsApp, formatCampaignShareMessage, formatCampaignShareMessageHE, formatCampaignShareMessageEN } from "@/lib/whatsappUtils";
+import AdvancedFilters, { AdvancedFiltersState } from "@/components/AdvancedFilters";
 
 const STATUS_VALUES = ["planned", "active", "pending", "completed"] as const;
 const PLATFORMS = ["Facebook", "Instagram", "Google Ads", "TikTok", "LinkedIn", "Twitter", "YouTube", "Other"] as const;
@@ -34,6 +35,11 @@ export default function Campaigns() {
   const [sortBy, setSortBy] = useState<"name" | "budget" | "startDate">("startDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<number>>(new Set());
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFiltersState>({});
+
+  const handleAdvancedFiltersChange = (filters: AdvancedFiltersState) => {
+    setAdvancedFilters(filters);
+  };
 
   const emptyForm = {
     name: "",
@@ -521,6 +527,12 @@ export default function Campaigns() {
               >
                 {t("common.clearFilters", "Clear Filters")}
               </Button>
+            </div>
+            <div>
+              <AdvancedFilters 
+                onFiltersChange={handleAdvancedFiltersChange}
+                activeFiltersCount={Object.values(advancedFilters).filter(v => v && (Array.isArray(v) ? v.length > 0 : true)).length}
+              />
             </div>
           </div>
         </CardContent>
