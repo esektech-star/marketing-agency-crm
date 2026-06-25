@@ -30,6 +30,7 @@ import { Button } from "./ui/button";
 import LanguageSwitcher from './LanguageSwitcher';
 import EsekTechLogo from './EsekTechLogo';
 import { SearchBar } from './SearchBar';
+import NotificationCenter from './NotificationCenter';
 
 const getMenuItems = (t: any) => [
   { icon: LayoutDashboard, label: t("sidebar.dashboard", "لوحة التحكم"), path: "/dashboard" },
@@ -307,6 +308,7 @@ function DashboardLayoutContent({
           )}
           {!isMobile && <SearchBar />}
           <div className="flex-1" />
+          <NotificationCenter />
           <LanguageSwitcher />
         </div>
         <main className="flex-1 p-4 flex flex-col">
