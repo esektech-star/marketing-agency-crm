@@ -251,3 +251,10 @@
 - [x] Implement comment threads with nested replies (recursive reply rendering)
 - [x] Add real-time comment notifications (toast on new comments)
 - [x] Create comment editing and deletion functionality (edit/delete buttons)
+
+## Phase 12: Performance Alerts System
+- [x] Create Alerts configuration page (Alerts.tsx)
+- [x] Implement ROI threshold alerts (roi_decline type)
+- [x] Add conversion rate decline alerts (conversion_drop type)
+- [x] Create budget overspend alerts (budget_overspend type)
+- [x] Add email notification delivery for alerts (notifyEmail toggle)
