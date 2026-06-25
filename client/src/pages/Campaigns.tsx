@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video, MessageCircle, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Link as LinkIcon, Upload, ExternalLink, Image as ImageIcon, Video, MessageCircle, Search, ChevronDown, ChevronUp, CheckSquare, Archive, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { shareViaWhatsApp, formatCampaignShareMessage, formatCampaignShareMessageHE, formatCampaignShareMessageEN } from "@/lib/whatsappUtils";
 
 const STATUS_VALUES = ["planned", "active", "pending", "completed"] as const;
@@ -31,6 +33,7 @@ export default function Campaigns() {
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "budget" | "startDate">("startDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [selectedCampaigns, setSelectedCampaigns] = useState<Set<number>>(new Set());
 
   const emptyForm = {
     name: "",
@@ -165,6 +168,64 @@ export default function Campaigns() {
     }
   };
 
+
+  const handleToggleSelect = (id: number) => {
+    const newSelected = new Set(selectedCampaigns);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedCampaigns(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedCampaigns.size === filteredCampaigns.length) {
+      setSelectedCampaigns(new Set());
+    } else {
+      setSelectedCampaigns(new Set(filteredCampaigns.map(c => c.id)));
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    try {
+      Array.from(selectedCampaigns).forEach(async (id) => {
+        await updateMutation.mutateAsync({ id, status: "active" });
+      });
+      toast.success(t("campaigns.bulkApproveSuccess", "تمت الموافقة على الحملات المختارة"));
+      setSelectedCampaigns(new Set());
+      refetch();
+    } catch {
+      toast.error(t("common.error"));
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    try {
+      Array.from(selectedCampaigns).forEach(async (id) => {
+        await updateMutation.mutateAsync({ id, status: "completed" });
+      });
+      toast.success(t("campaigns.bulkArchiveSuccess", "تم أرشفة الحملات المختارة"));
+      setSelectedCampaigns(new Set());
+      refetch();
+    } catch {
+      toast.error(t("common.error"));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      Array.from(selectedCampaigns).forEach(async (id) => {
+        await deleteMutation.mutateAsync({ id });
+      });
+      toast.success(t("campaigns.bulkDeleteSuccess", "تم حذف الحملات المختارة"));
+      setSelectedCampaigns(new Set());
+      refetch();
+    } catch {
+      toast.error(t("common.error"));
+    }
+  };
+
   const handleCloseDialog = () => {
     setIsOpen(false);
     setEditingId(null);
@@ -228,6 +289,73 @@ export default function Campaigns() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {selectedCampaigns.size > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-5 h-5 text-blue-600" />
+            <span className="font-medium text-blue-900">{selectedCampaigns.size} {t("campaigns.selected", "حملات مختارة")}</span>
+          </div>
+          <div className="flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Check className="w-4 h-4 me-1" />
+                  {t("campaigns.bulkApprove", "الموافقة")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("campaigns.confirmBulkApprove", "تأكيد الموافقة")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("campaigns.bulkApproveDesc", "هل تريد الموافقة على جميع الحملات المختارة؟")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogAction onClick={handleBulkApprove}>{t("common.confirm", "تأكيد")}</AlertDialogAction>
+                <AlertDialogCancel>{t("common.cancel", "إلغاء")}</AlertDialogCancel>
+              </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                  <Archive className="w-4 h-4 me-1" />
+                  {t("campaigns.bulkArchive", "أرشفة")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("campaigns.confirmBulkArchive", "تأكيد الأرشفة")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("campaigns.bulkArchiveDesc", "هل تريد أرشفة جميع الحملات المختارة؟")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogAction onClick={handleBulkArchive}>{t("common.confirm", "تأكيد")}</AlertDialogAction>
+                <AlertDialogCancel>{t("common.cancel", "إلغاء")}</AlertDialogCancel>
+              </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                  <X className="w-4 h-4 me-1" />
+                  {t("campaigns.bulkDelete", "حذف")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("campaigns.confirmBulkDelete", "تأكيد الحذف")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("campaigns.bulkDeleteDesc", "هل تريد حذف جميع الحملات المختارة؟ هذا الإجراء لا يمكن التراجع عنه.")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogAction onClick={handleBulkDelete}>{t("common.confirm", "تأكيد")}</AlertDialogAction>
+                <AlertDialogCancel>{t("common.cancel", "إلغاء")}</AlertDialogCancel>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button size="sm" variant="outline" onClick={() => setSelectedCampaigns(new Set())}>
+              {t("common.clear", "مسح")}
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t("campaigns.title")}</h1>
@@ -418,6 +546,12 @@ export default function Campaigns() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedCampaigns.size === filteredCampaigns.length && filteredCampaigns.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead 
                       className="cursor-pointer hover:bg-muted"
                       onClick={() => toggleSort("name")}
@@ -445,7 +579,13 @@ export default function Campaigns() {
                 </TableHeader>
                 <TableBody>
                   {filteredCampaigns.map((campaign: any) => (
-                    <TableRow key={campaign.id} className="hover:bg-muted/50">
+                    <TableRow key={campaign.id} className={`hover:bg-muted/50 ${selectedCampaigns.has(campaign.id) ? "bg-blue-50" : ""}`}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedCampaigns.has(campaign.id)}
+                          onCheckedChange={() => handleToggleSelect(campaign.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">{campaign.name}</TableCell>
                       <TableCell>{campaign.platform}</TableCell>
                       <TableCell dir="ltr">{fmt(campaign.budget)}</TableCell>

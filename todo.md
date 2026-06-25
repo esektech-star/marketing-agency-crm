@@ -286,3 +286,10 @@
 - [x] Add status update notifications (toast notifications on submit/response)
 - [x] Create feedback dashboard for clients (ClientFeedbackPage)
 - [x] Add feedback response management (response threads with timestamps)
+
+## Phase 17: Bulk Campaign Actions
+- [x] Add multi-select checkboxes to campaign cards (checkbox in each row + header select-all)
+- [x] Create batch action toolbar (blue toolbar with action buttons)
+- [x] Implement bulk approve/reject operations (bulk approve to active status)
+- [x] Add bulk archive functionality (bulk archive to completed status)
+- [x] Create confirmation dialogs for bulk actions (AlertDialog for each action)
