@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2, Download } from "lucide-react";
 import AIReportViewer from "@/components/AIReportViewer";
+import ExportShare from "@/components/ExportShare";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function Reports() {
@@ -109,10 +110,7 @@ export default function Reports() {
           <h1 className="text-3xl font-bold">{t("reports.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("reports.subtitle")}</p>
         </div>
-        <Button onClick={handleDownloadReport} className="bg-[#1e3a5f] hover:bg-[#2d5080]">
-          <Download className="w-4 h-4 ms-2" />
-          {t("reports.download")}
-        </Button>
+        <ExportShare title={t("reports.title")} reportType="analytics" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
