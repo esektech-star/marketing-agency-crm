@@ -9,6 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { storagePut } from "./storage";
 import { generateClientInsights, generateCampaignRecommendations } from "./aiInsights";
 import { chatWithAI } from "./aiChat";
+import { generatePerformanceReport, generateClientReport } from "./aiReport";
 
 export const appRouter = router({
   system: systemRouter,
@@ -878,6 +879,15 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return await chatWithAI(input.messages, input.clientId);
+      }),
+    performanceReport: protectedProcedure
+      .query(async () => {
+        return await generatePerformanceReport();
+      }),
+    clientReport: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        return await generateClientReport(input.clientId);
       }),
   }),
 });

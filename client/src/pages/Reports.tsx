@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Download } from "lucide-react";
+import AIReportViewer from "@/components/AIReportViewer";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function Reports() {
@@ -263,6 +264,11 @@ export default function Reports() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-8 border-t pt-8">
+        <h2 className="text-2xl font-bold mb-4">{t("reports.aiInsights", "AI-Powered Insights")}</h2>
+        <AIReportViewer type="performance" />
       </div>
     </div>
   );

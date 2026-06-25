@@ -213,4 +213,4 @@
 - [x] Integrate LLM for client insights (generateClientInsights procedure)
 - [x] Add AI-powered recommendations in Strategy tab (AIInsights component)
 - [x] Implement AI chat for client queries (ClientAIChat component + chat procedure)
-- [x] Add AI-generated reports (via generateClientInsights with structured output)
+- [x] Add AI-generated reports (performanceReport and clientReport procedures with AIReportViewer component)
