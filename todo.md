@@ -212,5 +212,5 @@
 ## Phase 6: AI Integration
 - [x] Integrate LLM for client insights (generateClientInsights procedure)
 - [x] Add AI-powered recommendations in Strategy tab (AIInsights component)
-- [ ] Implement AI chat for client queries
-- [ ] Add AI-generated reports
+- [x] Implement AI chat for client queries (ClientAIChat component + chat procedure)
+- [x] Add AI-generated reports (via generateClientInsights with structured output)

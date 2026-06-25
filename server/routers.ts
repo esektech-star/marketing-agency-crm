@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import { TRPCError } from "@trpc/server";
 import { storagePut } from "./storage";
 import { generateClientInsights, generateCampaignRecommendations } from "./aiInsights";
+import { chatWithAI } from "./aiChat";
 
 export const appRouter = router({
   system: systemRouter,
@@ -866,6 +867,17 @@ export const appRouter = router({
       .input(z.object({ campaignId: z.number() }))
       .query(async ({ input }) => {
         return await generateCampaignRecommendations(input.campaignId);
+      }),
+    chat: protectedProcedure
+      .input(z.object({
+        messages: z.array(z.object({
+          role: z.enum(["system", "user", "assistant"]),
+          content: z.string(),
+        })),
+        clientId: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await chatWithAI(input.messages, input.clientId);
       }),
   }),
 });

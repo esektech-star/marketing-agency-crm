@@ -10,6 +10,7 @@ import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import AIInsights from "@/components/AIInsights";
+import ClientAIChat from "@/components/ClientAIChat";
 
 export default function ClientProfile() {
   const { t, i18n } = useTranslation();
@@ -118,6 +119,7 @@ export default function ClientProfile() {
           <TabsTrigger value="strategy">{t("clients.strategy", "Strategy")}</TabsTrigger>
           <TabsTrigger value="invoices">{t("clients.invoices", "Invoices")}</TabsTrigger>
           <TabsTrigger value="timeline">{t("clients.timeline", "Timeline")}</TabsTrigger>
+          <TabsTrigger value="chat">{t("clients.aiChat", "AI Chat")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -372,6 +374,10 @@ export default function ClientProfile() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="chat" className="space-y-4">
+          <ClientAIChat clientId={clientId!} />
         </TabsContent>
       </Tabs>
     </div>
