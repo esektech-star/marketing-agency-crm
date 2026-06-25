@@ -45,6 +45,7 @@ const getMenuItems = (t: any) => [
   { icon: PieChart, label: t("sidebar.kpi", "مؤشرات الأداء"), path: "/kpi" },
   { icon: LineChartIcon, label: t("sidebar.reports", "التقارير"), path: "/reports" },
   { icon: Activity, label: t("sidebar.activityFeed", "سجل النشاط"), path: "/activity-feed" },
+  { icon: BarChart3, label: t("sidebar.analytics", "التحليلات المتقدمة"), path: "/analytics" },
   { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
   { icon: Receipt, label: t("sidebar.invoices", "الفواتير"), path: "/invoices" },
   { icon: Globe, label: t("sidebar.clientPortal", "بوابة العملاء"), path: "/client-portal", adminOnly: true },

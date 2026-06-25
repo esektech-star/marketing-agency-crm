@@ -27,6 +27,7 @@ import Users from "./pages/Users";
 import Documents from "@/pages/Documents";
 import Invoices from "@/pages/Invoices";
 import ActivityFeed from "@/pages/ActivityFeed";
+import Analytics from "./pages/Analytics";
 import AccessDetails from "./pages/AccessDetails";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
@@ -153,6 +154,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <ActivityFeed />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/analytics"}>
+        {() => (
+          <DashboardLayout>
+            <Analytics />
           </DashboardLayout>
         )}
       </Route>
