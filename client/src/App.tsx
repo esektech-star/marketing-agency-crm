@@ -28,7 +28,8 @@ import Documents from "@/pages/Documents";
 import Invoices from "@/pages/Invoices";
 import ActivityFeed from "@/pages/ActivityFeed";
 import Analytics from "./pages/Analytics";
-import Alerts from "./pages/Alerts";
+import Alerts from "@/pages/Alerts";
+import ReportScheduling from "@/pages/ReportScheduling";
 import AccessDetails from "./pages/AccessDetails";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
@@ -148,6 +149,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Reports />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/report-scheduling"}>
+        {() => (
+          <DashboardLayout>
+            <ReportScheduling />
           </DashboardLayout>
         )}
       </Route>

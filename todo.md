@@ -265,3 +265,10 @@
 - [x] Create deliverables checklist view (campaign cards with metrics)
 - [x] Implement secure client access control (token-based access)
 - [x] Add client notification preferences (existing in AccessDetails)
+
+## Phase 14: Automated Weekly Reports
+- [x] Create report scheduling configuration page (ReportScheduling.tsx)
+- [x] Implement weekly report generation logic (frequency: weekly, biweekly, monthly)
+- [x] Add email delivery for scheduled reports (recipients configuration)
+- [x] Create customizable report templates (include metrics, recommendations, insights toggles)
+- [x] Add report delivery tracking and logs (lastSent, nextSend timestamps)
