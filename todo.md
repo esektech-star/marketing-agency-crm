@@ -221,5 +221,5 @@
 - [x] Add notifications for campaign launches (notification types)
 - [x] Add notifications for client milestones (notification types)
 - [x] Create Notification Center component (NotificationCenter.tsx)
-- [ ] Add notification preferences/settings
-- [ ] Implement email notification delivery
+- [x] Add notification preferences/settings (NotificationPreferences component in AccessDetails)
+- [x] Implement email notification delivery (emailNotifications.ts with task, campaign, payment, milestone, and digest templates)

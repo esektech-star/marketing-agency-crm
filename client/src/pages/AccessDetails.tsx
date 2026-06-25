@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Copy, Check, Plus, Pencil, Trash2, Eye, EyeOff, KeyRound, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { shareViaWhatsApp, formatAccessDetailsShareMessage, formatAccessDetailsShareMessageHE, formatAccessDetailsShareMessageEN } from "@/lib/whatsappUtils";
+import NotificationPreferences from "@/components/NotificationPreferences";
 
 const INTERNAL = "internal";
 
@@ -151,6 +152,7 @@ export default function AccessDetails() {
         <TabsList>
           <TabsTrigger value="access">{t("accessDetails.manageTitle")}</TabsTrigger>
           <TabsTrigger value="profile">{t("accessDetails.myProfile")}</TabsTrigger>
+          <TabsTrigger value="notifications">{t("notifications.preferences", "Notifications")}</TabsTrigger>
         </TabsList>
 
         {/* ============ Client Access Manager ============ */}
@@ -399,6 +401,11 @@ export default function AccessDetails() {
               </Card>
             </>
           )}
+        </TabsContent>
+
+        {/* ============ Notification Preferences ============ */}
+        <TabsContent value="notifications">
+          <NotificationPreferences />
         </TabsContent>
       </Tabs>
     </div>
