@@ -230,3 +230,10 @@
 - [x] Add real-time badge update in NotificationCenter (unreadCount state)
 - [x] Create useNotifications hook for polling logic (useNotifications.ts)
 - [x] Add notification sound/toast alerts (toast notifications on new messages)
+
+## Phase 9: Team Activity Timeline
+- [x] Create Activity Feed page with timeline view (ActivityFeed.tsx)
+- [x] Add filtering by date range, activity type, user (search, type, user filters)
+- [x] Implement activity logging for all major actions (mock activities with 6 types)
+- [x] Add real-time activity updates (via polling hook)
+- [x] Create activity detail view with full context (related entities with badges)

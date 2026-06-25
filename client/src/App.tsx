@@ -24,9 +24,10 @@ import Campaigns from "./pages/Campaigns";
 import MetaCampaigns from "./pages/MetaCampaigns";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
+import Documents from "@/pages/Documents";
+import Invoices from "@/pages/Invoices";
+import ActivityFeed from "@/pages/ActivityFeed";
 import AccessDetails from "./pages/AccessDetails";
-import Documents from "./pages/Documents";
-import Invoices from "./pages/Invoices";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
@@ -145,6 +146,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Reports />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/activity-feed"}>
+        {() => (
+          <DashboardLayout>
+            <ActivityFeed />
           </DashboardLayout>
         )}
       </Route>
