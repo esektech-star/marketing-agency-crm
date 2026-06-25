@@ -244,3 +244,10 @@
 - [x] Implement conversion rate analysis (conversion rate line chart)
 - [x] Add campaign performance comparison charts (revenue vs spent, budget allocation)
 - [x] Create custom date range filtering for analytics (date range inputs)
+
+## Phase 11: Team Collaboration Comments
+- [x] Create Comments component for tasks and campaigns (CommentsSection.tsx)
+- [x] Add @mentions support with user suggestions (mention detection and dropdown)
+- [x] Implement comment threads with nested replies (recursive reply rendering)
+- [x] Add real-time comment notifications (toast on new comments)
+- [x] Create comment editing and deletion functionality (edit/delete buttons)
