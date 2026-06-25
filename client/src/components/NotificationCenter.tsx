@@ -2,44 +2,15 @@ import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, Trash2, Loader2 } from "lucide-react";
+import { Bell, Check, Trash2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export default function NotificationCenter() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-
-  // Mock notifications - in a real app, these would come from tRPC queries
-  const notifications = [
-    {
-      id: 1,
-      type: "task_assigned",
-      title: t("notifications.taskAssigned", "Task Assigned"),
-      message: "You have been assigned a new task: Website Redesign",
-      createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-      isRead: false,
-    },
-    {
-      id: 2,
-      type: "campaign_update",
-      title: t("notifications.campaignLaunched", "Campaign Launched"),
-      message: "Facebook Campaign 'Summer Sale' has been launched successfully",
-      createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      isRead: false,
-    },
-    {
-      id: 3,
-      type: "payment_reminder",
-      title: t("notifications.paymentReceived", "Payment Received"),
-      message: "Payment of ₪5,000 received from Acme Corp",
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      isRead: true,
-    },
-  ];
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -49,6 +20,8 @@ export default function NotificationCenter() {
         return "📢";
       case "payment_reminder":
         return "💰";
+      case "task_due":
+        return "⏰";
       default:
         return "🔔";
     }
@@ -94,8 +67,8 @@ export default function NotificationCenter() {
                 size="sm"
                 className="text-xs"
                 onClick={() => {
-                  // Mark all as read
-                  toast.success(t("common.success", "Success"));
+                  markAllAsRead();
+                  toast.success(t("common.success", "Marked all as read"));
                 }}
               >
                 <Check className="w-3 h-3 me-1" />
@@ -139,7 +112,7 @@ export default function NotificationCenter() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        // Delete notification
+                        deleteNotification(notification.id);
                         toast.success(t("common.deleted", "Deleted"));
                       }}
                     >
