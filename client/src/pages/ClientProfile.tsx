@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit2, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import AIInsights from "@/components/AIInsights";
 
 export default function ClientProfile() {
   const { t, i18n } = useTranslation();
@@ -272,6 +273,11 @@ export default function ClientProfile() {
                 <div className="p-4 bg-muted rounded-lg min-h-[100px]">
                   <p className="text-sm text-muted-foreground">{client.notes || t("common.noNotes", "No strategy notes yet")}</p>
                 </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">{t("clients.aiInsights", "AI-Powered Insights")}</h3>
+                <AIInsights clientId={clientId!} />
               </div>
             </CardContent>
           </Card>

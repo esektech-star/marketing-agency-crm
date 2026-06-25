@@ -210,7 +210,7 @@
 - [x] Show overdue and due-soon warnings with visual indicators
 
 ## Phase 6: AI Integration
-- [ ] Integrate LLM for client insights
-- [ ] Add AI-powered recommendations in Strategy tab
+- [x] Integrate LLM for client insights (generateClientInsights procedure)
+- [x] Add AI-powered recommendations in Strategy tab (AIInsights component)
 - [ ] Implement AI chat for client queries
 - [ ] Add AI-generated reports

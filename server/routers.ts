@@ -7,6 +7,7 @@ import * as db from "./db";
 import bcrypt from "bcryptjs";
 import { TRPCError } from "@trpc/server";
 import { storagePut } from "./storage";
+import { generateClientInsights, generateCampaignRecommendations } from "./aiInsights";
 
 export const appRouter = router({
   system: systemRouter,
@@ -851,6 +852,20 @@ export const appRouter = router({
         const { updateMonthlyKPI } = await import("./kpi");
         await updateMonthlyKPI(input.year, input.month);
         return { success: true };
+      }),
+  }),
+
+  // ==================== AI Insights ====================
+  ai: router({
+    clientInsights: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        return await generateClientInsights(input.clientId);
+      }),
+    campaignRecommendations: protectedProcedure
+      .input(z.object({ campaignId: z.number() }))
+      .query(async ({ input }) => {
+        return await generateCampaignRecommendations(input.campaignId);
       }),
   }),
 });
