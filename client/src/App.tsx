@@ -27,7 +27,8 @@ import Users from "./pages/Users";
 import Documents from "@/pages/Documents";
 import Invoices from "@/pages/Invoices";
 import ActivityFeed from "@/pages/ActivityFeed";
-import Analytics from "./pages/Analytics";
+import Analytics from "@/pages/Analytics";
+import Benchmarking from "@/pages/Benchmarking";
 import Alerts from "@/pages/Alerts";
 import ReportScheduling from "@/pages/ReportScheduling";
 import ClientFeedbackPage from "@/pages/ClientFeedbackPage";
@@ -178,6 +179,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <Analytics />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/benchmarking"}>
+        {() => (
+          <DashboardLayout>
+            <Benchmarking />
           </DashboardLayout>
         )}
       </Route>
