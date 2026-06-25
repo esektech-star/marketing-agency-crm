@@ -30,6 +30,7 @@ import ActivityFeed from "@/pages/ActivityFeed";
 import Analytics from "./pages/Analytics";
 import Alerts from "@/pages/Alerts";
 import ReportScheduling from "@/pages/ReportScheduling";
+import ClientFeedbackPage from "@/pages/ClientFeedbackPage";
 import AccessDetails from "./pages/AccessDetails";
 import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
@@ -156,6 +157,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <ReportScheduling />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/client-feedback"}>
+        {() => (
+          <DashboardLayout>
+            <ClientFeedbackPage />
           </DashboardLayout>
         )}
       </Route>
