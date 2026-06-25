@@ -4,7 +4,8 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import DashboardLayout from "./components/DashboardLayout";
+import DashboardLayout from '@/components/DashboardLayout';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./_core/hooks/useAuth";
@@ -272,6 +273,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
+        <PWAInstallPrompt />
         <TooltipProvider>
           <Toaster />
           <AppContent />

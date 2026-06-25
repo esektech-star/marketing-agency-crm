@@ -328,3 +328,10 @@
 - [x] Implement live activity feed updates (activity message type)
 - [x] Add real-time comment updates (comment message type with author tracking)
 - [x] Create presence indicators (who's online with user presence tracking)
+
+## Phase 23: Progressive Web App (PWA)
+- [x] Create Service Worker for offline support (sw.js with cache-first strategy)
+- [x] Add Web App Manifest for installability (manifest.json with app shortcuts)
+- [x] Implement offline-first data caching (network-first for API, cache-first for static)
+- [x] Add push notification support (push event handler in Service Worker)
+- [x] Create PWA install prompts (PWAInstallPrompt component with beforeinstallprompt)
