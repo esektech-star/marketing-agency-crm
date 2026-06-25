@@ -342,3 +342,12 @@
 - [x] Document all tRPC procedures
 - [x] Create API usage examples
 - [x] Add authentication documentation
+
+## Phase 25: Advanced Custom Reports
+- [x] Create CustomReports.tsx page with report builder UI
+- [x] Implement metric selection (ROI, conversions, revenue, expenses, etc.)
+- [x] Add date range filtering with presets (last 7 days, 30 days, 90 days, custom)
+- [x] Create report template selection (summary, detailed, executive)
+- [x] Implement export to PDF, Excel, CSV formats
+- [x] Add report scheduling and email delivery
+- [x] Create report history and saved reports management

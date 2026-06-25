@@ -33,6 +33,7 @@ import Benchmarking from "@/pages/Benchmarking";
 import BackupSchedule from "@/pages/BackupSchedule";
 import Alerts from "@/pages/Alerts";
 import ReportScheduling from "@/pages/ReportScheduling";
+import CustomReports from "@/pages/CustomReports";
 import ClientFeedbackPage from "@/pages/ClientFeedbackPage";
 import AccessDetails from "./pages/AccessDetails";
 import ClientPortalManager from "./pages/ClientPortalManager";
@@ -160,6 +161,13 @@ function Router() {
         {() => (
           <DashboardLayout>
             <ReportScheduling />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/custom-reports"}>
+        {() => (
+          <DashboardLayout>
+            <CustomReports />
           </DashboardLayout>
         )}
       </Route>
