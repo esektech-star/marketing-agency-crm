@@ -10,11 +10,15 @@ import "./index.css";
 import "./i18n/config";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
-// Initialize language on app start
-const savedLanguage = localStorage.getItem('language') || 'ar';
+// Initialize language on app start (Hebrew + Arabic only, both RTL)
+let savedLanguage = localStorage.getItem('language') || 'ar';
+if (savedLanguage !== 'ar' && savedLanguage !== 'he') {
+  savedLanguage = 'ar';
+  localStorage.setItem('language', 'ar');
+}
 document.documentElement.lang = savedLanguage;
-document.documentElement.dir = savedLanguage === 'en' ? 'ltr' : 'rtl';
-document.body.dir = savedLanguage === 'en' ? 'ltr' : 'rtl';
+document.documentElement.dir = 'rtl';
+document.body.dir = 'rtl';
 
 const queryClient = new QueryClient();
 

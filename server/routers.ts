@@ -490,7 +490,7 @@ export const appRouter = router({
         fullName: z.string(),
         email: z.string().optional(),
         role: z.enum(["manager", "employee", "designer", "editor"]),
-        preferredLanguage: z.enum(["ar", "he", "en"]),
+        preferredLanguage: z.enum(["ar", "he"]),
         status: z.enum(["active", "disabled"]),
         permissions: z.array(z.string()).optional(),
       }))
@@ -509,7 +509,7 @@ export const appRouter = router({
         fullName: z.string().optional(),
         email: z.string().optional(),
         role: z.enum(["manager", "employee", "designer", "editor"]).optional(),
-        preferredLanguage: z.enum(["ar", "he", "en"]).optional(),
+        preferredLanguage: z.enum(["ar", "he"]).optional(),
         status: z.enum(["active", "disabled"]).optional(),
         permissions: z.array(z.string()).optional(),
       }))

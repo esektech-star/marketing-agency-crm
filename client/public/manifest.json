@@ -1,7 +1,9 @@
 {
-  "name": "Esek Tech CRM System",
-  "short_name": "Esek CRM",
-  "description": "Professional Digital Marketing Agency CRM System",
+  "name": "نظام Esek Tech لإدارة العلاقات",
+  "short_name": "Esek Tech",
+  "description": "نظام إدارة شامل لوكالة التسويق الرقمي",
+  "lang": "ar",
+  "dir": "rtl",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -39,9 +41,9 @@
   "categories": ["business", "productivity"],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View your dashboard",
+      "name": "لوحة التحكم",
+      "short_name": "اللوحة",
+      "description": "عرض لوحة التحكم",
       "url": "/",
       "icons": [
         {
@@ -52,9 +54,9 @@
       ]
     },
     {
-      "name": "Campaigns",
-      "short_name": "Campaigns",
-      "description": "Manage your campaigns",
+      "name": "الحملات",
+      "short_name": "الحملات",
+      "description": "إدارة الحملات",
       "url": "/campaigns",
       "icons": [
         {
@@ -65,9 +67,9 @@
       ]
     },
     {
-      "name": "Tasks",
-      "short_name": "Tasks",
-      "description": "View your tasks",
+      "name": "المهام",
+      "short_name": "المهام",
+      "description": "عرض المهام",
       "url": "/tasks",
       "icons": [
         {

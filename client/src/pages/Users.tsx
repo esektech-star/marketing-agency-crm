@@ -244,7 +244,6 @@ export default function Users() {
                   <SelectContent>
                     <SelectItem value="ar">العربية</SelectItem>
                     <SelectItem value="he">العبرية</SelectItem>
-                    <SelectItem value="en">الإنجليزية</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

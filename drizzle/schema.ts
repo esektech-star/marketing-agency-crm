@@ -228,7 +228,7 @@ export const appUsers = mysqlTable("appUsers", {
   email: varchar("email", { length: 320 }),
   role: mysqlEnum("role", ["manager", "employee", "designer", "editor"]).default("employee").notNull(),
   permissions: json("permissions"), // صلاحيات مخصصة
-  preferredLanguage: mysqlEnum("preferredLanguage", ["ar", "he", "en"]).default("ar").notNull(),
+  preferredLanguage: mysqlEnum("preferredLanguage", ["ar", "he"]).default("ar").notNull(),
   status: mysqlEnum("status", ["active", "disabled"]).default("active").notNull(),
   lastLogin: timestamp("lastLogin"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

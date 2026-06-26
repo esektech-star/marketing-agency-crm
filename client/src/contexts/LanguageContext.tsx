@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-type Language = 'ar' | 'he' | 'en';
+type Language = 'ar' | 'he';
 type Direction = 'rtl' | 'ltr';
 
 interface LanguageContextType {
@@ -16,11 +16,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { i18n } = useTranslation();
   const [language, setLanguageState] = useState<Language>(() => {
-    const stored = localStorage.getItem('language') as Language | null;
-    return stored || 'ar';
+    const stored = localStorage.getItem('language');
+    return stored === 'he' ? 'he' : 'ar';
   });
 
-  const direction: Direction = language === 'en' ? 'ltr' : 'rtl';
+  // Hebrew + Arabic are both RTL
+  const direction: Direction = 'rtl';
   const isRTL = direction === 'rtl';
 
   useEffect(() => {

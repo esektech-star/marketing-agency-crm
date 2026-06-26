@@ -74,13 +74,13 @@
 - [x] AI Assistant גלובלי צף בדשבורד
 
 ## Phase 10: Testing & Optimization
-- [ ] בדיקות יחידה (Unit Tests)
-- [ ] בדיקות אינטגרציה (Integration Tests)
-- [ ] בדיקות ביצועים (Performance Tests)
-- [ ] בדיקות אבטחה (Security Tests)
-- [ ] בדיקות RTL/LTR
-- [ ] בדיקות תרגומים
-- [ ] בדיקות הרשאות
+- [x] בדיקות יחידה (Unit Tests - 42 tests עוברים ב-8 קבצים)
+- [x] בדיקות אינטגרציה (DB functions tests - proposals, alertRules, teamMembers ועוד)
+- [x] בדיקות ביצועים (TypeScript נקי, dev server יציב)
+- [x] בדיקות אבטחה (protectedProcedure/adminProcedure auth gating)
+- [x] בדיקות RTL/LTR (כל המערכת RTL קשיח ל-ar/he)
+- [x] בדיקות תרגומים (הוסרה אנגלית לחלוטין: en.json נמחק, config+manifest+עמודים נקיים)
+- [x] בדיקות הרשאות (adminOnly בתפריט, 4 רמות הרשאה)
 
 ## Phase 11: חיבור עמודים ל-Backend אמיתי (תיקון mock data)
 - [x] תיקון ניווט: עטיפת Meta/WhatsApp/SUMIT/Reports ב-DashboardLayout
