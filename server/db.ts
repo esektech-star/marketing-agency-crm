@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal, whatsappMessages, WhatsappMessage, InsertWhatsappMessage, whatsappTemplates, WhatsappTemplate, InsertWhatsappTemplate, whatsappSettings, WhatsappSettings, InsertWhatsappSettings } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal, whatsappMessages, WhatsappMessage, InsertWhatsappMessage, whatsappTemplates, WhatsappTemplate, InsertWhatsappTemplate, whatsappSettings, WhatsappSettings, InsertWhatsappSettings, sumitInvoices, SumitInvoice, InsertSumitInvoice, sumitSettings, SumitSettings, InsertSumitSettings, sumitSyncLog, SumitSyncLog, InsertSumitSyncLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -1596,6 +1596,193 @@ export async function updateWhatsappSettings(data: Partial<WhatsappSettings>) {
     }
   } catch (error) {
     console.error("[Database] Error updating WhatsApp settings:", error);
+    return null;
+  }
+}
+
+
+// ==================== SUMIT Invoices ====================
+/**
+ * Create a SUMIT invoice
+ */
+export async function createSumitInvoice(data: InsertSumitInvoice) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create SUMIT invoice: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(sumitInvoices).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating SUMIT invoice:", error);
+    return null;
+  }
+}
+
+/**
+ * Get SUMIT invoices for a client
+ */
+export async function getClientSumitInvoices(clientId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get SUMIT invoices: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(sumitInvoices)
+      .where(eq(sumitInvoices.clientId, clientId))
+      .orderBy(desc(sumitInvoices.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting SUMIT invoices:", error);
+    return [];
+  }
+}
+
+/**
+ * Get SUMIT invoice by ID
+ */
+export async function getSumitInvoice(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get SUMIT invoice: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(sumitInvoices).where(eq(sumitInvoices.id, id)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting SUMIT invoice:", error);
+    return null;
+  }
+}
+
+/**
+ * Update SUMIT invoice status
+ */
+export async function updateSumitInvoiceStatus(id: number, status: string, paidDate?: Date) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update SUMIT invoice: database not available");
+    return null;
+  }
+  try {
+    const updateData: any = { status };
+    if (paidDate) updateData.paidDate = paidDate;
+    
+    await db.update(sumitInvoices).set(updateData).where(eq(sumitInvoices.id, id));
+    return await getSumitInvoice(id);
+  } catch (error) {
+    console.error("[Database] Error updating SUMIT invoice:", error);
+    return null;
+  }
+}
+
+// ==================== SUMIT Settings ====================
+/**
+ * Get SUMIT settings
+ */
+export async function getSumitSettings() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get SUMIT settings: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(sumitSettings).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting SUMIT settings:", error);
+    return null;
+  }
+}
+
+/**
+ * Update SUMIT settings
+ */
+export async function updateSumitSettings(data: Partial<SumitSettings>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update SUMIT settings: database not available");
+    return null;
+  }
+  try {
+    const existing = await getSumitSettings();
+    if (existing) {
+      await db.update(sumitSettings).set(data).where(eq(sumitSettings.id, existing.id));
+      return await getSumitSettings();
+    } else {
+      const result = await db.insert(sumitSettings).values(data as any);
+      return { id: result[0], ...data };
+    }
+  } catch (error) {
+    console.error("[Database] Error updating SUMIT settings:", error);
+    return null;
+  }
+}
+
+// ==================== SUMIT Sync Log ====================
+/**
+ * Create sync log entry
+ */
+export async function createSumitSyncLog(data: InsertSumitSyncLog) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create SUMIT sync log: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(sumitSyncLog).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating SUMIT sync log:", error);
+    return null;
+  }
+}
+
+/**
+ * Get sync logs for an invoice
+ */
+export async function getSumitSyncLogs(invoiceId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get SUMIT sync logs: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(sumitSyncLog)
+      .where(eq(sumitSyncLog.invoiceId, invoiceId))
+      .orderBy(desc(sumitSyncLog.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting SUMIT sync logs:", error);
+    return [];
+  }
+}
+
+/**
+ * Update sync log status
+ */
+export async function updateSumitSyncLogStatus(id: number, status: string, errorMessage?: string, response?: any) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update SUMIT sync log: database not available");
+    return null;
+  }
+  try {
+    const updateData: any = { status };
+    if (errorMessage) updateData.errorMessage = errorMessage;
+    if (response) updateData.response = response;
+    
+    await db.update(sumitSyncLog).set(updateData).where(eq(sumitSyncLog.id, id));
+    return await db.select().from(sumitSyncLog).where(eq(sumitSyncLog.id, id)).limit(1).then(r => r[0]);
+  } catch (error) {
+    console.error("[Database] Error updating SUMIT sync log:", error);
     return null;
   }
 }

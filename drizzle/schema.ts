@@ -516,3 +516,61 @@ export const whatsappSettings = mysqlTable("whatsappSettings", {
 
 export type WhatsappSettings = typeof whatsappSettings.$inferSelect;
 export type InsertWhatsappSettings = typeof whatsappSettings.$inferInsert;
+
+
+/**
+ * جدول فواتير SUMIT
+ */
+export const sumitInvoices = mysqlTable("sumitInvoices", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  invoiceId: varchar("invoiceId", { length: 255 }).notNull().unique(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("SAR").notNull(),
+  description: text("description"),
+  status: mysqlEnum("status", ["draft", "sent", "paid", "overdue", "cancelled"]).default("draft").notNull(),
+  dueDate: timestamp("dueDate"),
+  paidDate: timestamp("paidDate"),
+  paymentMethod: varchar("paymentMethod", { length: 50 }),
+  sumitReference: varchar("sumitReference", { length: 255 }),
+  metadata: json("metadata"), // {lineItems, taxAmount, discountAmount, etc}
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SumitInvoice = typeof sumitInvoices.$inferSelect;
+export type InsertSumitInvoice = typeof sumitInvoices.$inferInsert;
+
+/**
+ * جدول إعدادات SUMIT
+ */
+export const sumitSettings = mysqlTable("sumitSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  apiKey: varchar("apiKey", { length: 500 }).notNull(),
+  apiSecret: varchar("apiSecret", { length: 500 }).notNull(),
+  businessId: varchar("businessId", { length: 255 }).notNull(),
+  isEnabled: boolean("isEnabled").default(true).notNull(),
+  autoCreateInvoice: boolean("autoCreateInvoice").default(false).notNull(),
+  autoSendInvoice: boolean("autoSendInvoice").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SumitSettings = typeof sumitSettings.$inferSelect;
+export type InsertSumitSettings = typeof sumitSettings.$inferInsert;
+
+/**
+ * جدول سجل مزامنة SUMIT
+ */
+export const sumitSyncLog = mysqlTable("sumitSyncLog", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceId: int("invoiceId").notNull(),
+  syncType: mysqlEnum("syncType", ["create", "update", "payment", "cancel"]).notNull(),
+  status: mysqlEnum("status", ["pending", "success", "failed"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"),
+  response: json("response"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SumitSyncLog = typeof sumitSyncLog.$inferSelect;
+export type InsertSumitSyncLog = typeof sumitSyncLog.$inferInsert;

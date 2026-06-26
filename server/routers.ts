@@ -1149,5 +1149,71 @@ export const appRouter = router({
         return await db.updateWhatsappSettings(input);
       }),
   }),
+  // ==================== SUMIT Integration ====================
+  sumit: router({
+    createInvoice: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        invoiceId: z.string(),
+        amount: z.number(),
+        currency: z.string().default("SAR"),
+        description: z.string().optional(),
+        dueDate: z.date().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await db.createSumitInvoice({
+          clientId: input.clientId,
+          invoiceId: input.invoiceId,
+          amount: input.amount.toString() as any,
+          currency: input.currency,
+          description: input.description,
+          dueDate: input.dueDate,
+          status: "draft",
+        });
+      }),
+    getInvoices: protectedProcedure
+      .input(z.object({ clientId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getClientSumitInvoices(input.clientId);
+      }),
+    getInvoice: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getSumitInvoice(input.id);
+      }),
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["draft", "sent", "paid", "overdue", "cancelled"]),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.updateSumitInvoiceStatus(input.id, input.status);
+      }),
+    getSettings: protectedProcedure
+      .query(async () => {
+        return await db.getSumitSettings();
+      }),
+    updateSettings: protectedProcedure
+      .input(z.object({
+        apiKey: z.string().optional(),
+        apiSecret: z.string().optional(),
+        businessId: z.string().optional(),
+        isEnabled: z.boolean().optional(),
+        autoCreateInvoice: z.boolean().optional(),
+        autoSendInvoice: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.role || ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return await db.updateSumitSettings(input);
+      }),
+    getSyncLogs: protectedProcedure
+      .input(z.object({ invoiceId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getSumitSyncLogs(input.invoiceId);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

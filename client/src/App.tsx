@@ -38,6 +38,7 @@ import Landing from "./pages/Landing";
 import Onboarding from "./pages/Onboarding";
 import Meta from "./pages/Meta";
 import WhatsApp from "./pages/WhatsApp";
+import SUMIT from "./pages/SUMIT";
 
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
       <Route path={"/onboarding"} component={Onboarding} />
       <Route path={"/meta"} component={Meta} />
       <Route path={"/whatsapp"} component={WhatsApp} />
+      <Route path={"/sumit"} component={SUMIT} />
       <Route path={"/ "} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
       <Route path={"/invoices"}>
