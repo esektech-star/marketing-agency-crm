@@ -12,9 +12,8 @@ import { applyDirection } from '@/i18n/config';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const languages = [
-  { code: 'ar', name: 'العربية', flag: 'ع', label: 'Arabic' },
-  { code: 'he', name: 'עברית', flag: 'ע', label: 'Hebrew' },
-  { code: 'en', name: 'English', flag: 'EN', label: 'English' },
+  { code: 'ar', name: 'العربية', flag: 'ع' },
+  { code: 'he', name: 'עברית', flag: 'ע' },
 ];
 
 export default function LanguageSwitcher() {
@@ -48,7 +47,6 @@ export default function LanguageSwitcher() {
           >
             <span className="text-xs font-bold text-muted-foreground w-6 text-center">{lang.flag}</span>
             <span className="flex-1">{lang.name}</span>
-            <span className="text-xs text-muted-foreground">({lang.label})</span>
           </DropdownMenuCheckboxItem>
         ))}
       </DropdownMenuContent>

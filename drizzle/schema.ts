@@ -336,6 +336,27 @@ export const presenceTracking = mysqlTable("presenceTracking", {
 export type PresenceTracking = typeof presenceTracking.$inferSelect;
 export type InsertPresenceTracking = typeof presenceTracking.$inferInsert;
 
+/**
+ * جدول سجلات التدقيق (Audit Logs)
+ */
+export const auditLogs = mysqlTable("auditLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  action: mysqlEnum("action", ["create", "update", "delete", "view", "export", "login", "logout"]).notNull(),
+  entityType: varchar("entityType", { length: 100 }).notNull(), // Client, Campaign, Task, etc.
+  entityId: int("entityId"),
+  entityName: varchar("entityName", { length: 255 }), // اسم الكيان للمرجعية السريعة
+  changes: json("changes"), // {before: {...}, after: {...}}
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: text("userAgent"),
+  status: mysqlEnum("status", ["success", "failed"]).default("success").notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
 
 /**
  * جدول مؤشرات الأداء الرئيسية (KPI)

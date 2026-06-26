@@ -891,6 +891,46 @@ export const appRouter = router({
       }),
   }),
 
+  // ==================== Audit Logs ====================
+  audit: router({
+    getLogs: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+        userId: z.number().optional(),
+        action: z.string().optional(),
+        entityType: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAuditLogs(input.limit, input.offset, {
+          userId: input.userId,
+          action: input.action,
+          entityType: input.entityType,
+        });
+      }),
+    getEntityLogs: protectedProcedure
+      .input(z.object({
+        entityType: z.string(),
+        entityId: z.number(),
+        limit: z.number().default(50),
+      }))
+      .query(async ({ input }) => {
+        return await db.getEntityAuditLogs(input.entityType, input.entityId, input.limit);
+      }),
+    getUserLogs: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        limit: z.number().default(100),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getUserAuditLogs(input.userId, input.limit, input.offset);
+      }),
+    countLogs: protectedProcedure.query(async () => {
+      return await db.countAuditLogs();
+    }),
+  }),
+
   // ==================== Presence Tracking ====================
   presence: router({
     updateStatus: protectedProcedure

@@ -31,14 +31,12 @@ export default function Transactions() {
     year: getYearAsString(new Date()),
     notes: "",
     relatedClient: "",
-    relatedVendor: "",
   };
   
   const [formData, setFormData] = useState(emptyForm);
 
   const { data: transactions = [], isLoading, refetch } = trpc.transactions.list.useQuery();
   const { data: clients = [] } = trpc.clients.list.useQuery();
-  const { data: vendors = [] } = trpc.vendors.list.useQuery();
   const createMutation = trpc.transactions.create.useMutation();
   const updateMutation = trpc.transactions.update.useMutation();
   const deleteMutation = trpc.transactions.delete.useMutation();
@@ -101,7 +99,7 @@ export default function Transactions() {
           date: txDate,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
-          relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
+          
         });
         toast.success(t("transactions.editSuccess"));
       } else {
@@ -115,7 +113,7 @@ export default function Transactions() {
           year,
           notes: formData.notes,
           relatedClient: formData.relatedClient ? parseInt(formData.relatedClient) : undefined,
-          relatedVendor: formData.relatedVendor ? parseInt(formData.relatedVendor) : undefined,
+          
         });
         toast.success(t("transactions.addSuccess"));
       }
@@ -142,7 +140,7 @@ export default function Transactions() {
       year: transaction.year,
       notes: transaction.notes || "",
       relatedClient: transaction.relatedClient?.toString() || "",
-      relatedVendor: transaction.relatedVendor?.toString() || "",
+      
     });
     setIsOpen(true);
   };
@@ -345,21 +343,6 @@ export default function Transactions() {
                     {clients.map((client: any) => (
                       <SelectItem key={client.id} value={client.id.toString()}>
                         {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="relatedVendor">{t("common.vendor")}</Label>
-                <Select value={formData.relatedVendor} onValueChange={(value) => setFormData({ ...formData, relatedVendor: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("common.selectVendor")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vendors.map((vendor: any) => (
-                      <SelectItem key={vendor.id} value={vendor.id.toString()}>
-                        {vendor.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

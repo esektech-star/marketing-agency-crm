@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -1013,5 +1013,215 @@ export async function cleanupInactivePresence(inactiveMinutes: number = 60): Pro
   } catch (error) {
     console.error("[Database] Error cleaning up presence:", error);
     return 0;
+  }
+}
+
+
+/**
+ * تسجيل إجراء تدقيق
+ */
+export async function logAuditAction(
+  userId: number,
+  action: "create" | "update" | "delete" | "view" | "export" | "login" | "logout",
+  entityType: string,
+  entityId?: number,
+  entityName?: string,
+  changes?: any,
+  ipAddress?: string,
+  userAgent?: string,
+  status: "success" | "failed" = "success",
+  errorMessage?: string
+): Promise<AuditLog | null> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot log audit action: database not available");
+    return null;
+  }
+
+  try {
+    await db.insert(auditLogs).values({
+      userId,
+      action,
+      entityType,
+      entityId: entityId || null,
+      entityName: entityName || null,
+      changes: changes ? JSON.stringify(changes) : null,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
+      status,
+      errorMessage: errorMessage || null,
+    });
+
+    return {
+      id: 0,
+      userId,
+      action,
+      entityType,
+      entityId: entityId || null,
+      entityName: entityName || null,
+      changes: changes ? JSON.stringify(changes) : null,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
+      status,
+      errorMessage: errorMessage || null,
+      createdAt: new Date(),
+    };
+  } catch (error) {
+    console.error("[Database] Error logging audit action:", error);
+    return null;
+  }
+}
+
+/**
+ * الحصول على سجلات التدقيق
+ */
+export async function getAuditLogs(
+  limit: number = 100,
+  offset: number = 0,
+  filters?: {
+    userId?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }
+): Promise<AuditLog[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get audit logs: database not available");
+    return [];
+  }
+
+  try {
+    const conditions: any[] = [];
+    
+    if (filters?.userId) {
+      conditions.push(eq(auditLogs.userId, filters.userId));
+    }
+    if (filters?.action) {
+      conditions.push(eq(auditLogs.action, filters.action as any));
+    }
+    if (filters?.entityType) {
+      conditions.push(eq(auditLogs.entityType, filters.entityType));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const query = db.select().from(auditLogs);
+    const result = whereClause 
+      ? await query.where(whereClause).orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset)
+      : await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
+    
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting audit logs:", error);
+    return [];
+  }
+}
+
+/**
+ * الحصول على سجلات التدقيق لكيان معين
+ */
+export async function getEntityAuditLogs(
+  entityType: string,
+  entityId: number,
+  limit: number = 50
+): Promise<AuditLog[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get entity audit logs: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(
+        and(
+          eq(auditLogs.entityType, entityType),
+          eq(auditLogs.entityId, entityId)
+        )
+      )
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
+  } catch (error) {
+    console.error("[Database] Error getting entity audit logs:", error);
+    return [];
+  }
+}
+
+/**
+ * الحصول على سجلات التدقيق لمستخدم معين
+ */
+export async function getUserAuditLogs(
+  userId: number,
+  limit: number = 100,
+  offset: number = 0
+): Promise<AuditLog[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user audit logs: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.userId, userId))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  } catch (error) {
+    console.error("[Database] Error getting user audit logs:", error);
+    return [];
+  }
+}
+
+/**
+ * عد سجلات التدقيق
+ */
+export async function countAuditLogs(filters?: {
+  userId?: number;
+  action?: string;
+  entityType?: string;
+}): Promise<number> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot count audit logs: database not available");
+    return 0;
+  }
+
+  try {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(auditLogs);
+    
+    return result[0]?.count || 0;
+  } catch (error) {
+    console.error("[Database] Error counting audit logs:", error);
+    return 0;
+  }
+}
+
+/**
+ * حذف سجلات التدقيق القديمة (أكثر من عدد أيام معين)
+ */
+export async function deleteOldAuditLogs(daysToKeep: number = 90): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete old audit logs: database not available");
+    return;
+  }
+
+  try {
+    const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000);
+    
+    await db
+      .delete(auditLogs)
+      .where(sql`${auditLogs.createdAt} < ${cutoffDate}`);
+  } catch (error) {
+    console.error("[Database] Error deleting old audit logs:", error);
   }
 }

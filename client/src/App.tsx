@@ -23,24 +23,18 @@ import Leads from "./pages/Leads";
 import Transactions from "./pages/Transactions";
 import Campaigns from "./pages/Campaigns";
 import MetaCampaigns from "./pages/MetaCampaigns";
-import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Documents from "@/pages/Documents";
 import Invoices from "@/pages/Invoices";
 import ActivityFeed from "@/pages/ActivityFeed";
-import Analytics from "@/pages/Analytics";
-import Benchmarking from "@/pages/Benchmarking";
 import BackupSchedule from "@/pages/BackupSchedule";
 import Alerts from "@/pages/Alerts";
-import ReportScheduling from "@/pages/ReportScheduling";
 import CustomReports from "@/pages/CustomReports";
 import ClientFeedbackPage from "@/pages/ClientFeedbackPage";
 import AccessDetails from "./pages/AccessDetails";
-import ClientPortalManager from "./pages/ClientPortalManager";
 import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
-import KPI from "./pages/KPI";
 
 
 function Router() {
@@ -49,26 +43,10 @@ function Router() {
       <Route path={"/landing"} component={Landing} />
       <Route path={"/"} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
-      <Route path={"/kpi"}>
-        {() => (
-          <DashboardLayout>
-            <KPI />
-          </DashboardLayout>
-        )}
-      </Route>
       <Route path={"/invoices"}>
         {() => (
           <DashboardLayout>
             <Invoices />
-          </DashboardLayout>
-        )}
-      </Route>
-      <Route path={"/client-portal"}>
-        {() => (
-          <DashboardLayout>
-            <AdminOnly>
-              <ClientPortalManager />
-            </AdminOnly>
           </DashboardLayout>
         )}
       </Route>
@@ -150,20 +128,6 @@ function Router() {
           </DashboardLayout>
         )}
       </Route>
-      <Route path={"/reports"}>
-        {() => (
-          <DashboardLayout>
-            <Reports />
-          </DashboardLayout>
-        )}
-      </Route>
-      <Route path={"/report-scheduling"}>
-        {() => (
-          <DashboardLayout>
-            <ReportScheduling />
-          </DashboardLayout>
-        )}
-      </Route>
       <Route path={"/custom-reports"}>
         {() => (
           <DashboardLayout>
@@ -182,20 +146,6 @@ function Router() {
         {() => (
           <DashboardLayout>
             <ActivityFeed />
-          </DashboardLayout>
-        )}
-      </Route>
-      <Route path={"/analytics"}>
-        {() => (
-          <DashboardLayout>
-            <Analytics />
-          </DashboardLayout>
-        )}
-      </Route>
-      <Route path={"/benchmarking"}>
-        {() => (
-          <DashboardLayout>
-            <Benchmarking />
           </DashboardLayout>
         )}
       </Route>
