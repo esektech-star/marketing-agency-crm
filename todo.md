@@ -66,12 +66,12 @@
 - [x] שמירת דוחות בהיסטוריה
 
 ## Phase 9: AI Layer Integration
-- [ ] AI Summary של מצב העסק
-- [ ] ניתוח קמפיינים
-- [ ] הצעות שיפור ביצועים
-- [ ] זיהוי מגמות
-- [ ] סיכום אפיון לקוח
-- [ ] תיקוני טקסט ותרגומים
+- [x] AI Summary של מצב העסק (clientInsights/performanceReport)
+- [x] ניתוח קמפיינים (analyzeCampaigns - LLM אמיתי בערבית)
+- [x] הצעות שיפור ביצועים (Meta AI recommendations)
+- [x] זיהוי מגמות (identifyTrends)
+- [x] סיכום אפיון לקוח (generateOnboardingSummary)
+- [x] AI Assistant גלובלי צף בדשבורד
 
 ## Phase 10: Testing & Optimization
 - [ ] בדיקות יחידה (Unit Tests)
@@ -81,3 +81,17 @@
 - [ ] בדיקות RTL/LTR
 - [ ] בדיקות תרגומים
 - [ ] בדיקות הרשאות
+
+## Phase 11: חיבור עמודים ל-Backend אמיתי (תיקון mock data)
+- [x] תיקון ניווט: עטיפת Meta/WhatsApp/SUMIT/Reports ב-DashboardLayout
+- [x] תיקון נתיב הבית (/) והוספת מודולים לתפריט
+- [x] תרגום מסך כניסה + מפתחות תרגום חסרים
+- [x] חיבור Alerts.tsx ל-tRPC האמיתי (היה mock)
+- [x] חיבור WhatsApp.tsx ל-tRPC (היה mock)
+- [x] חיבור SUMIT.tsx ל-tRPC (היה mock)
+- [x] חיבור Meta.tsx ל-tRPC (היה mock)
+- [x] חיבור Reports.tsx ל-tRPC (היה mock)
+- [x] חיבור Onboarding.tsx ל-onboarding router + עמוד ProposalView ציבורי
+- [x] כתיבת vitest tests למודולים החדשים (proposals.test.ts, alertRules.test.ts)
+- [x] בדיקה מקיפה סופית + checkpoint (42 tests עוברים, TypeScript נקי)
+- [x] תרגום PWA install prompt לערבית + RTL

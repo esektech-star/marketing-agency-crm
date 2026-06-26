@@ -21,13 +21,14 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe, Package, PieChart, Megaphone, Languages, Activity, Bell, Target, Database } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Building2, CheckCircle2, TrendingUp, Zap, BarChart3, LineChart as LineChartIcon, KeyRound, UserCog, FolderOpen, Receipt, Globe, Package, PieChart, Megaphone, Languages, Activity, Bell, Target, Database, MessageCircle, FileText, Sparkles, FileSignature } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import LanguageSwitcher from './LanguageSwitcher';
+import GlobalAIAssistant from './GlobalAIAssistant';
 import EsekTechLogo from './EsekTechLogo';
 import { SearchBar } from './SearchBar';
 import NotificationCenter from './NotificationCenter';
@@ -42,13 +43,17 @@ const getMenuItems = (t: any) => [
   { icon: TrendingUp, label: t("sidebar.transactions", "المالية"), path: "/transactions" },
   { icon: BarChart3, label: t("sidebar.campaigns", "الحملات"), path: "/campaigns" },
   { icon: Megaphone, label: t("sidebar.metaCampaigns", "حملات Meta"), path: "/meta-campaigns" },
+  { icon: Target, label: t("sidebar.meta", "Meta Ads"), path: "/meta" },
+  { icon: MessageCircle, label: t("sidebar.whatsapp", "واتساب"), path: "/whatsapp" },
+  { icon: Receipt, label: t("sidebar.sumit", "SUMIT الفوترة"), path: "/sumit" },
+  { icon: FileSignature, label: t("sidebar.onboarding", "استقبال العملاء"), path: "/onboarding" },
   { icon: BarChart3, label: t("sidebar.customReports", "تقارير مخصصة"), path: "/custom-reports" },
+  { icon: FileText, label: t("sidebar.reports", "التقارير المتقدمة"), path: "/reports" },
   { icon: Activity, label: t("sidebar.activityFeed", "سجل النشاط"), path: "/activity-feed" },
   { icon: Database, label: t("sidebar.backup", "النسخ الاحتياطي"), path: "/backup-schedule" },
   { icon: Bell, label: t("sidebar.alerts", "التنبيهات"), path: "/alerts" },
   { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
   { icon: Receipt, label: t("sidebar.invoices", "الفواتير"), path: "/invoices" },
-  { icon: Globe, label: t("sidebar.clientPortal", "بوابة العملاء"), path: "/client-portal", adminOnly: true },
   { icon: KeyRound, label: t("sidebar.accessDetails", "تفاصيل الوصول"), path: "/access-details" },
   { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users", adminOnly: true },
 ];
@@ -86,10 +91,10 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-6">
             <h1 className="text-2xl font-semibold tracking-tight text-center">
-              {t("auth.signInToContinue", "Sign in to continue")}
+              {t("auth.signInToContinue", "تسجيل الدخول للمتابعة")}
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              {t("auth.dashboardRequiresAuth", "Access to this dashboard requires authentication. Continue to launch the login flow.")}
+              {t("auth.dashboardRequiresAuth", "الوصول إلى لوحة التحكم يتطلب تسجيل الدخول. تابع لبدء عملية الدخول.")}
             </p>
           </div>
           <Button
@@ -99,7 +104,7 @@ export default function DashboardLayout({
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
           >
-            {t("auth.signIn", "Sign in")}
+            {t("auth.signIn", "تسجيل الدخول")}
           </Button>
         </div>
       </div>
@@ -316,6 +321,7 @@ function DashboardLayoutContent({
         <main className="flex-1 p-4 flex flex-col">
           {children}
         </main>
+        <GlobalAIAssistant />
       </SidebarInset>
     </>
   );

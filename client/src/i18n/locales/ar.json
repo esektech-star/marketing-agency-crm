@@ -418,12 +418,16 @@
     "leads": "الليدز",
     "transactions": "المالية",
     "campaigns": "الحملات",
-    "reports": "التقارير",
+    "reports": "التقارير المتقدمة",
     "documents": "مكتبة الملفات",
     "invoices": "الفواتير",
     "clientPortal": "بوابة العملاء",
     "accessDetails": "تفاصيل الوصول",
-    "users": "المستخدمون"
+    "users": "المستخدمون",
+    "meta": "إعلانات Meta",
+    "whatsapp": "واتساب",
+    "sumit": "فوترة SUMIT",
+    "onboarding": "استقبال العملاء"
   },
   "subscriptions": {
     "softwareName": "اسم البرنامج",

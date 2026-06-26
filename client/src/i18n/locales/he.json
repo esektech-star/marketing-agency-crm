@@ -418,7 +418,7 @@
     "leads": "לידים",
     "transactions": "כספים",
     "campaigns": "קמפיינים",
-    "reports": "דוחות",
+    "reports": "דוחות מתקדמים",
     "documents": "ספריית קבצים",
     "invoices": "חשבוניות",
     "clientPortal": "פורטל לקוחות",
@@ -426,7 +426,11 @@
     "users": "משתמשים",
     "metaCampaigns": "קמפיינים ב-Meta",
     "kpi": "מדדי ביצוע",
-    "translations": "ניהול תרגומים"
+    "translations": "ניהול תרגומים",
+    "meta": "מודעות Meta",
+    "whatsapp": "וואטסאפ",
+    "sumit": "חיוב SUMIT",
+    "onboarding": "קליטת לקוחות"
   },
   "subscriptions": {
     "softwareName": "שם התוכנה",

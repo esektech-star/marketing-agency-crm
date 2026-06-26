@@ -1,374 +1,182 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Share2, Plus, Trash2, Eye, BarChart3, Calendar } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileText, Download, TrendingUp, Users, BarChart3, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Report {
-  id: number;
-  name: string;
-  type: "summary" | "detailed" | "executive";
-  format: "pdf" | "excel" | "csv";
-  metrics: string[];
-  dateRange: { from: string; to: string };
-  createdAt: string;
-  sharedWith: string[];
+function num(v: any): number {
+  const n = typeof v === "string" ? parseFloat(v) : Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
+function downloadCSV(filename: string, rows: (string | number)[][]) {
+  const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function Reports() {
   const { t } = useTranslation();
-  const [reports, setReports] = useState<Report[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
-  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("financial");
 
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "summary" as const,
-    format: "pdf" as const,
-    metrics: ["roi", "conversions", "revenue"],
-    dateFrom: "",
-    dateTo: "",
-  });
+  const { data: stats, isLoading: statsLoading } = trpc.dashboard.getStats.useQuery();
+  const { data: clients = [], isLoading: clientsLoading } = trpc.clients.list.useQuery();
+  const { data: campaigns = [] } = trpc.metaCampaigns.list.useQuery(undefined, { retry: false });
 
-  const reportTypes = [
-    { value: "summary", label: t("reports.summary", "Summary Report") },
-    { value: "detailed", label: t("reports.detailed", "Detailed Report") },
-    { value: "executive", label: t("reports.executive", "Executive Report") },
-  ];
+  const monthlyData: any[] = useMemo(() => (stats as any)?.monthlyData ?? [], [stats]);
+  const leadsBySource: any[] = useMemo(() => (stats as any)?.leadsBySource ?? [], [stats]);
 
-  const exportFormats = [
-    { value: "pdf", label: "PDF", icon: "📄" },
-    { value: "excel", label: "Excel", icon: "📊" },
-    { value: "csv", label: "CSV", icon: "📋" },
-  ];
-
-  const availableMetrics = [
-    { id: "roi", label: "ROI" },
-    { id: "conversions", label: t("reports.conversions", "Conversions") },
-    { id: "revenue", label: t("reports.revenue", "Revenue") },
-    { id: "expenses", label: t("reports.expenses", "Expenses") },
-    { id: "impressions", label: t("reports.impressions", "Impressions") },
-    { id: "clicks", label: t("reports.clicks", "Clicks") },
-    { id: "ctr", label: "CTR" },
-    { id: "cpc", label: "CPC" },
-  ];
-
-  const handleCreateReport = () => {
-    if (!formData.name.trim() || !formData.dateFrom || !formData.dateTo) {
-      toast.error(t("reports.fillAllFields", "Please fill all fields"));
-      return;
-    }
-
-    const newReport: Report = {
-      id: Date.now(),
-      name: formData.name,
-      type: formData.type,
-      format: formData.format,
-      metrics: formData.metrics,
-      dateRange: { from: formData.dateFrom, to: formData.dateTo },
-      createdAt: new Date().toISOString(),
-      sharedWith: [],
-    };
-
-    setReports([newReport, ...reports]);
-    setFormData({
-      name: "",
-      type: "summary",
-      format: "pdf",
-      metrics: ["roi", "conversions", "revenue"],
-      dateFrom: "",
-      dateTo: "",
-    });
-    setIsOpen(false);
-    toast.success(t("reports.reportCreated", "Report created successfully"));
+  const exportFinancial = () => {
+    const rows: (string | number)[][] = [
+      [t("reports.metric", "المؤشر"), t("reports.value", "القيمة")],
+      [t("reports.totalRevenue", "إجمالي الإيرادات"), num((stats as any)?.totalRevenue)],
+      [t("reports.totalExpense", "إجمالي المصروفات"), num((stats as any)?.totalExpense)],
+      [t("reports.netProfit", "صافي الربح"), num((stats as any)?.netProfit)],
+      [t("reports.profitMargin", "هامش الربح %"), num((stats as any)?.profitMargin)],
+    ];
+    downloadCSV("financial-report.csv", rows);
+    toast.success(t("reports.exported", "تم التصدير"));
   };
 
-  const handleDownloadReport = (reportId: number) => {
-    const report = reports.find((r) => r.id === reportId);
-    if (!report) return;
-
-    toast.success(t("reports.downloadStarted", `Downloading ${report.name} as ${report.format.toUpperCase()}...`));
+  const exportClients = () => {
+    const rows: (string | number)[][] = [[t("reports.clientName", "اسم العميل"), t("reports.status", "الحالة"), t("reports.monthlyPayment", "الدفع الشهري")]];
+    (clients as any[]).forEach((c) => rows.push([c.name ?? "", c.status ?? "", num(c.monthlyPayment)]));
+    downloadCSV("clients-report.csv", rows);
+    toast.success(t("reports.exported", "تم التصدير"));
   };
 
-  const handleShareReport = (reportId: number) => {
-    setSelectedReportId(reportId);
-    setShowShareDialog(true);
-  };
-
-  const handleDeleteReport = (reportId: number) => {
-    if (confirm(t("reports.confirmDelete", "Are you sure?"))) {
-      setReports(reports.filter((r) => r.id !== reportId));
-      toast.success(t("reports.reportDeleted", "Report deleted"));
-    }
-  };
-
-  const toggleMetric = (metricId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      metrics: prev.metrics.includes(metricId)
-        ? prev.metrics.filter((m) => m !== metricId)
-        : [...prev.metrics, metricId],
-    }));
-  };
-
-  const getReportTypeLabel = (type: string) => {
-    return reportTypes.find((rt) => rt.value === type)?.label || type;
+  const exportCampaigns = () => {
+    const rows: (string | number)[][] = [[t("meta.campaigns", "الحملة"), t("meta.spent", "الإنفاق"), t("meta.impressions", "انطباعات"), t("meta.clicks", "نقرات"), "ROAS"]];
+    (campaigns as any[]).forEach((c) => rows.push([c.campaignName ?? c.campaignId, num(c.spend), num(c.impressions), num(c.clicks), num(c.roas)]));
+    downloadCSV("campaigns-report.csv", rows);
+    toast.success(t("reports.exported", "تم التصدير"));
   };
 
   return (
     <div className="space-y-6" dir="rtl">
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <BarChart3 className="w-8 h-8 text-blue-600" />
-          {t("reports.title", "Advanced Reports")}
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          {t("reports.subtitle", "Create, manage, and share custom reports")}
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FileText className="w-8 h-8 text-primary" />
+            {t("reports.title", "التقارير")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("reports.subtitle", "تقارير مبنية على بيانات حقيقية من النظام")}</p>
+        </div>
       </div>
 
-      <Tabs defaultValue="reports" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="reports">{t("reports.myReports", "My Reports")}</TabsTrigger>
-          <TabsTrigger value="templates">{t("reports.templates", "Templates")}</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="financial"><TrendingUp className="w-4 h-4 ml-1" />{t("reports.financial", "مالي")}</TabsTrigger>
+          <TabsTrigger value="clients"><Users className="w-4 h-4 ml-1" />{t("reports.clients", "العملاء")}</TabsTrigger>
+          <TabsTrigger value="campaigns"><BarChart3 className="w-4 h-4 ml-1" />{t("reports.campaigns", "الحملات")}</TabsTrigger>
         </TabsList>
 
-        {/* My Reports Tab */}
-        <TabsContent value="reports" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">{t("reports.savedReports", "Saved Reports")}</h2>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t("reports.newReport", "New Report")}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl" dir="rtl">
-                <DialogHeader>
-                  <DialogTitle>{t("reports.createReport", "Create Report")}</DialogTitle>
-                  <DialogDescription>
-                    {t("reports.createReportDescription", "Create a custom report with your selected metrics")}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  <div>
-                    <Label htmlFor="reportName">{t("common.name", "Name")}</Label>
-                    <Input
-                      id="reportName"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder={t("reports.reportNamePlaceholder", "e.g., Q2 Performance Report")}
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="reportType">{t("reports.type", "Report Type")}</Label>
-                      <select
-                        id="reportType"
-                        value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                        className="mt-1 w-full px-3 py-2 border rounded-md"
-                      >
-                        {reportTypes.map((rt) => (
-                          <option key={rt.value} value={rt.value}>
-                            {rt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="exportFormat">{t("reports.format", "Export Format")}</Label>
-                      <select
-                        id="exportFormat"
-                        value={formData.format}
-                        onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
-                        className="mt-1 w-full px-3 py-2 border rounded-md"
-                      >
-                        {exportFormats.map((ef) => (
-                          <option key={ef.value} value={ef.value}>
-                            {ef.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="dateFrom">{t("reports.dateFrom", "Date From")}</Label>
-                      <Input
-                        id="dateFrom"
-                        type="date"
-                        value={formData.dateFrom}
-                        onChange={(e) => setFormData({ ...formData, dateFrom: e.target.value })}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="dateTo">{t("reports.dateTo", "Date To")}</Label>
-                      <Input
-                        id="dateTo"
-                        type="date"
-                        value={formData.dateTo}
-                        onChange={(e) => setFormData({ ...formData, dateTo: e.target.value })}
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>{t("reports.metrics", "Metrics")}</Label>
-                    <div className="grid grid-cols-2 gap-3 mt-2">
-                      {availableMetrics.map((metric) => (
-                        <label key={metric.id} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.metrics.includes(metric.id)}
-                            onChange={() => toggleMetric(metric.id)}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm">{metric.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Button onClick={handleCreateReport} className="w-full bg-blue-600 hover:bg-blue-700">
-                    {t("reports.create", "Create Report")}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+        <TabsContent value="financial" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={exportFinancial} variant="outline" className="bg-background"><Download className="w-4 h-4 ml-2" />{t("reports.exportCsv", "تصدير CSV")}</Button>
           </div>
-
-          <div className="space-y-3">
-            {reports.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  {t("reports.noReports", "No reports yet")}
-                </CardContent>
-              </Card>
-            ) : (
-              reports.map((report) => (
-                <Card key={report.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-5 h-5 text-blue-600" />
-                          <h3 className="font-semibold">{report.name}</h3>
-                          <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                            {getReportTypeLabel(report.type)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {t("reports.format", "Format")}: {report.format.toUpperCase()} | {t("reports.metrics", "Metrics")}: {report.metrics.join(", ")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("reports.dateRange", "Date Range")}: {report.dateRange.from} {t("reports.to", "to")} {report.dateRange.to}
-                        </p>
-                        {report.sharedWith.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {t("reports.sharedWith", "Shared with")}: {report.sharedWith.join(", ")}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadReport(report.id)}
-                          className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleShareReport(report.id)}
-                          className="text-green-600 border-green-600 hover:bg-green-50"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteReport(report.id)}
-                          className="text-red-600 border-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+          {statsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm">{t("reports.totalRevenue", "إجمالي الإيرادات")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600">{num((stats as any)?.totalRevenue).toLocaleString("en-US")} ₪</div></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm">{t("reports.totalExpense", "إجمالي المصروفات")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{num((stats as any)?.totalExpense).toLocaleString("en-US")} ₪</div></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm">{t("reports.netProfit", "صافي الربح")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{num((stats as any)?.netProfit).toLocaleString("en-US")} ₪</div></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm">{t("reports.profitMargin", "هامش الربح")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{num((stats as any)?.profitMargin).toFixed(1)}%</div></CardContent></Card>
+              </div>
+              {monthlyData.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle>{t("reports.monthlyBreakdown", "التفصيل الشهري")}</CardTitle></CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader><TableRow><TableHead className="text-right">{t("reports.month", "الشهر")}</TableHead><TableHead className="text-right">{t("reports.revenue", "إيرادات")}</TableHead><TableHead className="text-right">{t("reports.expense", "مصروفات")}</TableHead></TableRow></TableHeader>
+                      <TableBody>
+                        {monthlyData.map((m, i) => (
+                          <TableRow key={i}><TableCell>{m.month ?? m.label ?? "—"}</TableCell><TableCell>{num(m.revenue).toLocaleString("en-US")} ₪</TableCell><TableCell>{num(m.expense).toLocaleString("en-US")} ₪</TableCell></TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
-              ))
-            )}
-          </div>
+              )}
+            </>
+          )}
         </TabsContent>
 
-        {/* Templates Tab */}
-        <TabsContent value="templates" className="space-y-4">
-          <h2 className="text-xl font-semibold">{t("reports.reportTemplates", "Report Templates")}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {reportTypes.map((type) => (
-              <Card key={type.value} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="text-base">{type.label}</CardTitle>
-                  <CardDescription>
-                    {type.value === "summary" && t("reports.summaryDesc", "Quick overview of key metrics")}
-                    {type.value === "detailed" && t("reports.detailedDesc", "In-depth analysis with all details")}
-                    {type.value === "executive" && t("reports.executiveDesc", "High-level insights for executives")}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    {t("reports.useTemplate", "Use Template")}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+        <TabsContent value="clients" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={exportClients} variant="outline" className="bg-background"><Download className="w-4 h-4 ml-2" />{t("reports.exportCsv", "تصدير CSV")}</Button>
           </div>
+          <Card>
+            <CardHeader><CardTitle>{t("reports.clientsReport", "تقرير العملاء")}</CardTitle><CardDescription>{(clients as any[]).length} {t("reports.clientsCount", "عميل")}</CardDescription></CardHeader>
+            <CardContent>
+              {clientsLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+              ) : (clients as any[]).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">{t("reports.noData", "لا توجد بيانات")}</div>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow><TableHead className="text-right">{t("reports.clientName", "اسم العميل")}</TableHead><TableHead className="text-right">{t("reports.status", "الحالة")}</TableHead><TableHead className="text-right">{t("reports.monthlyPayment", "الدفع الشهري")}</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {(clients as any[]).map((c) => (
+                      <TableRow key={c.id}><TableCell className="font-medium">{c.name}</TableCell><TableCell>{c.status ?? "—"}</TableCell><TableCell>{num(c.monthlyPayment).toLocaleString("en-US")} ₪</TableCell></TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="campaigns" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={exportCampaigns} variant="outline" className="bg-background"><Download className="w-4 h-4 ml-2" />{t("reports.exportCsv", "تصدير CSV")}</Button>
+          </div>
+          <Card>
+            <CardHeader><CardTitle>{t("reports.campaignsReport", "تقرير الحملات")}</CardTitle><CardDescription>{(campaigns as any[]).length} {t("meta.campaignsCount", "حملة")}</CardDescription></CardHeader>
+            <CardContent>
+              {(campaigns as any[]).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">{t("reports.noData", "لا توجد بيانات")}</div>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow><TableHead className="text-right">{t("meta.campaigns", "الحملة")}</TableHead><TableHead className="text-right">{t("meta.spent", "الإنفاق")}</TableHead><TableHead className="text-right">{t("meta.impressions", "انطباعات")}</TableHead><TableHead className="text-right">ROAS</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {(campaigns as any[]).map((c) => (
+                      <TableRow key={c.id ?? c.campaignId}><TableCell className="font-medium">{c.campaignName ?? c.campaignId}</TableCell><TableCell>{num(c.spend).toLocaleString("en-US")} ₪</TableCell><TableCell>{num(c.impressions).toLocaleString("en-US")}</TableCell><TableCell>{num(c.roas).toFixed(2)}x</TableCell></TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Share Dialog */}
-      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
-            <DialogTitle>{t("reports.shareReport", "Share Report")}</DialogTitle>
-            <DialogDescription>
-              {t("reports.shareDescription", "Share this report with team members or clients")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="shareEmail">{t("reports.emailAddress", "Email Address")}</Label>
-              <Input
-                id="shareEmail"
-                type="email"
-                placeholder={t("reports.emailPlaceholder", "Enter email address")}
-                className="mt-1"
-              />
+      {leadsBySource.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>{t("reports.leadsBySource", "العملاء المحتملون حسب المصدر")}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {leadsBySource.map((s: any, i: number) => (
+                <div key={i} className="bg-muted/50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold">{num(s.count).toLocaleString("en-US")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{s.source ?? "—"}</p>
+                </div>
+              ))}
             </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">
-              {t("reports.share", "Share")}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

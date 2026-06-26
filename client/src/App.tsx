@@ -40,19 +40,45 @@ import Meta from "./pages/Meta";
 import WhatsApp from "./pages/WhatsApp";
 import SUMIT from "./pages/SUMIT";
 import Reports from "./pages/Reports";
+import ProposalView from "./pages/ProposalView";
 
 
 function Router() {
   return (
     <Switch>
+      <Route path={"/"} component={Home} />
       <Route path={"/landing"} component={Landing} />
       <Route path={"/onboarding"} component={Onboarding} />
-      <Route path={"/meta"} component={Meta} />
-      <Route path={"/whatsapp"} component={WhatsApp} />
-      <Route path={"/sumit"} component={SUMIT} />
-      <Route path={"/reports"} component={Reports} />
-      <Route path={"/ "} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
+      <Route path={"/proposal/:token"} component={ProposalView} />
+      <Route path={"/meta"}>
+        {() => (
+          <DashboardLayout>
+            <Meta />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/whatsapp"}>
+        {() => (
+          <DashboardLayout>
+            <WhatsApp />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/sumit"}>
+        {() => (
+          <DashboardLayout>
+            <SUMIT />
+          </DashboardLayout>
+        )}
+      </Route>
+      <Route path={"/reports"}>
+        {() => (
+          <DashboardLayout>
+            <Reports />
+          </DashboardLayout>
+        )}
+      </Route>
       <Route path={"/invoices"}>
         {() => (
           <DashboardLayout>

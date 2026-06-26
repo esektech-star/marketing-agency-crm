@@ -921,6 +921,182 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await generateClientReport(input.clientId);
       }),
+    analyzeCampaigns: protectedProcedure
+      .input(z.object({ campaignIds: z.array(z.string()).optional() }))
+      .mutation(async () => {
+        const { invokeLLM } = await import("./_core/llm");
+        const metaAds = await import("./metaAds");
+        const campaigns = await metaAds.getMetaCampaigns().catch(() => [] as any[]);
+        const summary = (campaigns as any[]).slice(0, 20).map((c: any) =>
+          `الحملة: ${c.campaignName ?? c.campaignId} | الإنفاق: ${c.spend ?? 0} | الانطباعات: ${c.impressions ?? 0} | النقرات: ${c.clicks ?? 0} | ROAS: ${c.roas ?? 0}`
+        ).join("\n");
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: "أنت خبير في إعلانات Meta. حلل أداء الحملات وقدم النتائج بصيغة JSON بالعربية." },
+              { role: "user", content: `حلل حملات الإعلانات التالية وقدم تحليلاً موجزاً و3 توصيات عملية:\n${summary || "لا توجد حملات بعد"}` },
+            ],
+            response_format: {
+              type: "json_schema",
+              json_schema: {
+                name: "campaign_analysis",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    analysis: { type: "string", description: "تحليل موجز بالعربية" },
+                    recommendations: { type: "array", items: { type: "string" }, description: "توصيات عملية بالعربية" },
+                  },
+                  required: ["analysis", "recommendations"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          });
+          const content = response.choices[0]?.message?.content || "{}";
+          const parsed = JSON.parse(typeof content === "string" ? content : "{}");
+          return {
+            analysis: parsed.analysis || "تم تحليل الحملات.",
+            recommendations: parsed.recommendations || [],
+            timestamp: new Date().toISOString(),
+          };
+        } catch (error) {
+          console.error("[AI] analyzeCampaigns error:", error);
+          return {
+            analysis: "تعذّر إجراء التحليل في الوقت الحالي. حاول مرة أخرى لاحقاً.",
+            recommendations: [],
+            timestamp: new Date().toISOString(),
+          };
+        }
+      }),
+    getPerformanceInsights: protectedProcedure
+      .input(z.object({ dateRange: z.object({ from: z.string(), to: z.string() }).optional() }))
+      .query(async () => {
+        const stats: any = await db.getDashboardStats().catch(() => null);
+        const insights: Array<{ metric: string; trend: string; change: string; insight: string }> = [];
+        if (stats) {
+          const margin = Number(stats.profitMargin ?? 0);
+          insights.push({
+            metric: "هامش الربح",
+            trend: margin >= 0 ? "up" : "down",
+            change: `${margin.toFixed(1)}%`,
+            insight: margin >= 0 ? "هامش ربح إيجابي" : "هامش ربح سلبي يحتاج مراجعة",
+          });
+          insights.push({
+            metric: "الإيرادات",
+            trend: "up",
+            change: `${Number(stats.revenue ?? 0).toLocaleString("en-US")} ₪`,
+            insight: "إجمالي الإيرادات الحالي",
+          });
+          insights.push({
+            metric: "صافي الربح",
+            trend: Number(stats.netProfit ?? 0) >= 0 ? "up" : "down",
+            change: `${Number(stats.netProfit ?? 0).toLocaleString("en-US")} ₪`,
+            insight: "صافي الربح بعد المصروفات",
+          });
+        }
+        return { insights, timestamp: new Date().toISOString() };
+      }),
+    identifyTrends: protectedProcedure
+      .input(z.object({ metric: z.string() }))
+      .query(async () => {
+        const stats: any = await db.getDashboardStats().catch(() => null);
+        const monthly: any[] = stats?.monthlyData ?? [];
+        const trends = monthly.map((m: any) => ({
+          period: m.month ?? m.period ?? "",
+          value: Number(m.revenue ?? m.value ?? 0),
+          status: "data",
+        }));
+        return {
+          trends,
+          prediction: trends.length >= 2 && trends[trends.length - 1].value >= trends[0].value
+            ? "الاتجاه العام إيجابي بناءً على البيانات الفعلية"
+            : "يُنصح بمراجعة الأداء بناءً على البيانات الفعلية",
+          timestamp: new Date().toISOString(),
+        };
+      }),
+    generateOnboardingSummary: protectedProcedure
+      .input(z.object({ answers: z.record(z.string(), z.any()), budget: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const answersText = Object.entries(input.answers)
+          .map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`)
+          .join("\n");
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: "أنت مستشار تسويق رقمي. لخّص إجابات العميل واقترح باقة بصيغة JSON باللغة العربية." },
+              { role: "user", content: `إجابات العميل:\n${answersText}\nالميزانية: ${input.budget ?? "غير محددة"}` },
+            ],
+            response_format: {
+              type: "json_schema",
+              json_schema: {
+                name: "onboarding_summary",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    summary: { type: "string", description: "ملخص احتياجات العميل" },
+                    recommendedPackage: { type: "string", description: "الباقة الموصى بها" },
+                  },
+                  required: ["summary", "recommendedPackage"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          });
+          const content = response.choices[0]?.message?.content || "{}";
+          const parsed = JSON.parse(typeof content === "string" ? content : "{}");
+          return {
+            summary: parsed.summary || "",
+            recommendedPackage: parsed.recommendedPackage || "",
+            timestamp: new Date().toISOString(),
+          };
+        } catch (error) {
+          console.error("[AI] generateOnboardingSummary error:", error);
+          return { summary: "", recommendedPackage: "", timestamp: new Date().toISOString() };
+        }
+      }),
+    improveText: protectedProcedure
+      .input(z.object({ text: z.string(), language: z.enum(["he", "ar"]) }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const langName = input.language === "he" ? "العبرية" : "العربية";
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: `أنت محرر تسويقي خبير. حسّن النص بلغة ${langName} وأعد النتيجة بصيغة JSON.` },
+              { role: "user", content: input.text },
+            ],
+            response_format: {
+              type: "json_schema",
+              json_schema: {
+                name: "improved_text",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    improved: { type: "string", description: "النص المحسّن" },
+                    suggestions: { type: "array", items: { type: "string" }, description: "اقتراحات للتحسين" },
+                  },
+                  required: ["improved", "suggestions"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          });
+          const content = response.choices[0]?.message?.content || "{}";
+          const parsed = JSON.parse(typeof content === "string" ? content : "{}");
+          return {
+            improved: parsed.improved || input.text,
+            suggestions: parsed.suggestions || [],
+            timestamp: new Date().toISOString(),
+          };
+        } catch (error) {
+          console.error("[AI] improveText error:", error);
+          return { improved: input.text, suggestions: [], timestamp: new Date().toISOString() };
+        }
+      }),
   }),
 
   // ==================== Audit Logs ====================
@@ -1290,5 +1466,7 @@ export const appRouter = router({
         return await db.getAlertHistory(input.alertId);
       }),
   }),
+
+
 });
 export type AppRouter = typeof appRouter;

@@ -18,12 +18,12 @@ export function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 max-w-sm bg-white border border-border rounded-lg shadow-lg p-4 z-50">
+    <div className="fixed bottom-4 right-4 left-4 max-w-sm bg-white border border-border rounded-lg shadow-lg p-4 z-50" dir="rtl">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-sm mb-1">Install Esek Tech CRM</h3>
+          <h3 className="font-semibold text-sm mb-1">تثبيت تطبيق Esek Tech</h3>
           <p className="text-xs text-muted-foreground">
-            Install our app for quick access and offline support
+            ثبّت التطبيق للوصول السريع والعمل دون اتصال
           </p>
         </div>
         <button
@@ -42,8 +42,8 @@ export function PWAInstallPrompt() {
           }}
           className="flex-1"
         >
-          <Download className="w-4 h-4 mr-2" />
-          Install
+          <Download className="w-4 h-4 ml-2" />
+          تثبيت
         </Button>
         <Button
           size="sm"
@@ -51,7 +51,7 @@ export function PWAInstallPrompt() {
           onClick={() => setShowPrompt(false)}
           className="flex-1"
         >
-          Later
+          لاحقًا
         </Button>
       </div>
     </div>

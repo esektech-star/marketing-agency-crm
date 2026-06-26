@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,152 +8,148 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { MessageCircle, Settings, Send, Plus, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Template {
-  id: number;
-  name: string;
-  category: string;
-  content: string;
-  variables?: Record<string, any>;
-  isActive: boolean;
-}
-
-interface Message {
-  id: number;
-  clientId: number;
-  phoneNumber: string;
-  messageType: string;
-  content: string;
-  status: "pending" | "sent" | "delivered" | "read" | "failed";
-  sentAt?: string;
-  deliveredAt?: string;
-  readAt?: string;
-  createdAt: string;
-}
-
 export default function WhatsApp() {
   const { t } = useTranslation();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const utils = trpc.useUtils();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
 
   const [templateForm, setTemplateForm] = useState({
     name: "",
-    category: "lead",
+    category: "lead" as "lead" | "task" | "performance" | "custom",
     content: "",
   });
 
   const [messageForm, setMessageForm] = useState({
     clientId: 0,
     phoneNumber: "",
-    messageType: "custom",
+    messageType: "custom" as "lead" | "task" | "performance" | "custom",
     content: "",
+  });
+
+  const [settingsForm, setSettingsForm] = useState({
+    businessPhoneNumberId: "",
+    accessToken: "",
+    businessAccountId: "",
+    isEnabled: false,
+    autoSendOnNewLead: false,
+    autoSendOnNewTask: false,
+    autoSendPerformanceAlerts: false,
+  });
+
+  const { data: clients = [] } = trpc.clients.list.useQuery();
+  const { data: templates = [], isLoading: templatesLoading } = trpc.whatsapp.getTemplates.useQuery({});
+  const { data: settings } = trpc.whatsapp.getSettings.useQuery();
+  const { data: messages = [], isLoading: messagesLoading } = trpc.whatsapp.getMessages.useQuery(
+    { clientId: selectedClientId ?? 0, limit: 50 },
+    { enabled: selectedClientId !== null }
+  );
+
+  useEffect(() => {
+    if (settings) {
+      setSettingsForm({
+        businessPhoneNumberId: (settings as any).businessPhoneNumberId ?? "",
+        accessToken: (settings as any).accessToken ?? "",
+        businessAccountId: (settings as any).businessAccountId ?? "",
+        isEnabled: (settings as any).isEnabled ?? false,
+        autoSendOnNewLead: (settings as any).autoSendOnNewLead ?? false,
+        autoSendOnNewTask: (settings as any).autoSendOnNewTask ?? false,
+        autoSendPerformanceAlerts: (settings as any).autoSendPerformanceAlerts ?? false,
+      });
+    }
+  }, [settings]);
+
+  const createTemplateMut = trpc.whatsapp.createTemplate.useMutation({
+    onSuccess: () => {
+      utils.whatsapp.getTemplates.invalidate();
+      toast.success(t("whatsapp.templateCreated", "تم إنشاء القالب بنجاح"));
+      setTemplateForm({ name: "", category: "lead", content: "" });
+      setShowTemplateDialog(false);
+    },
+    onError: () => toast.error(t("whatsapp.createFailed", "فشل إنشاء القالب")),
+  });
+
+  const sendMessageMut = trpc.whatsapp.sendMessage.useMutation({
+    onSuccess: () => {
+      if (selectedClientId) utils.whatsapp.getMessages.invalidate({ clientId: selectedClientId, limit: 50 });
+      toast.success(t("whatsapp.messageSent", "تم إرسال الرسالة"));
+      setMessageForm({ clientId: 0, phoneNumber: "", messageType: "custom", content: "" });
+      setShowMessageDialog(false);
+    },
+    onError: () => toast.error(t("whatsapp.sendFailed", "فشل إرسال الرسالة")),
+  });
+
+  const updateSettingsMut = trpc.whatsapp.updateSettings.useMutation({
+    onSuccess: () => {
+      utils.whatsapp.getSettings.invalidate();
+      toast.success(t("common.saved", "تم الحفظ"));
+    },
+    onError: () => toast.error(t("common.error", "حدث خطأ")),
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "sent":
-        return "bg-blue-100 text-blue-800";
-      case "delivered":
-        return "bg-green-100 text-green-800";
-      case "read":
-        return "bg-purple-100 text-purple-800";
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case "sent": return "bg-blue-100 text-blue-800";
+      case "delivered": return "bg-green-100 text-green-800";
+      case "read": return "bg-purple-100 text-purple-800";
+      case "pending": return "bg-amber-100 text-amber-800";
+      case "failed": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "sent":
-        return <Send className="w-4 h-4" />;
-      case "delivered":
-        return <CheckCircle2 className="w-4 h-4" />;
-      case "read":
-        return <CheckCircle2 className="w-4 h-4" />;
-      case "pending":
-        return <Clock className="w-4 h-4" />;
-      case "failed":
-        return <AlertCircle className="w-4 h-4" />;
-      default:
-        return <MessageCircle className="w-4 h-4" />;
+      case "sent": return <Send className="w-4 h-4" />;
+      case "delivered": case "read": return <CheckCircle2 className="w-4 h-4" />;
+      case "pending": return <Clock className="w-4 h-4" />;
+      case "failed": return <AlertCircle className="w-4 h-4" />;
+      default: return <MessageCircle className="w-4 h-4" />;
     }
   };
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      sent: "مرسل",
-      delivered: "تم التسليم",
-      read: "مقروء",
-      pending: "قيد الانتظار",
-      failed: "فشل",
+      sent: "مرسل", delivered: "تم التسليم", read: "مقروء", pending: "قيد الانتظار", failed: "فشل",
     };
     return labels[status] || status;
   };
 
-  const createTemplate = async () => {
+  const categoryLabels: Record<string, string> = {
+    lead: t("whatsapp.catLead", "ليد"),
+    task: t("whatsapp.catTask", "مهمة"),
+    performance: t("whatsapp.catPerformance", "أداء"),
+    custom: t("whatsapp.catCustom", "مخصص"),
+  };
+
+  const handleCreateTemplate = () => {
     if (!templateForm.name.trim() || !templateForm.content.trim()) {
       toast.error(t("whatsapp.fillAllFields", "يرجى ملء جميع الحقول"));
       return;
     }
-
-    setIsLoading(true);
-    try {
-      // Simulate template creation
-      const newTemplate: Template = {
-        id: Date.now(),
-        name: templateForm.name,
-        category: templateForm.category,
-        content: templateForm.content,
-        isActive: true,
-      };
-      setTemplates([...templates, newTemplate]);
-      setTemplateForm({ name: "", category: "lead", content: "" });
-      setShowTemplateDialog(false);
-      toast.success(t("whatsapp.templateCreated", "تم إنشاء القالب بنجاح"));
-    } catch (error) {
-      toast.error(t("whatsapp.createFailed", "فشل إنشاء القالب"));
-    } finally {
-      setIsLoading(false);
-    }
+    createTemplateMut.mutate({ name: templateForm.name, category: templateForm.category, content: templateForm.content });
   };
 
-  const sendMessage = async () => {
-    if (!messageForm.phoneNumber.trim() || !messageForm.content.trim()) {
+  const handleSendMessage = () => {
+    if (!messageForm.clientId || !messageForm.phoneNumber.trim() || !messageForm.content.trim()) {
       toast.error(t("whatsapp.fillAllFields", "يرجى ملء جميع الحقول"));
       return;
     }
+    sendMessageMut.mutate({
+      clientId: messageForm.clientId,
+      phoneNumber: messageForm.phoneNumber,
+      messageType: messageForm.messageType,
+      content: messageForm.content,
+    });
+  };
 
-    setIsLoading(true);
-    try {
-      // Simulate message sending
-      const newMessage: Message = {
-        id: Date.now(),
-        clientId: messageForm.clientId,
-        phoneNumber: messageForm.phoneNumber,
-        messageType: messageForm.messageType,
-        content: messageForm.content,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      };
-      setMessages([newMessage, ...messages]);
-      setMessageForm({ clientId: 0, phoneNumber: "", messageType: "custom", content: "" });
-      setShowMessageDialog(false);
-      toast.success(t("whatsapp.messageSent", "تم إرسال الرسالة"));
-    } catch (error) {
-      toast.error(t("whatsapp.sendFailed", "فشل إرسال الرسالة"));
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSaveSettings = () => {
+    updateSettingsMut.mutate(settingsForm);
   };
 
   return (
@@ -162,11 +158,9 @@ export default function WhatsApp() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <MessageCircle className="w-8 h-8 text-green-600" />
-            {t("whatsapp.title", "WhatsApp Integration")}
+            {t("whatsapp.title", "تكامل WhatsApp")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {t("whatsapp.subtitle", "إدارة رسائل WhatsApp والقوالب")}
-          </p>
+          <p className="text-muted-foreground mt-1">{t("whatsapp.subtitle", "إدارة رسائل WhatsApp والقوالب")}</p>
         </div>
       </div>
 
@@ -177,10 +171,19 @@ export default function WhatsApp() {
           <TabsTrigger value="settings">{t("whatsapp.settings", "الإعدادات")}</TabsTrigger>
         </TabsList>
 
-        {/* Messages Tab */}
         <TabsContent value="messages" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">{t("whatsapp.messageHistory", "سجل الرسائل")}</h2>
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Label>{t("whatsapp.selectClient", "اختر العميل")}:</Label>
+              <select
+                value={selectedClientId ?? ""}
+                onChange={(e) => setSelectedClientId(e.target.value ? Number(e.target.value) : null)}
+                className="px-3 py-2 border rounded-md bg-background min-w-[200px]"
+              >
+                <option value="">{t("whatsapp.choose", "— اختر —")}</option>
+                {clients.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+              </select>
+            </div>
             <Button onClick={() => setShowMessageDialog(true)} className="bg-green-600 hover:bg-green-700">
               <Plus className="w-4 h-4 ml-2" />
               {t("whatsapp.sendNew", "إرسال رسالة جديدة")}
@@ -189,14 +192,16 @@ export default function WhatsApp() {
 
           <Card>
             <CardContent className="pt-6">
-              {messages.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {t("whatsapp.noMessages", "لا توجد رسائل")}
-                </div>
+              {selectedClientId === null ? (
+                <div className="text-center py-8 text-muted-foreground">{t("whatsapp.selectClientFirst", "اختر عميلاً لعرض الرسائل")}</div>
+              ) : messagesLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+              ) : messages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">{t("whatsapp.noMessages", "لا توجد رسائل")}</div>
               ) : (
                 <div className="space-y-3">
-                  {messages.map((msg) => (
-                    <div key={msg.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                  {messages.map((msg: any) => (
+                    <div key={msg.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <p className="font-semibold">{msg.phoneNumber}</p>
@@ -207,9 +212,9 @@ export default function WhatsApp() {
                           {getStatusLabel(msg.status)}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(msg.createdAt).toLocaleDateString("ar-SA")} {new Date(msg.createdAt).toLocaleTimeString("ar-SA")}
-                      </p>
+                      {msg.createdAt && (
+                        <p className="text-xs text-muted-foreground">{new Date(msg.createdAt).toLocaleString("ar-SA")}</p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -218,7 +223,6 @@ export default function WhatsApp() {
           </Card>
         </TabsContent>
 
-        {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">{t("whatsapp.messageTemplates", "قوالب الرسائل")}</h2>
@@ -229,18 +233,16 @@ export default function WhatsApp() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates.length === 0 ? (
-              <Card className="md:col-span-2">
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  {t("whatsapp.noTemplates", "لا توجد قوالب")}
-                </CardContent>
-              </Card>
+            {templatesLoading ? (
+              <div className="md:col-span-2 flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+            ) : templates.length === 0 ? (
+              <Card className="md:col-span-2"><CardContent className="pt-6 text-center text-muted-foreground">{t("whatsapp.noTemplates", "لا توجد قوالب")}</CardContent></Card>
             ) : (
-              templates.map((template) => (
-                <Card key={template.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedTemplate(template)}>
+              templates.map((template: any) => (
+                <Card key={template.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-lg">{template.name}</CardTitle>
-                    <CardDescription>{template.category}</CardDescription>
+                    <CardDescription>{categoryLabels[template.category] || template.category}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground line-clamp-3">{template.content}</p>
@@ -251,7 +253,6 @@ export default function WhatsApp() {
           </div>
         </TabsContent>
 
-        {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-4">
           <Card>
             <CardHeader>
@@ -259,161 +260,109 @@ export default function WhatsApp() {
                 <Settings className="w-5 h-5" />
                 {t("whatsapp.integrationSettings", "إعدادات التكامل")}
               </CardTitle>
-              <CardDescription>
-                {t("whatsapp.settingsDescription", "قم بتكوين اتصالك بـ WhatsApp Business API")}
-              </CardDescription>
+              <CardDescription>{t("whatsapp.settingsDescription", "قم بتكوين اتصالك بـ WhatsApp Business API")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="businessPhoneId">{t("whatsapp.businessPhoneId", "معرف رقم الهاتف")}</Label>
-                <Input
-                  id="businessPhoneId"
-                  placeholder={t("whatsapp.businessPhoneIdPlaceholder", "أدخل معرف رقم الهاتف")}
-                  className="mt-2"
-                />
+                <Input id="businessPhoneId" value={settingsForm.businessPhoneNumberId} onChange={(e) => setSettingsForm({ ...settingsForm, businessPhoneNumberId: e.target.value })} placeholder={t("whatsapp.businessPhoneIdPlaceholder", "أدخل معرف رقم الهاتف")} className="mt-2" />
               </div>
-
               <div>
                 <Label htmlFor="accessToken">{t("whatsapp.accessToken", "رمز الوصول")}</Label>
-                <Input
-                  id="accessToken"
-                  type="password"
-                  placeholder={t("whatsapp.accessTokenPlaceholder", "أدخل رمز الوصول")}
-                  className="mt-2"
-                />
+                <Input id="accessToken" type="password" value={settingsForm.accessToken} onChange={(e) => setSettingsForm({ ...settingsForm, accessToken: e.target.value })} placeholder={t("whatsapp.accessTokenPlaceholder", "أدخل رمز الوصول")} className="mt-2" />
               </div>
-
               <div>
                 <Label htmlFor="businessAccountId">{t("whatsapp.businessAccountId", "معرف حساب العمل")}</Label>
-                <Input
-                  id="businessAccountId"
-                  placeholder={t("whatsapp.businessAccountIdPlaceholder", "أدخل معرف حساب العمل")}
-                  className="mt-2"
-                />
+                <Input id="businessAccountId" value={settingsForm.businessAccountId} onChange={(e) => setSettingsForm({ ...settingsForm, businessAccountId: e.target.value })} placeholder={t("whatsapp.businessAccountIdPlaceholder", "أدخل معرف حساب العمل")} className="mt-2" />
               </div>
 
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center justify-between">
+                  <Label>{t("whatsapp.enabled", "تفعيل التكامل")}</Label>
+                  <Switch checked={settingsForm.isEnabled} onCheckedChange={(v) => setSettingsForm({ ...settingsForm, isEnabled: v })} />
+                </div>
+                <div className="flex items-center justify-between">
                   <Label>{t("whatsapp.autoSendOnNewLead", "إرسال تلقائي عند ليد جديد")}</Label>
-                  <input type="checkbox" className="w-4 h-4" />
+                  <Switch checked={settingsForm.autoSendOnNewLead} onCheckedChange={(v) => setSettingsForm({ ...settingsForm, autoSendOnNewLead: v })} />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label>{t("whatsapp.autoSendOnNewTask", "إرسال تلقائي عند مهمة جديدة")}</Label>
-                  <input type="checkbox" className="w-4 h-4" />
+                  <Switch checked={settingsForm.autoSendOnNewTask} onCheckedChange={(v) => setSettingsForm({ ...settingsForm, autoSendOnNewTask: v })} />
                 </div>
                 <div className="flex items-center justify-between">
                   <Label>{t("whatsapp.autoSendPerformanceAlerts", "إرسال تنبيهات الأداء")}</Label>
-                  <input type="checkbox" className="w-4 h-4" />
+                  <Switch checked={settingsForm.autoSendPerformanceAlerts} onCheckedChange={(v) => setSettingsForm({ ...settingsForm, autoSendPerformanceAlerts: v })} />
                 </div>
               </div>
 
-              <Button className="w-full bg-green-600 hover:bg-green-700 mt-4">
-                {t("common.save", "حفظ")}
+              <Button onClick={handleSaveSettings} disabled={updateSettingsMut.isPending} className="w-full bg-green-600 hover:bg-green-700 mt-4">
+                {updateSettingsMut.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t("common.save", "حفظ")}
               </Button>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Send Message Dialog */}
       <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>{t("whatsapp.sendMessage", "إرسال رسالة")}</DialogTitle>
-            <DialogDescription>
-              {t("whatsapp.sendMessageDescription", "أرسل رسالة WhatsApp جديدة")}
-            </DialogDescription>
+            <DialogDescription>{t("whatsapp.sendMessageDescription", "أرسل رسالة WhatsApp جديدة")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label>{t("whatsapp.selectClient", "اختر العميل")}</Label>
+              <select
+                value={messageForm.clientId || ""}
+                onChange={(e) => {
+                  const id = Number(e.target.value);
+                  const client = clients.find((c: any) => c.id === id);
+                  setMessageForm({ ...messageForm, clientId: id, phoneNumber: (client as any)?.phone ?? messageForm.phoneNumber });
+                }}
+                className="mt-2 w-full px-3 py-2 border rounded-md bg-background"
+              >
+                <option value="">{t("whatsapp.choose", "— اختر —")}</option>
+                {clients.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+              </select>
+            </div>
+            <div>
               <Label htmlFor="phone">{t("whatsapp.phoneNumber", "رقم الهاتف")}</Label>
-              <Input
-                id="phone"
-                placeholder="+966..."
-                value={messageForm.phoneNumber}
-                onChange={(e) => setMessageForm({ ...messageForm, phoneNumber: e.target.value })}
-                className="mt-2"
-              />
+              <Input id="phone" placeholder="+972..." value={messageForm.phoneNumber} onChange={(e) => setMessageForm({ ...messageForm, phoneNumber: e.target.value })} className="mt-2" />
             </div>
             <div>
               <Label htmlFor="content">{t("whatsapp.messageContent", "محتوى الرسالة")}</Label>
-              <Textarea
-                id="content"
-                placeholder={t("whatsapp.messageContentPlaceholder", "أدخل محتوى الرسالة")}
-                value={messageForm.content}
-                onChange={(e) => setMessageForm({ ...messageForm, content: e.target.value })}
-                className="mt-2"
-                rows={4}
-              />
+              <Textarea id="content" placeholder={t("whatsapp.messageContentPlaceholder", "أدخل محتوى الرسالة")} value={messageForm.content} onChange={(e) => setMessageForm({ ...messageForm, content: e.target.value })} className="mt-2" rows={4} />
             </div>
-            <Button
-              onClick={sendMessage}
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  {t("common.sending", "جاري الإرسال...")}
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 ml-2" />
-                  {t("whatsapp.send", "إرسال")}
-                </>
-              )}
+            <Button onClick={handleSendMessage} disabled={sendMessageMut.isPending} className="w-full bg-green-600 hover:bg-green-700">
+              {sendMessageMut.isPending ? (<><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t("common.sending", "جاري الإرسال...")}</>) : (<><Send className="w-4 h-4 ml-2" />{t("whatsapp.send", "إرسال")}</>)}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Create Template Dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>{t("whatsapp.createTemplate", "إنشاء قالب جديد")}</DialogTitle>
-            <DialogDescription>
-              {t("whatsapp.createTemplateDescription", "أنشئ قالب رسالة جديد")}
-            </DialogDescription>
+            <DialogDescription>{t("whatsapp.createTemplateDescription", "أنشئ قالب رسالة جديد")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label htmlFor="templateName">{t("whatsapp.templateName", "اسم القالب")}</Label>
-              <Input
-                id="templateName"
-                placeholder={t("whatsapp.templateNamePlaceholder", "مثال: تحية لقيادة جديدة")}
-                value={templateForm.name}
-                onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
-                className="mt-2"
-              />
+              <Input id="templateName" placeholder={t("whatsapp.templateNamePlaceholder", "مثال: تحية لليد جديد")} value={templateForm.name} onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })} className="mt-2" />
+            </div>
+            <div>
+              <Label htmlFor="templateCategory">{t("whatsapp.category", "الفئة")}</Label>
+              <select id="templateCategory" value={templateForm.category} onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value as any })} className="mt-2 w-full px-3 py-2 border rounded-md bg-background">
+                {Object.keys(categoryLabels).map((c) => (<option key={c} value={c}>{categoryLabels[c]}</option>))}
+              </select>
             </div>
             <div>
               <Label htmlFor="templateContent">{t("whatsapp.templateContent", "محتوى القالب")}</Label>
-              <Textarea
-                id="templateContent"
-                placeholder={t("whatsapp.templateContentPlaceholder", "أدخل محتوى القالب")}
-                value={templateForm.content}
-                onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
-                className="mt-2"
-                rows={4}
-              />
+              <Textarea id="templateContent" placeholder={t("whatsapp.templateContentPlaceholder", "أدخل محتوى القالب")} value={templateForm.content} onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })} className="mt-2" rows={4} />
             </div>
-            <Button
-              onClick={createTemplate}
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  {t("common.creating", "جاري الإنشاء...")}
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 ml-2" />
-                  {t("whatsapp.create", "إنشاء")}
-                </>
-              )}
+            <Button onClick={handleCreateTemplate} disabled={createTemplateMut.isPending} className="w-full bg-green-600 hover:bg-green-700">
+              {createTemplateMut.isPending ? (<><Loader2 className="w-4 h-4 ml-2 animate-spin" />{t("common.creating", "جاري الإنشاء...")}</>) : (<><Plus className="w-4 h-4 ml-2" />{t("whatsapp.create", "إنشاء")}</>)}
             </Button>
           </div>
         </DialogContent>
