@@ -1071,5 +1071,83 @@ export const appRouter = router({
         return await db.updateProposalStatus(input.id, input.status);
       }),
   }),
+  // ==================== WhatsApp Integration ====================
+  whatsapp: router({
+    sendMessage: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        phoneNumber: z.string(),
+        messageType: z.enum(["lead", "task", "performance", "custom"]),
+        templateName: z.string().optional(),
+        content: z.string(),
+        metadata: z.record(z.string(), z.any()).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await db.sendWhatsappMessage({
+          clientId: input.clientId,
+          phoneNumber: input.phoneNumber,
+          messageType: input.messageType,
+          templateName: input.templateName,
+          content: input.content,
+          metadata: input.metadata,
+          status: "pending",
+        } as any);
+      }),
+    getMessages: protectedProcedure
+      .input(z.object({ clientId: z.number(), limit: z.number().default(50) }))
+      .query(async ({ input }) => {
+        return await db.getClientWhatsappMessages(input.clientId, input.limit);
+      }),
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pending", "sent", "delivered", "read", "failed"]),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.updateWhatsappMessageStatus(input.id, input.status);
+      }),
+    getTemplates: protectedProcedure
+      .input(z.object({ category: z.string().optional() }))
+      .query(async ({ input }) => {
+        return await db.getWhatsappTemplates(input.category);
+      }),
+    createTemplate: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        category: z.enum(["lead", "task", "performance", "custom"]),
+        content: z.string(),
+        variables: z.record(z.string(), z.any()).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.createWhatsappTemplate({
+          name: input.name,
+          category: input.category,
+          content: input.content,
+          variables: input.variables,
+          isActive: true,
+        } as any);
+      }),
+    getSettings: protectedProcedure
+      .query(async () => {
+        return await db.getWhatsappSettings();
+      }),
+    updateSettings: protectedProcedure
+      .input(z.object({
+        businessPhoneNumberId: z.string().optional(),
+        accessToken: z.string().optional(),
+        businessAccountId: z.string().optional(),
+        isEnabled: z.boolean().optional(),
+        autoSendOnNewLead: z.boolean().optional(),
+        autoSendOnNewTask: z.boolean().optional(),
+        autoSendPerformanceAlerts: z.boolean().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.role || ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return await db.updateWhatsappSettings(input);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

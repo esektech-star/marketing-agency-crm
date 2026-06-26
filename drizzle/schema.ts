@@ -456,3 +456,63 @@ export const proposals = mysqlTable("proposals", {
 
 export type Proposal = typeof proposals.$inferSelect;
 export type InsertProposal = typeof proposals.$inferInsert;
+
+
+/**
+ * جدول رسائل WhatsApp
+ */
+export const whatsappMessages = mysqlTable("whatsappMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  messageType: mysqlEnum("messageType", ["lead", "task", "performance", "custom"]).notNull(),
+  templateName: varchar("templateName", { length: 255 }),
+  content: text("content").notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "delivered", "read", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  deliveredAt: timestamp("deliveredAt"),
+  readAt: timestamp("readAt"),
+  errorMessage: text("errorMessage"),
+  metadata: json("metadata"), // {leadId, taskId, campaignId, etc}
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsappMessage = typeof whatsappMessages.$inferSelect;
+export type InsertWhatsappMessage = typeof whatsappMessages.$inferInsert;
+
+/**
+ * جدول قوالب رسائل WhatsApp
+ */
+export const whatsappTemplates = mysqlTable("whatsappTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  category: mysqlEnum("category", ["lead", "task", "performance", "custom"]).notNull(),
+  content: text("content").notNull(),
+  variables: json("variables"), // {name, required, example}
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
+export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
+
+/**
+ * جدول إعدادات WhatsApp
+ */
+export const whatsappSettings = mysqlTable("whatsappSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  businessPhoneNumberId: varchar("businessPhoneNumberId", { length: 255 }).notNull(),
+  accessToken: varchar("accessToken", { length: 500 }).notNull(),
+  businessAccountId: varchar("businessAccountId", { length: 255 }).notNull(),
+  isEnabled: boolean("isEnabled").default(true).notNull(),
+  autoSendOnNewLead: boolean("autoSendOnNewLead").default(false).notNull(),
+  autoSendOnNewTask: boolean("autoSendOnNewTask").default(false).notNull(),
+  autoSendPerformanceAlerts: boolean("autoSendPerformanceAlerts").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WhatsappSettings = typeof whatsappSettings.$inferSelect;
+export type InsertWhatsappSettings = typeof whatsappSettings.$inferInsert;

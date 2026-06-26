@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal, whatsappMessages, WhatsappMessage, InsertWhatsappMessage, whatsappTemplates, WhatsappTemplate, InsertWhatsappTemplate, whatsappSettings, WhatsappSettings, InsertWhatsappSettings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -1429,6 +1429,173 @@ export async function updateProposalPdfUrl(id: number, pdfUrl: string) {
     return await getProposalById(id);
   } catch (error) {
     console.error("[Database] Error updating proposal PDF URL:", error);
+    return null;
+  }
+}
+
+
+// ==================== WhatsApp Messages ====================
+/**
+ * Send a WhatsApp message
+ */
+export async function sendWhatsappMessage(data: InsertWhatsappMessage) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot send WhatsApp message: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(whatsappMessages).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error sending WhatsApp message:", error);
+    return null;
+  }
+}
+
+/**
+ * Get WhatsApp messages for a client
+ */
+export async function getClientWhatsappMessages(clientId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get WhatsApp messages: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(whatsappMessages)
+      .where(eq(whatsappMessages.clientId, clientId))
+      .orderBy(desc(whatsappMessages.createdAt))
+      .limit(limit);
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting WhatsApp messages:", error);
+    return [];
+  }
+}
+
+/**
+ * Update WhatsApp message status
+ */
+export async function updateWhatsappMessageStatus(id: number, status: string, deliveredAt?: Date, readAt?: Date) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update WhatsApp message: database not available");
+    return null;
+  }
+  try {
+    const updateData: any = { status };
+    if (deliveredAt) updateData.deliveredAt = deliveredAt;
+    if (readAt) updateData.readAt = readAt;
+    
+    await db.update(whatsappMessages).set(updateData).where(eq(whatsappMessages.id, id));
+    return await db.select().from(whatsappMessages).where(eq(whatsappMessages.id, id)).limit(1).then(r => r[0]);
+  } catch (error) {
+    console.error("[Database] Error updating WhatsApp message:", error);
+    return null;
+  }
+}
+
+// ==================== WhatsApp Templates ====================
+/**
+ * Create a WhatsApp template
+ */
+export async function createWhatsappTemplate(data: InsertWhatsappTemplate) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create WhatsApp template: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(whatsappTemplates).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating WhatsApp template:", error);
+    return null;
+  }
+}
+
+/**
+ * Get all WhatsApp templates
+ */
+export async function getWhatsappTemplates(category?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get WhatsApp templates: database not available");
+    return [];
+  }
+  try {
+    let query = db.select().from(whatsappTemplates).where(eq(whatsappTemplates.isActive, true));
+    if (category) {
+      query = db.select().from(whatsappTemplates).where(and(eq(whatsappTemplates.isActive, true), eq(whatsappTemplates.category, category as any)));
+    }
+    const result = await query;
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting WhatsApp templates:", error);
+    return [];
+  }
+}
+
+/**
+ * Get WhatsApp template by name
+ */
+export async function getWhatsappTemplateByName(name: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get WhatsApp template: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(whatsappTemplates).where(eq(whatsappTemplates.name, name)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting WhatsApp template:", error);
+    return null;
+  }
+}
+
+// ==================== WhatsApp Settings ====================
+/**
+ * Get WhatsApp settings
+ */
+export async function getWhatsappSettings() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get WhatsApp settings: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(whatsappSettings).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting WhatsApp settings:", error);
+    return null;
+  }
+}
+
+/**
+ * Update WhatsApp settings
+ */
+export async function updateWhatsappSettings(data: Partial<WhatsappSettings>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update WhatsApp settings: database not available");
+    return null;
+  }
+  try {
+    const existing = await getWhatsappSettings();
+    if (existing) {
+      await db.update(whatsappSettings).set(data).where(eq(whatsappSettings.id, existing.id));
+      return await getWhatsappSettings();
+    } else {
+      const result = await db.insert(whatsappSettings).values(data as any);
+      return { id: result[0], ...data };
+    }
+  } catch (error) {
+    console.error("[Database] Error updating WhatsApp settings:", error);
     return null;
   }
 }
