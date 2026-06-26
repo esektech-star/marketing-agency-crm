@@ -1,177 +1,149 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, AlertTriangle, TrendingDown, DollarSign, Target, Plus, Trash2, Edit2 } from "lucide-react";
+import { Bell, AlertCircle, TrendingDown, DollarSign, Target, Plus, Trash2, CheckCircle2, Clock } from "lucide-react";
 import { toast } from "sonner";
-
-interface Alert {
-  id: string;
-  name: string;
-  type: "roi_decline" | "conversion_drop" | "budget_overspend" | "low_engagement";
-  threshold: number;
-  enabled: boolean;
-  notifyEmail: boolean;
-  notifyPush: boolean;
-  campaigns: string[];
-  createdAt: Date;
-}
 
 export default function Alerts() {
   const { t } = useTranslation();
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: "1",
-      name: "ROI Below 150%",
-      type: "roi_decline",
-      threshold: 150,
-      enabled: true,
-      notifyEmail: true,
-      notifyPush: true,
-      campaigns: ["Facebook Summer Sale", "Google Ads - Search"],
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: "2",
-      name: "Conversion Rate Drop",
-      type: "conversion_drop",
-      threshold: 5,
-      enabled: true,
-      notifyEmail: true,
-      notifyPush: false,
-      campaigns: ["All"],
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: "3",
-      name: "Budget Overspend Alert",
-      type: "budget_overspend",
-      threshold: 90,
-      enabled: false,
-      notifyEmail: true,
-      notifyPush: false,
-      campaigns: ["All"],
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    },
-  ]);
-
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [rules, setRules] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  
   const [formData, setFormData] = useState({
     name: "",
-    type: "roi_decline" as Alert["type"],
-    threshold: 150,
-    notifyEmail: true,
-    notifyPush: false,
-    campaigns: ["All"],
+    description: "",
+    ruleType: "roi_drop",
+    metric: "roi",
+    operator: "less_than",
+    threshold: "",
   });
 
   const alertTypes = [
-    { value: "roi_decline", label: t("alerts.roiDecline", "ROI Decline"), icon: TrendingDown },
+    { value: "roi_drop", label: t("alerts.roiDrop", "ROI Drop"), icon: TrendingDown },
     { value: "conversion_drop", label: t("alerts.conversionDrop", "Conversion Drop"), icon: Target },
-    { value: "budget_overspend", label: t("alerts.budgetOverspend", "Budget Overspend"), icon: DollarSign },
-    { value: "low_engagement", label: t("alerts.lowEngagement", "Low Engagement"), icon: AlertTriangle },
+    { value: "cpc_increase", label: t("alerts.cpcIncrease", "CPC Increase"), icon: DollarSign },
+    { value: "impressions_low", label: t("alerts.impressionsLow", "Low Impressions"), icon: AlertCircle },
   ];
 
-  const campaigns = ["All", "Facebook Summer Sale", "Google Ads - Search", "Instagram Influencer", "LinkedIn B2B", "TikTok Viral"];
+  const metrics = ["roi", "conversion_rate", "cpc", "impressions", "clicks", "spend"];
+  const operators = ["less_than", "greater_than", "equals", "not_equals"];
 
-  const handleAddAlert = () => {
-    if (!formData.name.trim()) {
-      toast.error(t("alerts.nameRequired", "Alert name is required"));
+  const handleAddRule = async () => {
+    if (!formData.name.trim() || !formData.threshold.trim()) {
+      toast.error(t("alerts.fillAllFields", "Please fill all fields"));
       return;
     }
 
-    if (editingId) {
-      setAlerts(
-        alerts.map((alert) =>
-          alert.id === editingId
-            ? { ...alert, ...formData }
-            : alert
-        )
-      );
-      toast.success(t("alerts.updateSuccess", "Alert updated"));
-      setEditingId(null);
-    } else {
-      const newAlert: Alert = {
-        id: Date.now().toString(),
+    try {
+      const newRule = {
+        id: Date.now(),
         ...formData,
-        enabled: true,
-        createdAt: new Date(),
+        isEnabled: true,
+        notifyAdminOnly: true,
+        createdAt: new Date().toISOString(),
       };
-      setAlerts([newAlert, ...alerts]);
-      toast.success(t("alerts.createSuccess", "Alert created"));
+      setRules([newRule, ...rules]);
+      setFormData({
+        name: "",
+        description: "",
+        ruleType: "roi_drop",
+        metric: "roi",
+        operator: "less_than",
+        threshold: "",
+      });
+      setIsOpen(false);
+      toast.success(t("alerts.ruleCreated", "Alert rule created"));
+    } catch (error) {
+      toast.error(t("alerts.createFailed", "Failed to create rule"));
     }
-
-    setFormData({
-      name: "",
-      type: "roi_decline",
-      threshold: 150,
-      notifyEmail: true,
-      notifyPush: false,
-      campaigns: ["All"],
-    });
-    setIsOpen(false);
   };
 
-  const handleDeleteAlert = (id: string) => {
+  const handleDeleteRule = (id: number) => {
     if (confirm(t("alerts.confirmDelete", "Are you sure?"))) {
-      setAlerts(alerts.filter((a) => a.id !== id));
-      toast.success(t("alerts.deleteSuccess", "Alert deleted"));
+      setRules(rules.filter((r) => r.id !== id));
+      toast.success(t("alerts.ruleDeleted", "Alert rule deleted"));
     }
   };
 
-  const handleEditAlert = (alert: Alert) => {
-    setEditingId(alert.id);
-    setFormData({
-      name: alert.name,
-      type: alert.type,
-      threshold: alert.threshold,
-      notifyEmail: alert.notifyEmail,
-      notifyPush: alert.notifyPush,
-      campaigns: alert.campaigns,
-    });
-    setIsOpen(true);
-  };
-
-  const toggleAlertStatus = (id: string) => {
-    setAlerts(
-      alerts.map((alert) =>
-        alert.id === id ? { ...alert, enabled: !alert.enabled } : alert
+  const toggleRuleStatus = (id: number) => {
+    setRules(
+      rules.map((r) =>
+        r.id === id ? { ...r, isEnabled: !r.isEnabled } : r
       )
     );
   };
 
-  const getAlertIcon = (type: Alert["type"]) => {
-    const alertType = alertTypes.find((at) => at.value === type);
-    const Icon = alertType?.icon || AlertTriangle;
-    return <Icon className="w-5 h-5" />;
+  const acknowledgeAlert = (id: number) => {
+    setAlerts(
+      alerts.map((a) =>
+        a.id === id ? { ...a, status: "acknowledged", acknowledgedAt: new Date().toISOString() } : a
+      )
+    );
+    toast.success(t("alerts.acknowledged", "Alert acknowledged"));
   };
 
-  const getAlertColor = (type: Alert["type"]) => {
-    const colors: Record<Alert["type"], string> = {
-      roi_decline: "bg-red-100 text-red-800",
-      conversion_drop: "bg-orange-100 text-orange-800",
-      budget_overspend: "bg-yellow-100 text-yellow-800",
-      low_engagement: "bg-purple-100 text-purple-800",
+  const resolveAlert = (id: number) => {
+    setAlerts(alerts.map((a) => (a.id === id ? { ...a, status: "resolved" } : a)));
+    toast.success(t("alerts.resolved", "Alert resolved"));
+  };
+
+  const getSeverityColor = (severity: string) => {
+    const colors: Record<string, string> = {
+      critical: "bg-red-100 text-red-800 border-red-300",
+      high: "bg-orange-100 text-orange-800 border-orange-300",
+      medium: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      low: "bg-blue-100 text-blue-800 border-blue-300",
     };
-    return colors[type];
+    return colors[severity] || "bg-gray-100 text-gray-800 border-gray-300";
   };
 
-  const enabledCount = alerts.filter((a) => a.enabled).length;
-  const totalTriggered = 5; // Mock data
+  const getSeverityLabel = (severity: string) => {
+    const labels: Record<string, string> = {
+      critical: "حرج",
+      high: "مرتفع",
+      medium: "متوسط",
+      low: "منخفض",
+    };
+    return labels[severity] || severity;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "active":
+        return <AlertCircle className="w-4 h-4" />;
+      case "acknowledged":
+        return <Clock className="w-4 h-4" />;
+      case "resolved":
+        return <CheckCircle2 className="w-4 h-4" />;
+      default:
+        return <Bell className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      active: "نشط",
+      acknowledged: "تم الإقرار",
+      resolved: "تم الحل",
+    };
+    return labels[status] || status;
+  };
+
+  const enabledCount = rules.filter((r) => r.isEnabled).length;
+  const activeAlerts = alerts.filter((a) => a.status === "active").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Bell className="w-8 h-8" />
+          <Bell className="w-8 h-8 text-red-600" />
           {t("alerts.title", "Performance Alerts")}
         </h1>
         <p className="text-muted-foreground mt-2">{t("alerts.subtitle", "Set up alerts to monitor campaign performance")}</p>
@@ -181,20 +153,20 @@ export default function Alerts() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t("alerts.activeAlerts", "Active Alerts")}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("alerts.activeRules", "Active Rules")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{enabledCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">of {alerts.length} total</p>
+            <p className="text-xs text-muted-foreground mt-1">of {rules.length} total</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t("alerts.triggered", "Triggered This Week")}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("alerts.activeAlerts", "Active Alerts")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{totalTriggered}</div>
+            <div className="text-2xl font-bold text-orange-600">{activeAlerts}</div>
             <p className="text-xs text-muted-foreground mt-1">requiring attention</p>
           </CardContent>
         </Card>
@@ -210,39 +182,86 @@ export default function Alerts() {
         </Card>
       </div>
 
-      {/* Alerts List */}
-      <Tabs defaultValue="active" className="w-full">
+      {/* Tabs */}
+      <Tabs defaultValue="alerts" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="active">{t("alerts.active", "Active")}</TabsTrigger>
-          <TabsTrigger value="all">{t("alerts.all", "All")}</TabsTrigger>
+          <TabsTrigger value="alerts">{t("alerts.alerts", "Alerts")}</TabsTrigger>
+          <TabsTrigger value="rules">{t("alerts.rules", "Rules")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="active" className="space-y-4">
-          <div className="flex justify-end">
+        {/* Alerts Tab */}
+        <TabsContent value="alerts" className="space-y-4">
+          <h2 className="text-xl font-semibold">{t("alerts.activeAlerts", "Active Alerts")}</h2>
+          <div className="space-y-3">
+            {alerts.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center text-muted-foreground">
+                  {t("alerts.noAlerts", "No alerts")}
+                </CardContent>
+              </Card>
+            ) : (
+              alerts.map((alert) => (
+                <Card key={alert.id} className={`border-l-4 ${getSeverityColor(alert.severity)}`}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          {getStatusIcon(alert.status)}
+                          <h3 className="font-semibold">{alert.title}</h3>
+                          <span className="text-xs px-2 py-1 rounded-full bg-opacity-20 bg-current">
+                            {getSeverityLabel(alert.severity)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{alert.message}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        {alert.status === "active" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => acknowledgeAlert(alert.id)}
+                              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                            >
+                              {t("alerts.acknowledge", "Acknowledge")}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => resolveAlert(alert.id)}
+                              className="text-green-600 border-green-600 hover:bg-green-50"
+                            >
+                              {t("alerts.resolve", "Resolve")}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(alert.createdAt).toLocaleDateString("ar-SA")}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Rules Tab */}
+        <TabsContent value="rules" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">{t("alerts.alertRules", "Alert Rules")}</h2>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    setEditingId(null);
-                    setFormData({
-                      name: "",
-                      type: "roi_decline",
-                      threshold: 150,
-                      notifyEmail: true,
-                      notifyPush: false,
-                      campaigns: ["All"],
-                    });
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
+                <Button className="bg-red-600 hover:bg-red-700">
                   <Plus className="w-4 h-4 mr-2" />
-                  {t("alerts.newAlert", "New Alert")}
+                  {t("alerts.newRule", "New Rule")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-md" dir="rtl">
                 <DialogHeader>
-                  <DialogTitle>{editingId ? t("alerts.editAlert", "Edit Alert") : t("alerts.createAlert", "Create Alert")}</DialogTitle>
-                  <DialogDescription>{t("alerts.alertDescription", "Set up a performance alert")}</DialogDescription>
+                  <DialogTitle>{t("alerts.createRule", "Create Alert Rule")}</DialogTitle>
+                  <DialogDescription>{t("alerts.ruleDescription", "Set up a new performance alert rule")}</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
@@ -252,25 +271,57 @@ export default function Alerts() {
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g., ROI Below 150%"
+                      placeholder="e.g., ROI Drop Alert"
                       className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="type">{t("alerts.type", "Alert Type")}</Label>
-                    <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as Alert["type"] })}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {alertTypes.map((at) => (
-                          <SelectItem key={at.value} value={at.value}>
-                            {at.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="ruleType">{t("alerts.ruleType", "Rule Type")}</Label>
+                    <select
+                      id="ruleType"
+                      value={formData.ruleType}
+                      onChange={(e) => setFormData({ ...formData, ruleType: e.target.value })}
+                      className="mt-1 w-full px-3 py-2 border rounded-md"
+                    >
+                      {alertTypes.map((at) => (
+                        <option key={at.value} value={at.value}>
+                          {at.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="metric">{t("alerts.metric", "Metric")}</Label>
+                    <select
+                      id="metric"
+                      value={formData.metric}
+                      onChange={(e) => setFormData({ ...formData, metric: e.target.value })}
+                      className="mt-1 w-full px-3 py-2 border rounded-md"
+                    >
+                      {metrics.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="operator">{t("alerts.operator", "Operator")}</Label>
+                    <select
+                      id="operator"
+                      value={formData.operator}
+                      onChange={(e) => setFormData({ ...formData, operator: e.target.value })}
+                      className="mt-1 w-full px-3 py-2 border rounded-md"
+                    >
+                      {operators.map((op) => (
+                        <option key={op} value={op}>
+                          {op}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
@@ -279,142 +330,69 @@ export default function Alerts() {
                       id="threshold"
                       type="number"
                       value={formData.threshold}
-                      onChange={(e) => setFormData({ ...formData, threshold: parseFloat(e.target.value) })}
+                      onChange={(e) => setFormData({ ...formData, threshold: e.target.value })}
+                      placeholder="e.g., 150"
                       className="mt-1"
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="campaigns">{t("alerts.campaigns", "Campaigns")}</Label>
-                    <Select value={formData.campaigns[0]} onValueChange={(value) => setFormData({ ...formData, campaigns: [value] })}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {campaigns.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>{t("alerts.emailNotification", "Email Notification")}</Label>
-                      <Switch
-                        checked={formData.notifyEmail}
-                        onCheckedChange={(checked) => setFormData({ ...formData, notifyEmail: checked })}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label>{t("alerts.pushNotification", "Push Notification")}</Label>
-                      <Switch
-                        checked={formData.notifyPush}
-                        onCheckedChange={(checked) => setFormData({ ...formData, notifyPush: checked })}
-                      />
-                    </div>
-                  </div>
-
-                  <Button onClick={handleAddAlert} className="w-full bg-blue-600 hover:bg-blue-700">
-                    {editingId ? t("common.update", "Update") : t("common.create", "Create")}
+                  <Button onClick={handleAddRule} className="w-full bg-red-600 hover:bg-red-700">
+                    {t("common.create", "Create")}
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          {alerts
-            .filter((a) => a.enabled)
-            .map((alert) => (
-              <Card key={alert.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${getAlertColor(alert.type)}`}>
-                        {getAlertIcon(alert.type)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{alert.name}</CardTitle>
-                        <CardDescription className="text-xs mt-1">
-                          {alertTypes.find((at) => at.value === alert.type)?.label}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditAlert(alert)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteAlert(alert.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("alerts.threshold", "Threshold")}:</span>
-                    <Badge variant="secondary">{alert.threshold}%</Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{t("alerts.campaigns", "Campaigns")}:</span>
-                    <span>{alert.campaigns.join(", ")}</span>
-                  </div>
-                  <div className="flex gap-2 text-xs">
-                    {alert.notifyEmail && (
-                      <Badge variant="outline">{t("alerts.emailEnabled", "Email")}</Badge>
-                    )}
-                    {alert.notifyPush && (
-                      <Badge variant="outline">{t("alerts.pushEnabled", "Push")}</Badge>
-                    )}
-                  </div>
+          <div className="space-y-3">
+            {rules.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center text-muted-foreground">
+                  {t("alerts.noRules", "No rules")}
                 </CardContent>
               </Card>
-            ))}
-        </TabsContent>
-
-        <TabsContent value="all" className="space-y-4">
-          {alerts.map((alert) => (
-            <Card key={alert.id} className={!alert.enabled ? "opacity-50" : ""}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className={`p-2 rounded-lg ${getAlertColor(alert.type)}`}>
-                      {getAlertIcon(alert.type)}
+            ) : (
+              rules.map((rule) => (
+                <Card key={rule.id} className={!rule.isEnabled ? "opacity-50" : ""}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{rule.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{rule.description}</p>
+                        <div className="flex gap-4 mt-3 text-xs">
+                          <span>
+                            <strong>{t("alerts.metric", "Metric")}:</strong> {rule.metric}
+                          </span>
+                          <span>
+                            <strong>{t("alerts.operator", "Operator")}:</strong> {rule.operator}
+                          </span>
+                          <span>
+                            <strong>{t("alerts.threshold", "Threshold")}:</strong> {rule.threshold}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={rule.isEnabled}
+                          onChange={() => toggleRuleStatus(rule.id)}
+                          className="w-4 h-4"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteRule(rule.id)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-base">{alert.name}</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        {alertTypes.find((at) => at.value === alert.type)?.label}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={alert.enabled}
-                      onCheckedChange={() => toggleAlertStatus(alert.id)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteAlert(alert.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

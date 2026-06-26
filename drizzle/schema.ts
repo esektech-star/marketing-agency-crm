@@ -574,3 +574,65 @@ export const sumitSyncLog = mysqlTable("sumitSyncLog", {
 
 export type SumitSyncLog = typeof sumitSyncLog.$inferSelect;
 export type InsertSumitSyncLog = typeof sumitSyncLog.$inferInsert;
+
+
+/**
+ * جدول قواعد التنبيهات
+ */
+export const alertRules = mysqlTable("alertRules", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  ruleType: mysqlEnum("ruleType", ["roi_drop", "conversion_drop", "cpc_increase", "impressions_low", "custom"]).notNull(),
+  metric: varchar("metric", { length: 100 }).notNull(), // roi, conversion_rate, cpc, impressions, etc
+  operator: mysqlEnum("operator", ["less_than", "greater_than", "equals", "not_equals"]).notNull(),
+  threshold: decimal("threshold", { precision: 10, scale: 2 }).notNull(),
+  duration: int("duration"), // في الدقائق
+  isEnabled: boolean("isEnabled").default(true).notNull(),
+  notifyAdminOnly: boolean("notifyAdminOnly").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AlertRule = typeof alertRules.$inferSelect;
+export type InsertAlertRule = typeof alertRules.$inferInsert;
+
+/**
+ * جدول التنبيهات
+ */
+export const alerts = mysqlTable("alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  ruleId: int("ruleId").notNull(),
+  campaignId: int("campaignId"),
+  clientId: int("clientId"),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  currentValue: decimal("currentValue", { precision: 10, scale: 2 }),
+  threshold: decimal("threshold", { precision: 10, scale: 2 }),
+  status: mysqlEnum("status", ["active", "acknowledged", "resolved"]).default("active").notNull(),
+  acknowledgedBy: int("acknowledgedBy"),
+  acknowledgedAt: timestamp("acknowledgedAt"),
+  resolvedAt: timestamp("resolvedAt"),
+  metadata: json("metadata"), // {campaign_name, client_name, etc}
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Alert = typeof alerts.$inferSelect;
+export type InsertAlert = typeof alerts.$inferInsert;
+
+/**
+ * جدول سجل التنبيهات
+ */
+export const alertHistory = mysqlTable("alertHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  alertId: int("alertId").notNull(),
+  action: mysqlEnum("action", ["created", "acknowledged", "resolved", "escalated"]).notNull(),
+  performedBy: int("performedBy"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AlertHistory = typeof alertHistory.$inferSelect;
+export type InsertAlertHistory = typeof alertHistory.$inferInsert;

@@ -1215,5 +1215,80 @@ export const appRouter = router({
         return await db.getSumitSyncLogs(input.invoiceId);
       }),
   }),
+  // ==================== Performance Alerts ====================
+  alerts: router({
+    createRule: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        ruleType: z.enum(["roi_drop", "conversion_drop", "cpc_increase", "impressions_low", "custom"]),
+        metric: z.string(),
+        operator: z.enum(["less_than", "greater_than", "equals", "not_equals"]),
+        threshold: z.number(),
+        duration: z.number().optional(),
+        notifyAdminOnly: z.boolean().default(true),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.role || ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        return await db.createAlertRule({
+          name: input.name,
+          description: input.description,
+          ruleType: input.ruleType,
+          metric: input.metric,
+          operator: input.operator,
+          threshold: input.threshold.toString() as any,
+          duration: input.duration,
+          notifyAdminOnly: input.notifyAdminOnly,
+          isEnabled: true,
+        });
+      }),
+    getRules: protectedProcedure
+      .query(async () => {
+        return await db.getAlertRules();
+      }),
+    updateRule: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        isEnabled: z.boolean().optional(),
+        threshold: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.role || ctx.user.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+        const updateData: any = {};
+        if (input.isEnabled !== undefined) updateData.isEnabled = input.isEnabled;
+        if (input.threshold !== undefined) updateData.threshold = input.threshold.toString();
+        return await db.updateAlertRule(input.id, updateData);
+      }),
+    getActiveAlerts: protectedProcedure
+      .query(async () => {
+        return await db.getActiveAlerts();
+      }),
+    getCampaignAlerts: protectedProcedure
+      .input(z.object({ campaignId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getCampaignAlerts(input.campaignId);
+      }),
+    acknowledgeAlert: protectedProcedure
+      .input(z.object({ alertId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await db.acknowledgeAlert(input.alertId, ctx.user.id);
+      }),
+    resolveAlert: protectedProcedure
+      .input(z.object({ alertId: z.number(), notes: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        return await db.resolveAlert(input.alertId, ctx.user.id, input.notes);
+      }),
+    getHistory: protectedProcedure
+      .input(z.object({ alertId: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getAlertHistory(input.alertId);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

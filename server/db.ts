@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal, whatsappMessages, WhatsappMessage, InsertWhatsappMessage, whatsappTemplates, WhatsappTemplate, InsertWhatsappTemplate, whatsappSettings, WhatsappSettings, InsertWhatsappSettings, sumitInvoices, SumitInvoice, InsertSumitInvoice, sumitSettings, SumitSettings, InsertSumitSettings, sumitSyncLog, SumitSyncLog, InsertSumitSyncLog } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal, whatsappMessages, WhatsappMessage, InsertWhatsappMessage, whatsappTemplates, WhatsappTemplate, InsertWhatsappTemplate, whatsappSettings, WhatsappSettings, InsertWhatsappSettings, sumitInvoices, SumitInvoice, InsertSumitInvoice, sumitSettings, SumitSettings, InsertSumitSettings, sumitSyncLog, SumitSyncLog, InsertSumitSyncLog, alertRules, AlertRule, InsertAlertRule, alerts, Alert, InsertAlert, alertHistory, AlertHistory, InsertAlertHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -1784,5 +1784,211 @@ export async function updateSumitSyncLogStatus(id: number, status: string, error
   } catch (error) {
     console.error("[Database] Error updating SUMIT sync log:", error);
     return null;
+  }
+}
+
+
+// ==================== Alert Rules ====================
+/**
+ * Create an alert rule
+ */
+export async function createAlertRule(data: InsertAlertRule) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create alert rule: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(alertRules).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating alert rule:", error);
+    return null;
+  }
+}
+
+/**
+ * Get all alert rules
+ */
+export async function getAlertRules() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get alert rules: database not available");
+    return [];
+  }
+  try {
+    const result = await db.select().from(alertRules).orderBy(desc(alertRules.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting alert rules:", error);
+    return [];
+  }
+}
+
+/**
+ * Update alert rule
+ */
+export async function updateAlertRule(id: number, data: Partial<AlertRule>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update alert rule: database not available");
+    return null;
+  }
+  try {
+    await db.update(alertRules).set(data).where(eq(alertRules.id, id));
+    return await db.select().from(alertRules).where(eq(alertRules.id, id)).limit(1).then(r => r[0]);
+  } catch (error) {
+    console.error("[Database] Error updating alert rule:", error);
+    return null;
+  }
+}
+
+// ==================== Alerts ====================
+/**
+ * Create an alert
+ */
+export async function createAlert(data: InsertAlert) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create alert: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(alerts).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating alert:", error);
+    return null;
+  }
+}
+
+/**
+ * Get active alerts
+ */
+export async function getActiveAlerts() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get alerts: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(alerts)
+      .where(eq(alerts.status, "active"))
+      .orderBy(desc(alerts.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting alerts:", error);
+    return [];
+  }
+}
+
+/**
+ * Get alerts for a campaign
+ */
+export async function getCampaignAlerts(campaignId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get campaign alerts: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(alerts)
+      .where(eq(alerts.campaignId, campaignId))
+      .orderBy(desc(alerts.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting campaign alerts:", error);
+    return [];
+  }
+}
+
+/**
+ * Acknowledge alert
+ */
+export async function acknowledgeAlert(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot acknowledge alert: database not available");
+    return null;
+  }
+  try {
+    const now = new Date();
+    await db.update(alerts).set({
+      status: "acknowledged",
+      acknowledgedBy: userId,
+      acknowledgedAt: now,
+    }).where(eq(alerts.id, id));
+    
+    // Log the action
+    await db.insert(alertHistory).values({
+      alertId: id,
+      action: "acknowledged",
+      performedBy: userId,
+      createdAt: now,
+    } as any);
+    
+    return await db.select().from(alerts).where(eq(alerts.id, id)).limit(1).then(r => r[0]);
+  } catch (error) {
+    console.error("[Database] Error acknowledging alert:", error);
+    return null;
+  }
+}
+
+/**
+ * Resolve alert
+ */
+export async function resolveAlert(id: number, userId: number, notes?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot resolve alert: database not available");
+    return null;
+  }
+  try {
+    const now = new Date();
+    await db.update(alerts).set({
+      status: "resolved",
+      resolvedAt: now,
+    }).where(eq(alerts.id, id));
+    
+    // Log the action
+    await db.insert(alertHistory).values({
+      alertId: id,
+      action: "resolved",
+      performedBy: userId,
+      notes,
+      createdAt: now,
+    } as any);
+    
+    return await db.select().from(alerts).where(eq(alerts.id, id)).limit(1).then(r => r[0]);
+  } catch (error) {
+    console.error("[Database] Error resolving alert:", error);
+    return null;
+  }
+}
+
+// ==================== Alert History ====================
+/**
+ * Get alert history
+ */
+export async function getAlertHistory(alertId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get alert history: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(alertHistory)
+      .where(eq(alertHistory.alertId, alertId))
+      .orderBy(desc(alertHistory.createdAt));
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting alert history:", error);
+    return [];
   }
 }
