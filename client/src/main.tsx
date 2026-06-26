@@ -7,17 +7,13 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+// IMPORTANT: preInit must come BEFORE i18n/config so stale 'en' is normalized
+// to a supported language before i18next reads localStorage.
+import "./i18n/preInit";
 import "./i18n/config";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
-// Initialize language on app start (Hebrew + Arabic only, both RTL)
-let savedLanguage = localStorage.getItem('language') || 'ar';
-if (savedLanguage !== 'ar' && savedLanguage !== 'he') {
-  savedLanguage = 'ar';
-  localStorage.setItem('language', 'ar');
-}
-document.documentElement.lang = savedLanguage;
-document.documentElement.dir = 'rtl';
+// Enforce RTL on body (lang/dir already set in preInit)
 document.body.dir = 'rtl';
 
 const queryClient = new QueryClient();
