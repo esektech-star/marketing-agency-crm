@@ -35,13 +35,15 @@ import AccessDetails from "./pages/AccessDetails";
 import ClientPortal from "./pages/ClientPortal";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
+import Onboarding from "./pages/Onboarding";
 
 
 function Router() {
   return (
     <Switch>
       <Route path={"/landing"} component={Landing} />
-      <Route path={"/"} component={Home} />
+      <Route path={"/onboarding"} component={Onboarding} />
+      <Route path={"/ "} component={Home} />
       <Route path={"/portal/:token"} component={ClientPortal} />
       <Route path={"/invoices"}>
         {() => (

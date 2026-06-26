@@ -20,13 +20,13 @@
 - [x] Authentication לפורטל (Token-based)
 
 ## Phase 3: Onboarding/Discovery Module
-- [ ] יצירת טופס אפיון לקוח
-- [ ] שאלות מובנות (Discovery Questions)
-- [ ] AI Summary של תשובות
-- [ ] המלצת חבילה (Package Recommendation)
-- [ ] יצירת הצעת מחיר (Proposal)
-- [ ] ייצוא PDF של ההצעה
-- [ ] שיתוף לינק ללקוח
+- [x] יצירת טופס אפיון לקוח
+- [x] שאלות מובנות (Discovery Questions)
+- [x] AI Summary של תשובות
+- [x] המלצת חבילה (Package Recommendation)
+- [x] יצירת הצעת מחיר (Proposal)
+- [x] ייצוא PDF של ההצעה
+- [x] שיתוף לינק ללקוח
 
 ## Phase 4: Meta Ads Integration
 - [ ] חיבור ל-Meta Ads API

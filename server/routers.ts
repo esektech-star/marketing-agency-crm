@@ -998,5 +998,78 @@ export const appRouter = router({
       return { success: true };
     }),
   }),
+  // ==================== Onboarding/Proposals ====================
+  onboarding: router({
+    generateSummary: protectedProcedure
+      .input(z.object({
+        answers: z.record(z.string(), z.any()),
+        businessType: z.string(),
+        budget: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        try {
+          const prompt = `بناءً على المعلومات التالية عن العميل، قدم ملخص تنفيذي موجز (100-150 كلمة) يوضح الحل المقترح:\nنوع العمل: ${input.businessType}\nالميزانية: ${input.budget}\nالأهداف: ${input.answers["3"] || "غير محدد"}\nالقنوات: ${input.answers["5"] || "غير محدد"}`;
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: "أنت مستشار تسويق رقمي محترف. قدم ملخصات موجزة واحترافية." },
+              { role: "user", content: prompt },
+            ],
+          });
+          return response.choices[0]?.message?.content || "تم إنشاء الملخص";
+        } catch (error) {
+          console.error("[LLM] Error generating summary:", error);
+          return "تم إنشاء الملخص بناءً على إجاباتك";
+        }
+      }),
+    createProposal: protectedProcedure
+      .input(z.object({
+        clientId: z.number(),
+        businessType: z.string(),
+        budget: z.string(),
+        packageId: z.number(),
+        packageName: z.string(),
+        packagePrice: z.number(),
+        aiSummary: z.string(),
+        discoveryAnswers: z.record(z.string(), z.any()),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+        const shareToken = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+        return await db.createProposal({
+          clientId: input.clientId,
+          createdBy: ctx.user.id,
+          businessType: input.businessType,
+          budget: input.budget,
+          packageId: input.packageId,
+          packageName: input.packageName,
+          packagePrice: input.packagePrice,
+          aiSummary: input.aiSummary,
+          discoveryAnswers: input.discoveryAnswers,
+          shareToken,
+          status: "draft",
+        } as any);
+        
+      }),
+    getProposal: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getProposalById(input.id);
+      }),
+    getProposalByToken: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const proposal = await db.getProposalByShareToken(input.token);
+        if (proposal) {
+          await db.updateProposalStatus(proposal.id, "viewed");
+        }
+        return proposal;
+      }),
+    updateStatus: protectedProcedure
+      .input(z.object({ id: z.number(), status: z.string() }))
+      .mutation(async ({ input }) => {
+        return await db.updateProposalStatus(input.id, input.status);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

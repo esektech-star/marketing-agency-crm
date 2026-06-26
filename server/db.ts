@@ -1,6 +1,6 @@
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog } from "../drizzle/schema";
+import { InsertUser, users, clients, vendors, subscriptions, teamMembers, tasks, leads, transactions, campaigns, accessDetails, appUsers, documents, invoices, clientPortalAccess, presenceTracking, PresenceTracking, InsertPresenceTracking, auditLogs, AuditLog, InsertAuditLog, proposals, Proposal, InsertProposal } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { encryptSecret, decryptSecret } from './crypto';
 
@@ -1310,6 +1310,125 @@ export async function createPortalFileUpload(data: {
     return { id: Date.now(), ...data, uploadedAt: new Date() };
   } catch (error) {
     console.error("[Database] Error creating portal file upload:", error);
+    return null;
+  }
+}
+
+
+// ==================== Proposals ====================
+/**
+ * Create a new proposal
+ */
+export async function createProposal(data: InsertProposal) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create proposal: database not available");
+    return null;
+  }
+  try {
+    const result = await db.insert(proposals).values(data);
+    return { id: result[0], ...data };
+  } catch (error) {
+    console.error("[Database] Error creating proposal:", error);
+    return null;
+  }
+}
+
+/**
+ * Get proposal by ID
+ */
+export async function getProposalById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get proposal: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(proposals).where(eq(proposals.id, id)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting proposal:", error);
+    return null;
+  }
+}
+
+/**
+ * Get proposal by share token
+ */
+export async function getProposalByShareToken(token: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get proposal: database not available");
+    return null;
+  }
+  try {
+    const result = await db.select().from(proposals).where(eq(proposals.shareToken, token)).limit(1);
+    return result[0] || null;
+  } catch (error) {
+    console.error("[Database] Error getting proposal by token:", error);
+    return null;
+  }
+}
+
+/**
+ * Get proposals for a client
+ */
+export async function getProposalsByClient(clientId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get proposals: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(proposals)
+      .where(eq(proposals.clientId, clientId))
+      .orderBy(desc(proposals.createdAt))
+      .limit(50);
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting proposals:", error);
+    return [];
+  }
+}
+
+/**
+ * Update proposal status
+ */
+export async function updateProposalStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update proposal: database not available");
+    return null;
+  }
+  try {
+    const updateData: any = { status };
+    if (status === "viewed") updateData.viewedAt = new Date();
+    if (status === "accepted") updateData.acceptedAt = new Date();
+    
+    await db.update(proposals).set(updateData).where(eq(proposals.id, id));
+    return await getProposalById(id);
+  } catch (error) {
+    console.error("[Database] Error updating proposal:", error);
+    return null;
+  }
+}
+
+/**
+ * Update proposal PDF URL
+ */
+export async function updateProposalPdfUrl(id: number, pdfUrl: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update proposal: database not available");
+    return null;
+  }
+  try {
+    await db.update(proposals).set({ pdfUrl }).where(eq(proposals.id, id));
+    return await getProposalById(id);
+  } catch (error) {
+    console.error("[Database] Error updating proposal PDF URL:", error);
     return null;
   }
 }

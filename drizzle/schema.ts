@@ -428,3 +428,31 @@ export const metaCampaigns = mysqlTable("metaCampaigns", {
 
 export type MetaCampaign = typeof metaCampaigns.$inferSelect;
 export type InsertMetaCampaign = typeof metaCampaigns.$inferInsert;
+
+
+/**
+ * جدول الهدايا (Proposals)
+ */
+export const proposals = mysqlTable("proposals", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: int("clientId").notNull(),
+  createdBy: int("createdBy").notNull(), // User ID
+  businessType: varchar("businessType", { length: 255 }),
+  budget: varchar("budget", { length: 100 }),
+  packageId: int("packageId").notNull(),
+  packageName: varchar("packageName", { length: 255 }).notNull(),
+  packagePrice: decimal("packagePrice", { precision: 12, scale: 2 }).notNull(),
+  aiSummary: text("aiSummary"),
+  discoveryAnswers: json("discoveryAnswers"), // {questionId: answer, ...}
+  shareToken: varchar("shareToken", { length: 100 }).unique(),
+  shareExpiresAt: timestamp("shareExpiresAt"),
+  status: mysqlEnum("status", ["draft", "sent", "viewed", "accepted", "rejected"]).default("draft").notNull(),
+  viewedAt: timestamp("viewedAt"),
+  acceptedAt: timestamp("acceptedAt"),
+  pdfUrl: varchar("pdfUrl", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Proposal = typeof proposals.$inferSelect;
+export type InsertProposal = typeof proposals.$inferInsert;

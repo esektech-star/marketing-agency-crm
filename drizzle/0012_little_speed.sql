@@ -1,0 +1,22 @@
+CREATE TABLE `proposals` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`clientId` int NOT NULL,
+	`createdBy` int NOT NULL,
+	`businessType` varchar(255),
+	`budget` varchar(100),
+	`packageId` int NOT NULL,
+	`packageName` varchar(255) NOT NULL,
+	`packagePrice` decimal(12,2) NOT NULL,
+	`aiSummary` text,
+	`discoveryAnswers` json,
+	`shareToken` varchar(100),
+	`shareExpiresAt` timestamp,
+	`status` enum('draft','sent','viewed','accepted','rejected') NOT NULL DEFAULT 'draft',
+	`viewedAt` timestamp,
+	`acceptedAt` timestamp,
+	`pdfUrl` varchar(500),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `proposals_id` PRIMARY KEY(`id`),
+	CONSTRAINT `proposals_shareToken_unique` UNIQUE(`shareToken`)
+);
