@@ -3,8 +3,12 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Download, FileText, BarChart3, Receipt, FolderOpen, AlertTriangle, TrendingUp, CheckCircle2, Target } from "lucide-react";
+import { Loader2, Download, FileText, BarChart3, Receipt, FolderOpen, AlertTriangle, TrendingUp, CheckCircle2, Target, Send, MessageSquare, Upload, CheckCircle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 const STATUS_STYLE: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800",
@@ -23,6 +27,12 @@ const CAMP_STATUS: Record<string, string> = {
   completed: "مكتملة",
 };
 
+const TASK_STATUS: Record<string, { icon: any; label: string; color: string }> = {
+  pending: { icon: Clock, label: "قيد الانتظار", color: "text-amber-600" },
+  in_progress: { icon: Clock, label: "قيد التنفيذ", color: "text-blue-600" },
+  completed: { icon: CheckCircle, label: "مكتملة", color: "text-green-600" },
+};
+
 function fmtMoney(n: number) {
   return `₪${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
@@ -31,7 +41,32 @@ export default function ClientPortal() {
   const { t } = useTranslation();
   const [, params] = useRoute("/portal/:token");
   const token = params?.token || "";
+  const [messageText, setMessageText] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  
   const { data, isLoading } = trpc.clientPortal.getData.useQuery({ token }, { enabled: !!token });
+  const { data: tasks = [] } = trpc.clientPortal.getTasks.useQuery({ token }, { enabled: !!token });
+  const { data: messages = [] } = trpc.clientPortal.getMessages.useQuery({ token }, { enabled: !!token });
+  const sendMessageMutation = trpc.clientPortal.sendMessage.useMutation();
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      toast.error(t("clientPortal.messageEmpty", "الرسالة فارغة"));
+      return;
+    }
+    
+    setIsSendingMessage(true);
+    try {
+      await sendMessageMutation.mutateAsync({ token, message: messageText });
+      setMessageText("");
+      toast.success(t("clientPortal.messageSent", "تم إرسال الرسالة"));
+    } catch (error) {
+      toast.error(t("clientPortal.messageFailed", "فشل إرسال الرسالة"));
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -161,6 +196,38 @@ export default function ClientPortal() {
           </Card>
         )}
 
+        {tasks.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-[#1e3a5f]" /> {t("clientPortal.tasks", "المهام")}</CardTitle>
+              <CardDescription>{t("clientPortal.tasksDesc", "المهام المرتبطة بحسابك")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {tasks.map((task: any) => {
+                  const taskStatus = TASK_STATUS[task.status] || TASK_STATUS.pending;
+                  const Icon = taskStatus.icon;
+                  return (
+                    <div key={task.id} className="border rounded-lg p-4 flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <Icon className={`w-5 h-5 ${taskStatus.color} mt-1 shrink-0`} />
+                        <div className="flex-1">
+                          <h3 className="font-medium">{task.title}</h3>
+                          <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>{taskStatus.label}</span>
+                            {task.dueDate && <span>الموعد: {new Date(task.dueDate).toLocaleDateString("ar-SA")}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {portal.permissions.canViewInvoices && (
           <Card>
             <CardHeader>
@@ -234,6 +301,52 @@ export default function ClientPortal() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {portal.permissions.canMessage && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><MessageSquare className="w-5 h-5 text-[#1e3a5f]" /> {t("clientPortal.messages", "الرسائل")}</CardTitle>
+              <CardDescription>{t("clientPortal.messagesDesc", "تواصل مباشر مع فريق الوكالة")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-slate-50 rounded-lg p-4 h-64 overflow-y-auto space-y-3">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground text-sm py-8">
+                      {t("clientPortal.noMessages", "لا توجد رسائل حالياً")}
+                    </div>
+                  ) : (
+                    messages.map((msg: any) => (
+                      <div key={msg.id} className={`flex ${msg.senderType === 'client' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${msg.senderType === 'client' ? 'bg-blue-500 text-white' : 'bg-white border'}`}>
+                          {msg.message}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder={t("clientPortal.messagePlaceholder", "اكتب رسالتك هنا...")}
+                    className="resize-none"
+                    rows={3}
+                    disabled={isSendingMessage}
+                  />
+                </div>
+                <Button 
+                  className="w-full bg-[#1e3a5f] hover:bg-[#2d5080]"
+                  onClick={handleSendMessage}
+                  disabled={isSendingMessage}
+                >
+                  {isSendingMessage ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <Send className="w-4 h-4 ml-2" />}
+                  {t("clientPortal.sendMessage", "إرسال الرسالة")}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

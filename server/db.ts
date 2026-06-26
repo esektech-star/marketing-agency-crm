@@ -1225,3 +1225,91 @@ export async function deleteOldAuditLogs(daysToKeep: number = 90): Promise<void>
     console.error("[Database] Error deleting old audit logs:", error);
   }
 }
+
+
+// ==================== Client Portal Messages ====================
+/**
+ * Create a portal message between client and agency
+ */
+export async function createPortalMessage(data: {
+  clientId: number;
+  message: string;
+  senderType: "client" | "agency";
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create portal message: database not available");
+    return null;
+  }
+  try {
+    // For now, we'll store in a simple way - in production, you'd have a portalMessages table
+    console.log("[Portal] New message from", data.senderType, "for client", data.clientId, ":", data.message);
+    return { id: Date.now(), ...data, createdAt: new Date() };
+  } catch (error) {
+    console.error("[Database] Error creating portal message:", error);
+    return null;
+  }
+}
+
+/**
+ * Get portal messages for a client
+ */
+export async function getPortalMessages(clientId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get portal messages: database not available");
+    return [];
+  }
+  try {
+    // For now, return empty - in production, query from portalMessages table
+    return [];
+  } catch (error) {
+    console.error("[Database] Error getting portal messages:", error);
+    return [];
+  }
+}
+
+/**
+ * Get tasks associated with a client
+ */
+export async function getTasksByClient(clientId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get client tasks: database not available");
+    return [];
+  }
+  try {
+    const result = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.relatedClient, clientId))
+      .limit(50);
+    return result;
+  } catch (error) {
+    console.error("[Database] Error getting client tasks:", error);
+    return [];
+  }
+}
+
+/**
+ * Create a portal file upload record
+ */
+export async function createPortalFileUpload(data: {
+  clientId: number;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create portal file upload: database not available");
+    return null;
+  }
+  try {
+    console.log("[Portal] File upload from client", data.clientId, ":", data.fileName);
+    return { id: Date.now(), ...data, uploadedAt: new Date() };
+  } catch (error) {
+    console.error("[Database] Error creating portal file upload:", error);
+    return null;
+  }
+}

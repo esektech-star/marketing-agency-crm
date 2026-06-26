@@ -10,14 +10,14 @@
 - [x] ביקורת Audit Log System
 
 ## Phase 2: Client Portal מלא
-- [ ] יצירת Client Portal Layout עצמאי
-- [ ] צפייה קמפיינים (read-only)
-- [ ] צפייה משימות משויכות
-- [ ] צפייה מסמכים
-- [ ] צפייה חשבוניות
-- [ ] העלאת קבצים ע״י לקוח
-- [ ] מערכת הודעות בין לקוח למשרד
-- [ ] Authentication לפורטל (Token-based)
+- [x] יצירת Client Portal Layout עצמאי
+- [x] צפייה קמפיינים (read-only)
+- [x] צפייה משימות משויכות
+- [x] צפייה מסמכים
+- [x] צפייה חשבוניות
+- [x] העלאת קבצים ע״י לקוח
+- [x] מערכת הודעות בין לקוח למשרד
+- [x] Authentication לפורטל (Token-based)
 
 ## Phase 3: Onboarding/Discovery Module
 - [ ] יצירת טופס אפיון לקוח

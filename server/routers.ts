@@ -735,6 +735,38 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return await db.getClientPortalData(input.token);
       }),
+    getTasks: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const portalData = await db.getClientPortalData(input.token);
+        if (!portalData || (portalData as any).expired) return [];
+        const clientId = (portalData as any).client.id;
+        return await db.getTasksByClient(clientId);
+      }),
+    getMessages: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const portalData = await db.getClientPortalData(input.token);
+        if (!portalData || (portalData as any).expired) return [];
+        const clientId = (portalData as any).client.id;
+        return await db.getPortalMessages(clientId);
+      }),
+    sendMessage: publicProcedure
+      .input(z.object({
+        token: z.string(),
+        message: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ input }) => {
+        const portalData = await db.getClientPortalData(input.token);
+        if (!portalData || (portalData as any).expired) throw new TRPCError({ code: "UNAUTHORIZED" });
+        if (!(portalData as any).permissions.canMessage) throw new TRPCError({ code: "FORBIDDEN" });
+        const clientId = (portalData as any).client.id;
+        return await db.createPortalMessage({
+          clientId,
+          message: input.message,
+          senderType: "client",
+        });
+      }),
   }),
 
   // ==================== Payment Reminders (تذكيرات الدفع) ====================
