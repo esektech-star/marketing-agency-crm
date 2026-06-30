@@ -20,12 +20,6 @@ const ROLE_LABELS: Record<string, string> = {
   "editor": "bg-amber-100 text-amber-800",
 };
 
-const LANG_LABELS: Record<string, string> = {
-  ar: "العربية",
-  he: "العبرية",
-  en: "الإنجليزية",
-};
-
 export default function Users() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -84,7 +78,7 @@ export default function Users() {
           status: formData.status as any,
           permissions: formData.role === "manager" ? [...APP_SECTIONS] : permissions,
         });
-        toast.success("تم تحديث بيانات المستخدم بنجاح");
+        toast.success(t("users.updateSuccess", "تم تحديث بيانات المستخدم بنجاح"));
       } else {
         await createMutation.mutateAsync({
           username: formData.username,
@@ -96,13 +90,13 @@ export default function Users() {
           status: formData.status as any,
           permissions: formData.role === "manager" ? [...APP_SECTIONS] : permissions,
         });
-        toast.success("تم إضافة المستخدم بنجاح");
+        toast.success(t("users.createSuccess", "تم إضافة المستخدم بنجاح"));
       }
       resetForm();
       setIsOpen(false);
       refetch();
     } catch (error: any) {
-      toast.error(error?.message || "حدث خطأ أثناء حفظ البيانات");
+      toast.error(error?.message || t("common.error", "حدث خطأ أثناء حفظ البيانات"));
     }
   };
 
@@ -122,13 +116,13 @@ export default function Users() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("هل أنت متأكد من حذف هذا المستخدم؟")) {
+    if (confirm(t("users.confirmDelete", "هل أنت متأكد من حذف هذا المستخدم؟"))) {
       try {
         await deleteMutation.mutateAsync({ id });
-        toast.success("تم حذف المستخدم بنجاح");
+        toast.success(t("users.deleteSuccess", "تم حذف المستخدم بنجاح"));
         refetch();
       } catch (error) {
-        toast.error("حدث خطأ أثناء حذف المستخدم");
+        toast.error(t("users.deleteError", "حدث خطأ أثناء حذف المستخدم"));
       }
     }
   };
@@ -136,16 +130,16 @@ export default function Users() {
   const handleResetPassword = async () => {
     if (resetUserId === null) return;
     if (resetPassword.length < 6) {
-      toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+      toast.error(t("users.passwordMinLength", "كلمة المرور يجب أن تكون 6 أحرف على الأقل"));
       return;
     }
     try {
       await resetPasswordMutation.mutateAsync({ id: resetUserId, newPassword: resetPassword });
-      toast.success("تم إعادة تعيين كلمة المرور بنجاح");
+      toast.success(t("users.resetPasswordSuccess", "تم إعادة تعيين كلمة المرور بنجاح"));
       setResetUserId(null);
       setResetPassword("");
     } catch (error) {
-      toast.error("حدث خطأ أثناء إعادة تعيين كلمة المرور");
+      toast.error(t("users.resetPasswordError", "حدث خطأ أثناء إعادة تعيين كلمة المرور"));
     }
   };
 
@@ -153,36 +147,36 @@ export default function Users() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">إدارة المستخدمين</h1>
-          <p className="text-muted-foreground mt-1">إدارة حسابات الفريق وصلاحيات الوصول إلى النظام</p>
+          <h1 className="text-3xl font-bold">{t("users.title", "إدارة المستخدمين")}</h1>
+          <p className="text-muted-foreground mt-1">{t("users.subtitle", "إدارة حسابات الفريق وصلاحيات الوصول إلى النظام")}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={(o) => { setIsOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="w-4 h-4 ml-2" />
-              إضافة مستخدم جديد
+              {t("users.addNew", "إضافة مستخدم جديد")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingId ? "تعديل المستخدم" : "إضافة مستخدم جديد"}</DialogTitle>
+              <DialogTitle>{editingId ? t("users.editTitle", "تعديل المستخدم") : t("users.addTitle", "إضافة مستخدم جديد")}</DialogTitle>
               <DialogDescription>
-                {editingId ? "قم بتحديث بيانات المستخدم" : "أدخل بيانات المستخدم الجديد وكلمة المرور"}
+                {editingId ? t("users.editDesc", "قم بتحديث بيانات المستخدم") : t("users.addDesc", "أدخل بيانات المستخدم الجديد وكلمة المرور")}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="fullName">الاسم الكامل</Label>
+                <Label htmlFor="fullName">{t("users.fullName", "الاسم الكامل")}</Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="الاسم الكامل"
+                  placeholder={t("users.fullNamePlaceholder", "الاسم الكامل")}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="username">اسم المستخدم</Label>
+                <Label htmlFor="username">{t("users.username", "اسم المستخدم")}</Label>
                 <Input
                   id="username"
                   value={formData.username}
@@ -194,14 +188,14 @@ export default function Users() {
               </div>
               {!editingId && (
                 <div>
-                  <Label htmlFor="password">كلمة المرور</Label>
+                  <Label htmlFor="password">{t("users.password", "كلمة المرور")}</Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      placeholder="6 أحرف على الأقل"
+                      placeholder={t("users.passwordPlaceholder", "6 أحرف على الأقل")}
                       required
                       minLength={6}
                     />
@@ -216,7 +210,7 @@ export default function Users() {
                 </div>
               )}
               <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <Label htmlFor="email">{t("users.email", "البريد الإلكتروني")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -226,34 +220,34 @@ export default function Users() {
                 />
               </div>
               <div>
-                <Label htmlFor="role">الدور الوظيفي</Label>
+                <Label htmlFor="role">{t("users.role", "الدور الوظيفي")}</Label>
                 <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">مدير</SelectItem>
-                    <SelectItem value="employee">موظف</SelectItem>
-                    <SelectItem value="designer">مصمم</SelectItem>
-                    <SelectItem value="editor">محرر</SelectItem>
+                    <SelectItem value="manager">{t("users.roleManager", "مدير")}</SelectItem>
+                    <SelectItem value="employee">{t("users.roleEmployee", "موظف")}</SelectItem>
+                    <SelectItem value="designer">{t("users.roleDesigner", "مصمم")}</SelectItem>
+                    <SelectItem value="editor">{t("users.roleEditor", "محرر")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="lang">اللغة المفضلة</Label>
+                <Label htmlFor="lang">{t("users.language", "اللغة المفضلة")}</Label>
                 <Select value={formData.preferredLanguage} onValueChange={(value) => setFormData({ ...formData, preferredLanguage: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ar">العربية</SelectItem>
-                    <SelectItem value="he">العبرية</SelectItem>
+                    <SelectItem value="ar">{t("users.langArabic", "العربية")}</SelectItem>
+                    <SelectItem value="he">{t("users.langHebrew", "العبرية")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="status">الحالة</Label>
+                <Label htmlFor="status">{t("users.status", "الحالة")}</Label>
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">نشط</SelectItem>
-                    <SelectItem value="disabled">معطل</SelectItem>
+                    <SelectItem value="active">{t("users.statusActive", "نشط")}</SelectItem>
+                    <SelectItem value="disabled">{t("users.statusDisabled", "معطل")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -262,10 +256,10 @@ export default function Users() {
               <div className="border rounded-lg p-3 bg-muted/30">
                 <div className="flex items-center gap-2 mb-2">
                   <ShieldCheck className="w-4 h-4 text-[#1e3a5f]" />
-                  <Label className="font-semibold">صلاحيات الوصول للأقسام</Label>
+                  <Label className="font-semibold">{t("users.permissions", "صلاحيات الوصول للأقسام")}</Label>
                 </div>
                 {formData.role === "manager" ? (
-                  <p className="text-sm text-muted-foreground">المدير لديه صلاحية الوصول لجميع الأقسام تلقائياً.</p>
+                  <p className="text-sm text-muted-foreground">{t("users.managerAllAccess", "المدير لديه صلاحية الوصول لجميع الأقسام تلقائياً.")}</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto">
                     {APP_SECTIONS.map((section) => (
@@ -285,10 +279,10 @@ export default function Users() {
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                   {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  {editingId ? "تحديث" : "إضافة"}
+                  {editingId ? t("users.update", "تحديث") : t("users.add", "إضافة")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
-                  إلغاء
+                  {t("users.cancel", "إلغاء")}
                 </Button>
               </div>
             </form>
@@ -298,8 +292,8 @@ export default function Users() {
 
       <Card>
         <CardHeader>
-          <CardTitle>قائمة المستخدمين</CardTitle>
-          <CardDescription>عدد المستخدمين: {users.length}</CardDescription>
+          <CardTitle>{t("users.listTitle", "قائمة المستخدمين")}</CardTitle>
+          <CardDescription>{t("users.userCount", "عدد المستخدمين")}: {users.length}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -308,20 +302,20 @@ export default function Users() {
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              لا يوجد مستخدمون حتى الآن. قم بإضافة مستخدم جديد للبدء.
+              {t("users.noUsers", "لا يوجد مستخدمون حتى الآن. قم بإضافة مستخدم جديد للبدء.")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>الاسم الكامل</TableHead>
-                    <TableHead>اسم المستخدم</TableHead>
-                    <TableHead>الدور</TableHead>
-                    <TableHead>الأقسام المتاحة</TableHead>
-                    <TableHead>اللغة</TableHead>
-                    <TableHead>الحالة</TableHead>
-                    <TableHead>الإجراءات</TableHead>
+                    <TableHead>{t("users.fullName", "الاسم الكامل")}</TableHead>
+                    <TableHead>{t("users.username", "اسم المستخدم")}</TableHead>
+                    <TableHead>{t("users.role", "الدور")}</TableHead>
+                    <TableHead>{t("users.sections", "الأقسام المتاحة")}</TableHead>
+                    <TableHead>{t("users.language", "اللغة")}</TableHead>
+                    <TableHead>{t("users.status", "الحالة")}</TableHead>
+                    <TableHead>{t("users.actions", "الإجراءات")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -331,36 +325,43 @@ export default function Users() {
                       <TableCell className="font-mono text-sm">{user.username}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${ROLE_LABELS[user.role] || "bg-gray-100 text-gray-800"}`}>
-                          {user.role}
+                          {user.role === "manager" ? t("users.roleManager", "مدير") : user.role === "employee" ? t("users.roleEmployee", "موظف") : user.role === "designer" ? t("users.roleDesigner", "مصمم") : t("users.roleEditor", "محرر")}
                         </span>
                       </TableCell>
                       <TableCell>
                         {user.role === "manager" ? (
-                          <span className="text-xs text-muted-foreground">كل الأقسام</span>
+                          <span className="text-xs text-muted-foreground">{t("users.allSections", "كل الأقسام")}</span>
                         ) : (
                           <span className="text-xs text-muted-foreground">
-                            {Array.isArray(user.permissions) ? `${user.permissions.length} أقسام` : "-"}
+                            {Array.isArray(user.permissions) ? `${user.permissions.length} ${t("users.sections", "أقسام")}` : "-"}
                           </span>
                         )}
                       </TableCell>
-                      <TableCell>{LANG_LABELS[user.preferredLanguage] || user.preferredLanguage}</TableCell>
+                      <TableCell>{user.preferredLanguage === "ar" ? t("users.langAr", "العربية") : t("users.langHe", "العبرية")}</TableCell>
                       <TableCell>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                           user.status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                         }`}>
-                          {user.status}
+                          {user.status === "active" ? t("users.statusActive", "نشط") : t("users.statusDisabled", "معطل")}
                         </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleEdit(user)} title="تعديل">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(user)}
+                            title={t("users.edit", "تعديل")}
+                          >
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => { setResetUserId(user.id); setResetPassword(""); }} title="إعادة تعيين كلمة المرور">
-                            <KeyRound className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDelete(user.id)} title="حذف">
-                            <Trash2 className="w-4 h-4" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(user.id)}
+                            title={t("users.delete", "حذف")}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>
                         </div>
                       </TableCell>
@@ -372,36 +373,6 @@ export default function Users() {
           )}
         </CardContent>
       </Card>
-
-      {/* نافذة إعادة تعيين كلمة المرور */}
-      <Dialog open={resetUserId !== null} onOpenChange={(o) => { if (!o) { setResetUserId(null); setResetPassword(""); } }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
-            <DialogDescription>أدخل كلمة المرور الجديدة للمستخدم</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
-              <Input
-                id="newPassword"
-                type="text"
-                value={resetPassword}
-                onChange={(e) => setResetPassword(e.target.value)}
-                placeholder="6 أحرف على الأقل"
-                minLength={6}
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleResetPassword} disabled={resetPasswordMutation.isPending}>
-                {resetPasswordMutation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                حفظ
-              </Button>
-              <Button variant="outline" onClick={() => { setResetUserId(null); setResetPassword(""); }}>إلغاء</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

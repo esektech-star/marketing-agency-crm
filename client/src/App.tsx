@@ -239,9 +239,11 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
   }, [loading, user, setLocation]);
 
   if (loading) {
+    const { t } = useTranslation();
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-20 gap-2">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
       </div>
     );
   }

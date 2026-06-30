@@ -20,9 +20,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return stored === 'he' ? 'he' : 'ar';
   });
 
-  // Hebrew + Arabic are both RTL
+  // Both Hebrew and Arabic are RTL
   const direction: Direction = 'rtl';
-  const isRTL = direction === 'rtl';
+  const isRTL = true;
 
   useEffect(() => {
     // Update HTML attributes

@@ -3,10 +3,36 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, Home } from "lucide-react";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [dir, setDir] = useState<'rtl' | 'ltr'>('rtl');
+
+  useEffect(() => {
+    const newDir = i18n.language === 'he' ? 'ltr' : 'rtl';
+    setDir(newDir);
+  }, [i18n.language]);
+
+  // Fallback translations in case i18next doesn't load
+  const translations: Record<string, Record<string, string>> = {
+    ar: {
+      title: "الصفحة غير موجودة",
+      message: "عذراً، الصفحة التي تبحث عنها غير موجودة.",
+      subMessage: "قد تكون قد نُقلت أو حُذفت.",
+      goHome: "العودة للرئيسية"
+    },
+    he: {
+      title: "הדף לא נמצא",
+      message: "מצטערים, הדף שאתה מחפש אינו קיים.",
+      subMessage: "יתכן שהוא הועבר או נמחק.",
+      goHome: "חזרה לדף הבית"
+    }
+  };
+
+  const lang = i18n.language as keyof typeof translations || 'ar';
+  const fallback = translations[lang] || translations.ar;
 
   const handleGoHome = () => {
     setLocation("/");
@@ -14,7 +40,7 @@ export default function NotFound() {
 
   return (
     <div
-      dir="rtl"
+      dir={dir}
       className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100"
     >
       <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -29,13 +55,13 @@ export default function NotFound() {
           <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
 
           <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            {t("notFound.title", "الصفحة غير موجودة")}
+            {t("notFound.title") || fallback.title}
           </h2>
 
           <p className="text-slate-600 mb-8 leading-relaxed">
-            {t("notFound.message", "عذراً، الصفحة التي تبحث عنها غير موجودة.")}
+            {t("notFound.message") || fallback.message}
             <br />
-            {t("notFound.subMessage", "قد تكون قد نُقلت أو حُذفت.")}
+            {t("notFound.subMessage") || fallback.subMessage}
           </p>
 
           <div
@@ -47,7 +73,7 @@ export default function NotFound() {
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Home className="w-4 h-4 ml-2" />
-              {t("notFound.goHome", "العودة للرئيسية")}
+              {t("notFound.goHome") || fallback.goHome}
             </Button>
           </div>
         </CardContent>
