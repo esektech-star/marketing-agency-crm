@@ -637,7 +637,11 @@
     "edit": "تعديل",
     "delete": "حذف",
     "download": "تحميل",
-    "send": "إرسال"
+    "send": "إرسال",
+    "invoiceNumberRequired": "رقم الفاتورة مطلوب",
+    "amountRequired": "المبلغ مطلوب وأكبر من صفر",
+    "dueDateRequired": "تاريخ الاستحقاق مطلوب",
+    "invalidDate": "تاريخ غير صحيح"
   },
   "clientPortal": {
     "portalTitle": "بوابة العميل",
