@@ -640,62 +640,6 @@ export const appRouter = router({
       }),
   }),
 
-  // ==================== Invoices (الفواتير) ====================
-  invoices: router({
-    list: protectedProcedure.query(async () => {
-      return await db.getInvoices();
-    }),
-    uploadFile: protectedProcedure
-      .input(z.object({
-        fileName: z.string(),
-        fileBase64: z.string(),
-        mimeType: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const base64Data = input.fileBase64.includes(",")
-          ? input.fileBase64.split(",")[1]
-          : input.fileBase64;
-        const buffer = Buffer.from(base64Data, "base64");
-        const key = `invoices/${Date.now()}-${input.fileName}`;
-        const { url } = await storagePut(key, buffer, input.mimeType);
-        return { key, url };
-      }),
-    create: protectedProcedure
-      .input(z.object({
-        invoiceNumber: z.string(),
-        relatedClient: z.number(),
-        amount: z.number(),
-        dueDate: z.date(),
-        status: z.enum(["pending", "paid", "overdue"]),
-        fileKey: z.string().optional(),
-        fileUrl: z.string().optional(),
-        notes: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        return await db.createInvoice(input);
-      }),
-    update: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        invoiceNumber: z.string().optional(),
-        relatedClient: z.number().optional(),
-        amount: z.number().optional(),
-        dueDate: z.date().optional(),
-        status: z.enum(["pending", "paid", "overdue"]).optional(),
-        fileKey: z.string().optional(),
-        fileUrl: z.string().optional(),
-        notes: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const { id, ...data } = input;
-        return await db.updateInvoice(id, data);
-      }),
-    delete: protectedProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        return await db.deleteInvoice(input.id);
-      }),
-  }),
 
   // ==================== Client Portal (بوابة العميل) ====================
   clientPortal: router({

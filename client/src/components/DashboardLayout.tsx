@@ -53,7 +53,7 @@ const getMenuItems = (t: any) => [
   { icon: Database, label: t("sidebar.backup", "النسخ الاحتياطي"), path: "/backup-schedule" },
   { icon: Bell, label: t("sidebar.alerts", "التنبيهات"), path: "/alerts" },
   { icon: FolderOpen, label: t("sidebar.documents", "مكتبة الملفات"), path: "/documents" },
-  { icon: Receipt, label: t("sidebar.invoices", "الفواتير"), path: "/invoices" },
+
   { icon: KeyRound, label: t("sidebar.accessDetails", "تفاصيل الوصول"), path: "/access-details" },
   { icon: UserCog, label: t("sidebar.users", "المستخدمون"), path: "/users", adminOnly: true },
 ];

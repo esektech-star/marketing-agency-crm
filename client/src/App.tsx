@@ -25,7 +25,7 @@ import Campaigns from "./pages/Campaigns";
 import MetaCampaigns from "./pages/MetaCampaigns";
 import Users from "./pages/Users";
 import Documents from "@/pages/Documents";
-import Invoices from "@/pages/Invoices";
+
 import ActivityFeed from "@/pages/ActivityFeed";
 import BackupSchedule from "@/pages/BackupSchedule";
 import Alerts from "@/pages/Alerts";
@@ -79,13 +79,7 @@ function Router() {
           </DashboardLayout>
         )}
       </Route>
-      <Route path={"/invoices"}>
-        {() => (
-          <DashboardLayout>
-            <Invoices />
-          </DashboardLayout>
-        )}
-      </Route>
+
       <Route path={"/dashboard"}>
         {() => (
           <DashboardLayout>

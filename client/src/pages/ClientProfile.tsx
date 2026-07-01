@@ -25,7 +25,7 @@ export default function ClientProfile() {
 
   const { data: campaigns = [] } = trpc.campaigns.list.useQuery();
   const { data: tasks = [] } = trpc.tasks.list.useQuery();
-  const { data: invoices = [] } = trpc.invoices.list.useQuery();
+
 
   const deleteMutation = trpc.clients.delete.useMutation();
 
@@ -43,7 +43,6 @@ export default function ClientProfile() {
 
   const clientCampaigns = campaigns.filter((c: any) => c.clientId === clientId);
   const clientTasks = tasks.filter((t: any) => t.clientId === clientId);
-  const clientInvoices = invoices.filter((i: any) => i.clientId === clientId);
 
   if (isLoading) {
     return (
@@ -117,7 +116,7 @@ export default function ClientProfile() {
           <TabsTrigger value="campaigns">{t("clients.campaigns", "Campaigns")}</TabsTrigger>
           <TabsTrigger value="tasks">{t("clients.tasks", "Tasks")}</TabsTrigger>
           <TabsTrigger value="strategy">{t("clients.strategy", "Strategy")}</TabsTrigger>
-          <TabsTrigger value="invoices">{t("clients.invoices", "Invoices")}</TabsTrigger>
+
           <TabsTrigger value="timeline">{t("clients.timeline", "Timeline")}</TabsTrigger>
           <TabsTrigger value="chat">{t("clients.aiChat", "AI Chat")}</TabsTrigger>
         </TabsList>
@@ -285,28 +284,7 @@ export default function ClientProfile() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="invoices" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("clients.invoices", "Invoices")}</CardTitle>
-              <CardDescription>{t("common.total")}: {clientInvoices.length}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {clientInvoices.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">{t("common.empty")}</p>
-              ) : (
-                <div className="space-y-2">
-                  {clientInvoices.map((invoice: any) => (
-                    <div key={invoice.id} className="p-3 border rounded-lg">
-                      <p className="font-medium">{invoice.invoiceNumber}</p>
-                      <p className="text-sm text-muted-foreground">₪{typeof invoice.amount === 'number' ? (invoice.amount as number).toFixed(2) : invoice.amount || "0.00"}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         <TabsContent value="timeline" className="space-y-4">
           <Card>
