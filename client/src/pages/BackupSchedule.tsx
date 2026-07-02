@@ -180,7 +180,7 @@ export default function BackupSchedule() {
                   {t("backup.addSchedule", "Add Schedule")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingId ? t("common.edit", "Edit") : t("common.add", "Add")} {t("backup.schedule", "Schedule")}</DialogTitle>
                   <DialogDescription>{t("backup.scheduleDesc", "Configure backup schedule and retention")}</DialogDescription>

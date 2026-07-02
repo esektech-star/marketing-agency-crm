@@ -222,7 +222,7 @@ export default function Onboarding() {
         )}
 
         <Dialog open={showProposal} onOpenChange={setShowProposal}>
-          <DialogContent className="max-w-2xl" dir="rtl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>{t("onboarding.proposal", "العرض")}</DialogTitle>
               <DialogDescription>{t("onboarding.proposalDesc", "تم إنشاء العرض بناءً على احتياجاتك")}</DialogDescription>

@@ -235,7 +235,8 @@
     "taskDesc": "פריטי עבודה שהוקצו",
     "tasks": "משימות",
     "tasksCreated": "משימות שנוצרו",
-    "timeline": "ציר זמן"
+    "timeline": "ציר זמן",
+    "paymentDayOfMonth": "יום התשלום בחודש"
   },
   "vendors": {
     "title": "ניהול ספקים",

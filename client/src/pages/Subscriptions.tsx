@@ -139,7 +139,7 @@ export default function Subscriptions() {
               {t("common.add")}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? t("common.edit") : t("common.add")} {t("sidebar.subscriptions") || "منوي"}</DialogTitle>
               <DialogDescription>{t("common.fillForm")}</DialogDescription>

@@ -212,7 +212,8 @@
     "taskDesc": "عناصر العمل المُسندة",
     "tasks": "المهام",
     "tasksCreated": "المهام التي تم إنشاؤها",
-    "timeline": "الخط الزمني"
+    "timeline": "الخط الزمني",
+    "paymentDayOfMonth": "يوم الدفع في الشهر"
   },
   "vendors": {
     "title": "إدارة المورّدين",

@@ -228,7 +228,7 @@ export default function Alerts() {
                   {t("alerts.newRule", "قاعدة جديدة")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md" dir="rtl">
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" dir="rtl">
                 <DialogHeader>
                   <DialogTitle>{t("alerts.createRule", "إنشاء قاعدة تنبيه")}</DialogTitle>
                   <DialogDescription>{t("alerts.ruleDescription", "إعداد قاعدة تنبيه أداء جديدة")}</DialogDescription>

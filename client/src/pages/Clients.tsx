@@ -337,12 +337,15 @@ export default function Clients() {
                 />
               </div>
               <div>
-                <Label htmlFor="paymentDate">{t("clients.paymentDate", "Payment Date")}</Label>
+                <Label htmlFor="paymentDate">{t("clients.paymentDayOfMonth", "Payment Day of Month")}</Label>
                 <Input
                   id="paymentDate"
-                  type="date"
+                  type="number"
+                  min="1"
+                  max="31"
                   value={formData.paymentDate}
                   onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                  placeholder="1-31"
                 />
               </div>
               <div>
